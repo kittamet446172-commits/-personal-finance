@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(npm install *)",
-      "Bash(npm audit *)"
+      "Bash(npm audit *)",
+      "PowerShell(Stop-Process *)",
+      "Bash(npm run *)",
+      "PowerShell(Get-NetTCPConnection *)",
+      "Bash(node -e ' *)"
     ]
   }
 }

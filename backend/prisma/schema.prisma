@@ -24,6 +24,7 @@ model User {
   Category  Category[]
   Transaction Transaction[]
   Budget    Budget[]
+  Transfer  Transfer[]
 
   @@map("users")
 }
@@ -86,8 +87,10 @@ model FinanceAccount {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions Transaction[]
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions      Transaction[]
+  transfersFrom     Transfer[]    @relation("TransferFrom")
+  transfersTo       Transfer[]    @relation("TransferTo")
 
   @@map("finance_accounts")
 }
@@ -146,6 +149,24 @@ model Budget {
 
   @@unique([userId, categoryId, month, year])
   @@map("budgets")
+}
+
+model Transfer {
+  id            String   @id @default(cuid())
+  userId        String
+  fromAccountId String
+  toAccountId   String
+  amount        Decimal  @db.Decimal(15, 2)
+  date          DateTime
+  description   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fromAccount FinanceAccount @relation("TransferFrom", fields: [fromAccountId], references: [id])
+  toAccount   FinanceAccount @relation("TransferTo", fields: [toAccountId], references: [id])
+
+  @@map("transfers")
 }
 
 // ─── Enums ────────────────────────────────────────────────────────────────────

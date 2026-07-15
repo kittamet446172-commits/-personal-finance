@@ -133,11 +133,12 @@ export default function ReportsPage() {
               ไม่มีข้อมูล
             </p>
           ) : (
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={Math.max(120, breakdownData.length * 48)}>
               <BarChart
                 data={breakdownData}
                 layout="vertical"
                 margin={{ left: 16, right: 32 }}
+                barSize={24}
               >
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                 <XAxis
@@ -148,7 +149,7 @@ export default function ReportsPage() {
                 />
                 <YAxis type="category" dataKey="name" width={120} tick={{ fontSize: 12 }} />
                 <Tooltip
-                  formatter={(value: number) => [formatCurrency(value), 'จำนวน']}
+                  formatter={(value: unknown) => [formatCurrency(Number(value)), 'จำนวน']}
                 />
                 <Bar dataKey="amount" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
               </BarChart>
@@ -181,7 +182,7 @@ export default function ReportsPage() {
                   v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)
                 }
               />
-              <Tooltip formatter={(value: number) => formatCurrency(value)} />
+              <Tooltip formatter={(value: unknown) => formatCurrency(Number(value))} />
               <Legend />
               <Line type="monotone" dataKey="รายรับ" stroke="#16a34a" strokeWidth={2} dot={false} />
               <Line type="monotone" dataKey="รายจ่าย" stroke="#dc2626" strokeWidth={2} dot={false} />

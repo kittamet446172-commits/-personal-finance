@@ -19,10 +19,23 @@ export function useCategories(type?: TransactionType) {
   })
 }
 
+interface CreateCategoryDto {
+  name: string
+  type: TransactionType
+  icon?: string
+  color?: string
+}
+
+interface UpdateCategoryDto {
+  name?: string
+  icon?: string
+  color?: string
+}
+
 export function useCreateCategory() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: Omit<Category, 'id' | 'isDefault'>) =>
+    mutationFn: (data: CreateCategoryDto) =>
       api.post<Category>('/categories', data),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: categoryKeys.all }),
@@ -32,7 +45,7 @@ export function useCreateCategory() {
 export function useUpdateCategory() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, ...data }: Partial<Category> & { id: string }) =>
+    mutationFn: ({ id, ...data }: UpdateCategoryDto & { id: string }) =>
       api.patch<Category>(`/categories/${id}`, data),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: categoryKeys.all }),

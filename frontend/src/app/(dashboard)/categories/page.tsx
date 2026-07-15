@@ -20,13 +20,6 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import type { Category, TransactionType } from '@/types'
 
 interface FormState {
@@ -73,16 +66,20 @@ export default function CategoriesPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const data = {
-      name: form.name,
-      type: form.type,
-      icon: form.icon || undefined,
-      color: form.color || undefined,
-    }
     if (editing) {
-      await updateMutation.mutateAsync({ id: editing.id, ...data })
+      await updateMutation.mutateAsync({
+        id: editing.id,
+        name: form.name,
+        icon: form.icon || undefined,
+        color: form.color || undefined,
+      })
     } else {
-      await createMutation.mutateAsync(data)
+      await createMutation.mutateAsync({
+        name: form.name,
+        type: form.type,
+        icon: form.icon || undefined,
+        color: form.color || undefined,
+      })
     }
     setOpen(false)
   }
@@ -180,36 +177,19 @@ export default function CategoriesPage() {
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 disabled={!!editing?.isDefault}
+                autoComplete="off"
                 required
               />
             </div>
-            {!editing && (
-              <div className="space-y-2">
-                <Label>ประเภท</Label>
-                <Select
-                  value={form.type}
-                  onValueChange={(v) =>
-                    setForm({ ...form, type: v as TransactionType })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="INCOME">รายรับ</SelectItem>
-                    <SelectItem value="EXPENSE">รายจ่าย</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>ไอคอน (emoji)</Label>
+                <Label>Emoji</Label>
                 <Input
                   value={form.icon}
                   onChange={(e) => setForm({ ...form, icon: e.target.value })}
                   placeholder="เช่น 🍔"
                   maxLength={4}
+                  autoComplete="off"
                 />
               </div>
               <div className="space-y-2">
@@ -222,6 +202,29 @@ export default function CategoriesPage() {
                 />
               </div>
             </div>
+            {!editing && (
+              <div className="space-y-2">
+                <Label>ประเภท</Label>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={form.type === 'INCOME' ? 'default' : 'outline'}
+                    className="flex-1"
+                    onClick={() => setForm({ ...form, type: 'INCOME' })}
+                  >
+                    รายรับ
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={form.type === 'EXPENSE' ? 'default' : 'outline'}
+                    className="flex-1"
+                    onClick={() => setForm({ ...form, type: 'EXPENSE' })}
+                  >
+                    รายจ่าย
+                  </Button>
+                </div>
+              </div>
+            )}
             <DialogFooter>
               <Button
                 type="button"

@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Pencil, Plus, Trash2, Wallet } from 'lucide-react'
+import { ArrowLeftRight, Pencil, Plus, Trash2, Wallet } from 'lucide-react'
+import { TransferDialog } from '@/components/transfers/transfer-dialog'
 import {
   useAccounts,
   useCreateAccount,
@@ -21,13 +22,6 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import type { Account, AccountType } from '@/types'
 
 const TYPE_LABELS: Record<AccountType, string> = {
@@ -79,16 +73,20 @@ export default function AccountsPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const data = {
-      name: form.name,
-      type: form.type,
-      balance: Number(form.balance),
-      description: form.description || undefined,
-    }
     if (editing) {
-      await updateMutation.mutateAsync({ id: editing.id, ...data })
+      await updateMutation.mutateAsync({
+        id: editing.id,
+        name: form.name,
+        type: form.type,
+        description: form.description || undefined,
+      })
     } else {
-      await createMutation.mutateAsync(data)
+      await createMutation.mutateAsync({
+        name: form.name,
+        type: form.type,
+        balance: Number(form.balance),
+        description: form.description || undefined,
+      })
     }
     setOpen(false)
   }
@@ -98,6 +96,7 @@ export default function AccountsPage() {
     await deleteMutation.mutateAsync(id)
   }
 
+  const [transferOpen, setTransferOpen] = useState(false)
   const totalBalance = accounts.reduce((sum, a) => sum + Number(a.balance), 0)
   const isPending = createMutation.isPending || updateMutation.isPending
 
@@ -110,10 +109,16 @@ export default function AccountsPage() {
             ยอดรวม {formatCurrency(totalBalance)}
           </p>
         </div>
-        <Button onClick={openCreate}>
-          <Plus className="h-4 w-4 mr-2" />
-          เพิ่มบัญชี
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setTransferOpen(true)}>
+            <ArrowLeftRight className="h-4 w-4 mr-2" />
+            โอนเงิน
+          </Button>
+          <Button onClick={openCreate}>
+            <Plus className="h-4 w-4 mr-2" />
+            เพิ่มบัญชี
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -187,21 +192,19 @@ export default function AccountsPage() {
             </div>
             <div className="space-y-2">
               <Label>ประเภท</Label>
-              <Select
-                value={form.type}
-                onValueChange={(v) => setForm({ ...form, type: v as AccountType })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {(Object.keys(TYPE_LABELS) as AccountType[]).map((t) => (
-                    <SelectItem key={t} value={t}>
-                      {TYPE_LABELS[t]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2">
+                {(Object.keys(TYPE_LABELS) as AccountType[]).map((t) => (
+                  <Button
+                    key={t}
+                    type="button"
+                    variant={form.type === t ? 'default' : 'outline'}
+                    className="flex-1"
+                    onClick={() => setForm({ ...form, type: t })}
+                  >
+                    {TYPE_LABELS[t]}
+                  </Button>
+                ))}
+              </div>
             </div>
             {!editing && (
               <div className="space-y-2">
@@ -212,6 +215,7 @@ export default function AccountsPage() {
                   min="0"
                   value={form.balance}
                   onChange={(e) => setForm({ ...form, balance: e.target.value })}
+                  onFocus={(e) => e.target.select()}
                 />
               </div>
             )}
@@ -236,6 +240,8 @@ export default function AccountsPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <TransferDialog open={transferOpen} onClose={() => setTransferOpen(false)} />
     </div>
   )
 }

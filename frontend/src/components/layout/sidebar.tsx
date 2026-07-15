@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
+  ArrowLeftRight,
   BarChart3,
   DollarSign,
   LayoutDashboard,
@@ -21,6 +22,7 @@ const navItems = [
   { href: '/accounts', label: 'บัญชี', icon: Wallet },
   { href: '/income', label: 'รายรับ', icon: TrendingUp },
   { href: '/expense', label: 'รายจ่าย', icon: TrendingDown },
+  { href: '/transfers', label: 'โอนเงิน', icon: ArrowLeftRight },
   { href: '/categories', label: 'หมวดหมู่', icon: Tag },
   { href: '/budget', label: 'งบประมาณ', icon: Target },
   { href: '/reports', label: 'รายงาน', icon: BarChart3 },

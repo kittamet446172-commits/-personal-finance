@@ -52,6 +52,18 @@ export interface Budget {
   remaining: number
 }
 
+export interface Transfer {
+  id: string
+  fromAccountId: string
+  toAccountId: string
+  amount: number
+  date: string
+  description?: string
+  createdAt: string
+  fromAccount?: Pick<Account, 'id' | 'name'>
+  toAccount?: Pick<Account, 'id' | 'name'>
+}
+
 export interface Paginated<T> {
   data: T[]
   total: number

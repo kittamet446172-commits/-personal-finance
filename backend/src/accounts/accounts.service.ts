@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   ForbiddenException,
@@ -49,6 +50,20 @@ export class AccountsService {
 
   async delete(id: string, userId: string) {
     await this.findOne(id, userId);
+
+    const [txCount, transferCount] = await Promise.all([
+      this.prisma.transaction.count({ where: { accountId: id } }),
+      this.prisma.transfer.count({
+        where: { OR: [{ fromAccountId: id }, { toAccountId: id }] },
+      }),
+    ]);
+
+    if (txCount > 0 || transferCount > 0) {
+      throw new BadRequestException(
+        'ไม่สามารถลบบัญชีที่มีรายการธุรกรรมหรือการโอนเงินได้',
+      );
+    }
+
     return this.prisma.financeAccount.delete({ where: { id } });
   }
 

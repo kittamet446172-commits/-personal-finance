@@ -117,7 +117,7 @@ export default function DashboardPage() {
                   v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)
                 }
               />
-              <Tooltip formatter={(value: number) => formatCurrency(value)} />
+              <Tooltip formatter={(value: unknown) => formatCurrency(Number(value))} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
               <Bar dataKey="รายรับ" fill="#16a34a" radius={[4, 4, 0, 0]} />
               <Bar dataKey="รายจ่าย" fill="#dc2626" radius={[4, 4, 0, 0]} />
@@ -155,7 +155,7 @@ export default function DashboardPage() {
                       <Cell key={i} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                  <Tooltip formatter={(value: unknown) => formatCurrency(Number(value))} />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
                 </PieChart>
               </ResponsiveContainer>

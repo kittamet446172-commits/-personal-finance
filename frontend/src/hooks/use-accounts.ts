@@ -15,10 +15,23 @@ export function useAccounts() {
   })
 }
 
+interface CreateAccountDto {
+  name: string
+  type: Account['type']
+  balance: number
+  description?: string
+}
+
+interface UpdateAccountDto {
+  name?: string
+  type?: Account['type']
+  description?: string
+}
+
 export function useCreateAccount() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: Omit<Account, 'id' | 'createdAt' | 'updatedAt'>) =>
+    mutationFn: (data: CreateAccountDto) =>
       api.post<Account>('/accounts', data),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: accountKeys.all }),
@@ -28,7 +41,7 @@ export function useCreateAccount() {
 export function useUpdateAccount() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, ...data }: Partial<Account> & { id: string }) =>
+    mutationFn: ({ id, ...data }: UpdateAccountDto & { id: string }) =>
       api.patch<Account>(`/accounts/${id}`, data),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: accountKeys.all }),

@@ -62,12 +62,30 @@ export function useMonthlyStats(month: number, year: number) {
   })
 }
 
+interface CreateTransactionDto {
+  type: TransactionType
+  amount: number
+  date: string
+  categoryId: string
+  accountId: string
+  merchant?: string
+  description?: string
+}
+
+interface UpdateTransactionDto {
+  amount?: number
+  date?: string
+  categoryId?: string
+  accountId?: string
+  merchant?: string
+  description?: string
+}
+
 export function useCreateTransaction() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (
-      data: Omit<Transaction, 'id' | 'createdAt' | 'category' | 'account'>,
-    ) => api.post<Transaction>('/transactions', data),
+    mutationFn: (data: CreateTransactionDto) =>
+      api.post<Transaction>('/transactions', data),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: transactionKeys.all }),
   })
@@ -76,7 +94,7 @@ export function useCreateTransaction() {
 export function useUpdateTransaction() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, ...data }: Partial<Transaction> & { id: string }) =>
+    mutationFn: ({ id, ...data }: UpdateTransactionDto & { id: string }) =>
       api.patch<Transaction>(`/transactions/${id}`, data),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: transactionKeys.all }),
