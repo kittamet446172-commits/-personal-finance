@@ -1,14 +1,18 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { LogOut, Menu, User } from 'lucide-react'
+import { LogOut, Menu, Moon, Sun } from 'lucide-react'
+import { useTheme } from 'next-themes'
 import { signOut, useSession } from '@/lib/auth-client'
 import { useUiStore } from '@/store/ui.store'
 import { Button } from '@/components/ui/button'
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'
+
 export function Navbar() {
   const { data: session } = useSession()
   const router = useRouter()
+  const { theme, setTheme } = useTheme()
   const { toggleSidebar } = useUiStore()
 
   async function handleSignOut() {
@@ -16,17 +20,40 @@ export function Navbar() {
     router.push('/login')
   }
 
+  const userImage = (session?.user as { image?: string | null })?.image
+
   return (
     <header className="flex h-14 items-center justify-between border-b bg-card px-4">
-      <Button variant="ghost" size="icon" onClick={toggleSidebar}>
+      {/* Mobile hamburger */}
+      <Button variant="ghost" size="icon" onClick={toggleSidebar} className="md:hidden">
         <Menu className="h-5 w-5" />
       </Button>
+      <div className="flex items-center gap-2 ml-auto">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          title="เปลี่ยน theme"
+        >
+          {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </Button>
 
-      <div className="flex items-center gap-2">
-        <User className="h-4 w-4 text-muted-foreground" />
+        {userImage ? (
+          <img
+            src={`${API_URL}${userImage}`}
+            alt="avatar"
+            className="h-7 w-7 rounded-full object-cover"
+          />
+        ) : (
+          <div className="h-7 w-7 rounded-full bg-primary flex items-center justify-center text-xs font-medium text-primary-foreground">
+            {session?.user.name?.[0]?.toUpperCase() ?? 'U'}
+          </div>
+        )}
+
         <span className="text-sm text-muted-foreground">
           {session?.user.name}
         </span>
+
         <Button
           variant="ghost"
           size="icon"

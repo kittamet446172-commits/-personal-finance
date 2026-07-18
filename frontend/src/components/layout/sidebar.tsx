@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -7,6 +8,7 @@ import {
   BarChart3,
   DollarSign,
   LayoutDashboard,
+  Menu,
   Settings,
   Tag,
   Target,
@@ -16,6 +18,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUiStore } from '@/store/ui.store'
+import { Button } from '@/components/ui/button'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -31,37 +34,74 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname()
-  const { sidebarOpen } = useUiStore()
+  const { sidebarOpen, toggleSidebar, setSidebarOpen } = useUiStore()
+
+  // ปิด sidebar บนมือถือตอน mount
+  useEffect(() => {
+    if (window.innerWidth < 768) setSidebarOpen(false)
+  }, [setSidebarOpen])
+
+  // ปิด sidebar เมื่อเปลี่ยนหน้าบนมือถือ
+  useEffect(() => {
+    if (window.innerWidth < 768) setSidebarOpen(false)
+  }, [pathname, setSidebarOpen])
 
   return (
-    <aside
-      className={cn(
-        'flex flex-col border-r bg-card transition-all duration-300 shrink-0',
-        sidebarOpen ? 'w-60' : 'w-16',
+    <>
+      {/* Backdrop มือถือ */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
       )}
-    >
-      <div className="flex h-14 items-center gap-2 border-b px-4">
-        <DollarSign className="h-6 w-6 shrink-0 text-primary" />
-        {sidebarOpen && <span className="font-bold text-lg">Finance</span>}
-      </div>
 
-      <nav className="flex-1 space-y-1 p-2">
-        {navItems.map(({ href, label, icon: Icon }) => (
-          <Link
-            key={href}
-            href={href}
-            className={cn(
-              'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-              pathname === href
-                ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
-            )}
+      <aside
+        className={cn(
+          'flex flex-col border-r bg-card transition-all duration-300',
+          // มือถือ: fixed overlay
+          'fixed inset-y-0 left-0 z-50 w-64',
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+          // desktop: static
+          'md:relative md:translate-x-0 md:shrink-0',
+          sidebarOpen ? 'md:w-60' : 'md:w-16',
+        )}
+      >
+        <div className="flex h-14 items-center justify-between border-b px-4">
+          {sidebarOpen && (
+            <div className="flex items-center gap-2">
+              <DollarSign className="h-6 w-6 shrink-0 text-primary" />
+              <span className="font-bold text-lg">Finance</span>
+            </div>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            className={cn(!sidebarOpen && 'mx-auto')}
           >
-            <Icon className="h-4 w-4 shrink-0" />
-            {sidebarOpen && <span>{label}</span>}
-          </Link>
-        ))}
-      </nav>
-    </aside>
+            <Menu className="h-5 w-5" />
+          </Button>
+        </div>
+
+        <nav className="flex-1 space-y-1 p-2">
+          {navItems.map(({ href, label, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              className={cn(
+                'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                pathname === href
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+              )}
+            >
+              <Icon className="h-4 w-4 shrink-0" />
+              {sidebarOpen && <span>{label}</span>}
+            </Link>
+          ))}
+        </nav>
+      </aside>
+    </>
   )
 }
