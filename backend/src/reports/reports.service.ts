@@ -66,6 +66,69 @@ export class ReportsService {
     }));
   }
 
+  async getDailyBreakdown(
+    userId: string,
+    month: number,
+    year: number,
+    type: TransactionType,
+  ) {
+    const start = new Date(year, month - 1, 1);
+    const end = new Date(year, month, 1);
+
+    const transactions = await this.prisma.transaction.findMany({
+      where: { userId, type, date: { gte: start, lt: end } },
+      select: {
+        amount: true,
+        date: true,
+        categoryId: true,
+        category: { select: { id: true, name: true, icon: true, color: true } },
+      },
+      orderBy: { date: 'asc' },
+    });
+
+    type CatEntry = {
+      category: { id: string; name: string; icon: string | null; color: string | null } | null;
+      amount: number;
+    };
+
+    const dayMap = new Map<number, Map<string, CatEntry>>();
+
+    for (const t of transactions) {
+      const day = t.date.getDate();
+      if (!dayMap.has(day)) dayMap.set(day, new Map());
+      const catMap = dayMap.get(day)!;
+      const key = t.categoryId ?? '__none__';
+      if (!catMap.has(key)) catMap.set(key, { category: t.category, amount: 0 });
+      catMap.get(key)!.amount += Number(t.amount);
+    }
+
+    const days: Array<{
+      day: number;
+      total: number;
+      categories: Array<{
+        category: CatEntry['category'];
+        amount: number;
+        percentage: number;
+      }>;
+    }> = [];
+
+    for (const [day, catMap] of dayMap.entries()) {
+      const cats = [...catMap.values()].sort((a, b) => b.amount - a.amount);
+      const total = cats.reduce((sum, c) => sum + c.amount, 0);
+      days.push({
+        day,
+        total,
+        categories: cats.map((c) => ({
+          category: c.category,
+          amount: c.amount,
+          percentage: total > 0 ? (c.amount / total) * 100 : 0,
+        })),
+      });
+    }
+
+    return days.sort((a, b) => a.day - b.day);
+  }
+
   async getYearlyTrend(userId: string, year: number) {
     const start = new Date(year, 0, 1);
     const end = new Date(year + 1, 0, 1);

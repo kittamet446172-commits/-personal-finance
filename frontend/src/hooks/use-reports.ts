@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
-import type { CategoryBreakdown, MonthlySummary, TransactionType, YearlyTrend } from '@/types'
+import type { CategoryBreakdown, DayBreakdown, MonthlySummary, TransactionType, YearlyTrend } from '@/types'
 
 export function useMonthlySummary(month: number, year: number) {
   return useQuery({
@@ -22,6 +22,20 @@ export function useCategoryBreakdown(
     queryFn: () =>
       api.get<CategoryBreakdown[]>(
         `/reports/category-breakdown?month=${month}&year=${year}&type=${type}`,
+      ),
+  })
+}
+
+export function useDailyBreakdown(
+  month: number,
+  year: number,
+  type: TransactionType = 'EXPENSE',
+) {
+  return useQuery({
+    queryKey: ['reports', 'daily-breakdown', month, year, type],
+    queryFn: () =>
+      api.get<DayBreakdown[]>(
+        `/reports/daily-breakdown?month=${month}&year=${year}&type=${type}`,
       ),
   })
 }

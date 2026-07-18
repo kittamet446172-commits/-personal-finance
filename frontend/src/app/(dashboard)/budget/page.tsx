@@ -212,7 +212,7 @@ export default function BudgetPage() {
                   <SelectTrigger>
                     <SelectValue placeholder="เลือกหมวดหมู่" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-60 overflow-y-auto">
                     {categories.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
                         {c.icon} {c.name}

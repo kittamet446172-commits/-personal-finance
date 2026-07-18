@@ -92,7 +92,7 @@ export function TransferDialog({ open, onClose }: Props) {
                 <SelectTrigger>
                   <SelectValue placeholder="เลือกบัญชี" />
                 </SelectTrigger>
-                <SelectContent position="popper">
+                <SelectContent position="popper" sideOffset={4} className="bg-white dark:bg-zinc-900">
                   {accounts.map((a) => (
                     <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
                   ))}
@@ -108,7 +108,7 @@ export function TransferDialog({ open, onClose }: Props) {
                 <SelectTrigger>
                   <SelectValue placeholder="เลือกบัญชี" />
                 </SelectTrigger>
-                <SelectContent position="popper">
+                <SelectContent position="popper" sideOffset={4} className="bg-white dark:bg-zinc-900">
                   {toAccounts.map((a) => (
                     <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
                   ))}

@@ -1,4 +1,4 @@
-# Personal Finance App
+่# Personal Finance App
 
 Full-stack personal finance web application. Built for personal use.
 

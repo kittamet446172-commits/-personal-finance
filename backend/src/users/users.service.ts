@@ -8,7 +8,7 @@ export class UsersService {
   async findById(id: string) {
     return this.prisma.user.findUnique({
       where: { id },
-      select: { id: true, name: true, email: true, createdAt: true },
+      select: { id: true, name: true, email: true, image: true, createdAt: true },
     });
   }
 
@@ -16,7 +16,15 @@ export class UsersService {
     return this.prisma.user.update({
       where: { id },
       data: { name: data.name },
-      select: { id: true, name: true, email: true, updatedAt: true },
+      select: { id: true, name: true, email: true, image: true, updatedAt: true },
+    });
+  }
+
+  async updateAvatar(id: string, imageUrl: string) {
+    return this.prisma.user.update({
+      where: { id },
+      data: { image: imageUrl },
+      select: { id: true, name: true, email: true, image: true, updatedAt: true },
     });
   }
 }

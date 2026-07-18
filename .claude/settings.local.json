@@ -6,7 +6,27 @@
       "PowerShell(Stop-Process *)",
       "Bash(npm run *)",
       "PowerShell(Get-NetTCPConnection *)",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(git remote *)",
+      "Bash(git branch *)",
+      "Bash(git push *)",
+      "PowerShell(cd \"C:\\\\Users\\\\LENOVO\\\\OneDrive - Rajamangala University of Technology Lanna\\\\Desktop\\\\personal-finance\" ; git add frontend/src/app/\\(dashboard\\)/dashboard/page.tsx frontend/src/app/\\(dashboard\\)/reports/page.tsx frontend/src/components/layout/sidebar.tsx frontend/src/app/\\(dashboard\\)/transfers/ 2>&1)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(npx tsc *)",
+      "Bash(npm list *)",
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
+      "Bash(xargs grep -l \"useSession\")",
+      "Bash(xargs grep -l \"upload\\\\|file\\\\|FormData\\\\|multer\")",
+      "Bash(xargs grep -l \"image\\\\|avatar\\\\|upload\")",
+      "Bash(xargs head -30)",
+      "Skill(run)",
+      "PowerShell(Start-Process powershell -ArgumentList '-NoExit', '-Command', 'cd \"C:\\\\Users\\\\LENOVO\\\\OneDrive - Rajamangala University of Technology Lanna\\\\Desktop\\\\personal-finance\\\\backend\"; npm run start:dev' -WindowStyle Normal)",
+      "Bash(git commit *)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\({k: d.get\\(k\\) for k in ['name','version','main','module','exports']}, indent=2\\)\\)\")",
+      "Bash(npm ls *)",
+      "PowerShell(head *)",
+      "PowerShell(git add *)"
     ]
   }
 }

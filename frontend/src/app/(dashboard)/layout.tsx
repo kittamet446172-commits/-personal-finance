@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useSession } from '@/lib/auth-client'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Navbar } from '@/components/layout/navbar'
+import { QuickAddButton } from '@/components/quick-add-button'
 
 export default function DashboardLayout({
   children,
@@ -35,8 +36,9 @@ export default function DashboardLayout({
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Navbar />
-        <main className="flex-1 overflow-y-auto p-6 bg-muted/20">
+        <main className="flex-1 overflow-y-auto p-6 bg-slate-100 dark:bg-muted/20">
           {children}
+          <QuickAddButton />
         </main>
       </div>
     </div>

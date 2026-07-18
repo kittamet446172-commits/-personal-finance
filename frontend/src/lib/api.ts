@@ -32,6 +32,22 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return (json as { data: T }).data
 }
 
+async function uploadFile<T>(path: string, formData: FormData): Promise<T> {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method: 'POST',
+    credentials: 'include',
+    body: formData,
+  })
+  const json = await res.json()
+  if (!res.ok) {
+    throw new ApiError(
+      res.status,
+      (json as { message?: string }).message ?? 'Request failed',
+    )
+  }
+  return (json as { data: T }).data
+}
+
 export const api = {
   get: <T>(path: string) => request<T>(path),
   post: <T>(path: string, body: unknown) =>
@@ -39,4 +55,5 @@ export const api = {
   patch: <T>(path: string, body: unknown) =>
     request<T>(path, { method: 'PATCH', body: JSON.stringify(body) }),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
+  upload: <T>(path: string, body: FormData) => uploadFile<T>(path, body),
 }

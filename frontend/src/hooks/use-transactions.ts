@@ -81,13 +81,18 @@ interface UpdateTransactionDto {
   description?: string
 }
 
+function invalidateAll(queryClient: ReturnType<typeof useQueryClient>) {
+  queryClient.invalidateQueries({ queryKey: transactionKeys.all })
+  queryClient.invalidateQueries({ queryKey: ['reports'] })
+  queryClient.invalidateQueries({ queryKey: ['accounts'] })
+}
+
 export function useCreateTransaction() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (data: CreateTransactionDto) =>
       api.post<Transaction>('/transactions', data),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: transactionKeys.all }),
+    onSuccess: () => invalidateAll(queryClient),
   })
 }
 
@@ -96,8 +101,7 @@ export function useUpdateTransaction() {
   return useMutation({
     mutationFn: ({ id, ...data }: UpdateTransactionDto & { id: string }) =>
       api.patch<Transaction>(`/transactions/${id}`, data),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: transactionKeys.all }),
+    onSuccess: () => invalidateAll(queryClient),
   })
 }
 
@@ -105,7 +109,6 @@ export function useDeleteTransaction() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => api.delete<Transaction>(`/transactions/${id}`),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: transactionKeys.all }),
+    onSuccess: () => invalidateAll(queryClient),
   })
 }

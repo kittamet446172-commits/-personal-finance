@@ -40,6 +40,22 @@ export class ReportsController {
     );
   }
 
+  @Get('daily-breakdown')
+  getDailyBreakdown(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query('month') month: string,
+    @Query('year') year: string,
+    @Query('type') type: TransactionType = TransactionType.EXPENSE,
+  ) {
+    const now = new Date();
+    return this.reportsService.getDailyBreakdown(
+      user.id,
+      month ? Number(month) : now.getMonth() + 1,
+      year ? Number(year) : now.getFullYear(),
+      type,
+    );
+  }
+
   @Get('trend')
   getYearlyTrend(
     @CurrentUser() user: AuthenticatedUser,

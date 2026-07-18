@@ -5,6 +5,7 @@ export interface User {
   id: string
   name: string
   email: string
+  image?: string | null
   createdAt: string
 }
 
@@ -97,4 +98,10 @@ export interface MonthTrend {
 export interface YearlyTrend {
   year: number
   months: MonthTrend[]
+}
+
+export interface DayBreakdown {
+  day: number
+  total: number
+  categories: CategoryBreakdown[]
 }
