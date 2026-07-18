@@ -155,7 +155,7 @@ export default function ReportsPage() {
 
       {/* Category breakdown */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle>สัดส่วนตามหมวดหมู่</CardTitle>
           <div className="flex gap-2">
             {(['EXPENSE', 'INCOME'] as TransactionType[]).map((t) => (
@@ -193,7 +193,7 @@ export default function ReportsPage() {
                     v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)
                   }
                 />
-                <YAxis type="category" dataKey="name" width={120} tick={{ fontSize: 12 }} />
+                <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 11 }} />
                 <Tooltip
                   cursor={false}
                   formatter={(value: unknown) => [formatCurrency(Number(value)), 'จำนวน']}
@@ -211,7 +211,7 @@ export default function ReportsPage() {
 
       {/* Daily category breakdown */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle>สัดส่วนตามหมวดหมู่ รายวัน</CardTitle>
           <div className="flex gap-2">
             {(['EXPENSE', 'INCOME'] as TransactionType[]).map((t) => (
@@ -300,8 +300,8 @@ export default function ReportsPage() {
                         <YAxis
                           type="category"
                           dataKey="name"
-                          width={120}
-                          tick={{ fontSize: 12 }}
+                          width={90}
+                          tick={{ fontSize: 11 }}
                         />
                         <Tooltip
                           formatter={(value: unknown) => [formatCurrency(Number(value)), 'จำนวน']}
