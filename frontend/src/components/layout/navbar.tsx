@@ -1,8 +1,8 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { LogOut, Menu, Moon, Sun } from 'lucide-react'
-import { useTheme } from 'next-themes'
 import { signOut, useSession } from '@/lib/auth-client'
 import { useUiStore } from '@/store/ui.store'
 import { Button } from '@/components/ui/button'
@@ -12,8 +12,18 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'
 export function Navbar() {
   const { data: session } = useSession()
   const router = useRouter()
-  const { theme, setTheme } = useTheme()
+  const [isDark, setIsDark] = useState(false)
   const { toggleSidebar } = useUiStore()
+
+  useEffect(() => {
+    setIsDark(document.documentElement.classList.contains('dark'))
+  }, [])
+
+  function toggleTheme() {
+    const dark = document.documentElement.classList.toggle('dark')
+    localStorage.setItem('theme', dark ? 'dark' : 'light')
+    setIsDark(dark)
+  }
 
   async function handleSignOut() {
     await signOut()
@@ -32,10 +42,10 @@ export function Navbar() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          onClick={toggleTheme}
           title="เปลี่ยน theme"
         >
-          {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </Button>
 
         {userImage ? (
