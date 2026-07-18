@@ -8,4 +8,4 @@ RUN npx prisma generate
 RUN npm run build
 
 EXPOSE 4000
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]
+CMD ["sh", "-c", "echo '=== /app contents ===' && ls /app && echo '=== /app/dist ===' && ls /app/dist 2>/dev/null || echo 'NO DIST FOLDER' && npx prisma migrate deploy && node dist/main"]
