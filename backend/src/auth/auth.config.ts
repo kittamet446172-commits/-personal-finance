@@ -19,11 +19,9 @@ export function createAuth(prisma: PrismaClient) {
     trustedOrigins: [process.env.FRONTEND_URL ?? 'http://localhost:3000'],
     advanced: {
       useSecureCookies: true,
-      crossSubdomainCookies: { enabled: false },
       defaultCookieAttributes: {
-        sameSite: 'none',
+        sameSite: 'none' as const,
         secure: true,
-        partitioned: true,
       },
     },
     emailAndPassword: {
