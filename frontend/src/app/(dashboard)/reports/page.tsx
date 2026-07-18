@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
   Legend,
   Line,
   LineChart,
@@ -15,6 +16,7 @@ import {
 } from 'recharts'
 import {
   useCategoryBreakdown,
+  useDailyBreakdown,
   useMonthlySummary,
   useYearlyTrend,
 } from '@/hooks/use-reports'
@@ -33,15 +35,46 @@ const MONTHS_FULL = [
   'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม',
 ]
 
+interface BarShapeProps {
+  x?: number
+  y?: number
+  width?: number
+  height?: number
+  fill?: string
+}
+
+function LiftBar({ x = 0, y = 0, width = 0, height = 0, fill }: BarShapeProps) {
+  if (!width || !height) return null
+  return (
+    <rect
+      x={x}
+      y={y}
+      width={width}
+      height={height}
+      fill={fill}
+      rx={4}
+      className="transition-transform duration-200 hover:scale-110"
+      style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
+    />
+  )
+}
+
 export default function ReportsPage() {
   const now = new Date()
   const [month, setMonth] = useState(now.getMonth() + 1)
   const [year, setYear] = useState(now.getFullYear())
   const [breakdownType, setBreakdownType] = useState<TransactionType>('EXPENSE')
+  const [dailyType, setDailyType] = useState<TransactionType>('EXPENSE')
+  const [selectedDay, setSelectedDay] = useState<number | null>(null)
 
   const { data: summary } = useMonthlySummary(month, year)
   const { data: breakdown = [] } = useCategoryBreakdown(month, year, breakdownType)
   const { data: trend } = useYearlyTrend(year)
+  const { data: dailyData = [] } = useDailyBreakdown(month, year, dailyType)
+
+  useEffect(() => {
+    setSelectedDay(null)
+  }, [month, year])
 
   const trendData = trend?.months.map((m) => ({
     name: MONTH_SHORT[m.month - 1],
@@ -50,10 +83,23 @@ export default function ReportsPage() {
     ออม: m.savings,
   })) ?? []
 
+  const dailyChartData = dailyData.map((d) => ({ day: d.day, จำนวน: d.total }))
+
+  const selectedDayCats = selectedDay !== null
+    ? (dailyData.find((d) => d.day === selectedDay)?.categories ?? [])
+    : []
+
+  const selectedDayCatsData = selectedDayCats.map((b) => ({
+    name: `${b.category?.icon ?? ''} ${b.category?.name ?? ''}`.trim(),
+    amount: b.amount,
+    pct: Math.round(b.percentage),
+  }))
+
   const breakdownData = breakdown.map((b) => ({
     name: `${b.category?.icon ?? ''} ${b.category?.name ?? ''}`.trim(),
     amount: b.amount,
     pct: Math.round(b.percentage),
+    fill: b.category?.color ?? 'hsl(var(--primary))',
   }))
 
   return (
@@ -149,11 +195,128 @@ export default function ReportsPage() {
                 />
                 <YAxis type="category" dataKey="name" width={120} tick={{ fontSize: 12 }} />
                 <Tooltip
+                  cursor={false}
                   formatter={(value: unknown) => [formatCurrency(Number(value)), 'จำนวน']}
                 />
-                <Bar dataKey="amount" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="amount" radius={[0, 4, 4, 0]}>
+                  {breakdownData.map((entry, i) => (
+                    <Cell key={i} fill={entry.fill} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Daily category breakdown */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>สัดส่วนตามหมวดหมู่ รายวัน</CardTitle>
+          <div className="flex gap-2">
+            {(['EXPENSE', 'INCOME'] as TransactionType[]).map((t) => (
+              <button
+                key={t}
+                onClick={() => setDailyType(t)}
+                className={`text-xs px-3 py-1 rounded-full border transition-colors ${
+                  dailyType === t
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'border-input text-muted-foreground hover:bg-accent'
+                }`}
+              >
+                {t === 'INCOME' ? 'รายรับ' : 'รายจ่าย'}
+              </button>
+            ))}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {dailyChartData.length === 0 ? (
+            <p className="text-sm text-center text-muted-foreground py-8">ไม่มีข้อมูล</p>
+          ) : (
+            <>
+              <p className="text-xs text-muted-foreground mb-2">คลิกวันเพื่อดูรายละเอียด</p>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={dailyChartData} margin={{ left: 8, right: 16 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="day" tick={{ fontSize: 11 }} />
+                  <YAxis
+                    tickFormatter={(v: number) =>
+                      v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)
+                    }
+                    tick={{ fontSize: 11 }}
+                    width={40}
+                  />
+                  <Tooltip cursor={false} formatter={(value: unknown) => [formatCurrency(Number(value)), 'จำนวน']} />
+                  <Bar
+                    dataKey="จำนวน"
+                    shape={<LiftBar />}
+                    onClick={(data: unknown) =>
+                      setSelectedDay((prev) => {
+                        const d = data as { day: number }
+                        return prev === d.day ? null : d.day
+                      })
+                    }
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {dailyChartData.map((entry) => (
+                      <Cell
+                        key={entry.day}
+                        fill={
+                          selectedDay === entry.day
+                            ? 'hsl(var(--primary))'
+                            : 'hsl(var(--primary) / 0.4)'
+                        }
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+
+              {selectedDay !== null && (
+                <div className="mt-4 border-t pt-4">
+                  <p className="text-sm font-medium mb-3">
+                    วันที่ {selectedDay} {MONTHS_FULL[month - 1]} {year}
+                  </p>
+                  {selectedDayCatsData.length === 0 ? (
+                    <p className="text-sm text-center text-muted-foreground py-4">ไม่มีข้อมูล</p>
+                  ) : (
+                    <ResponsiveContainer
+                      width="100%"
+                      height={Math.max(80, selectedDayCatsData.length * 48)}
+                    >
+                      <BarChart
+                        data={selectedDayCatsData}
+                        layout="vertical"
+                        margin={{ left: 16, right: 32 }}
+                        barSize={20}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                        <XAxis
+                          type="number"
+                          tickFormatter={(v: number) =>
+                            v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)
+                          }
+                        />
+                        <YAxis
+                          type="category"
+                          dataKey="name"
+                          width={120}
+                          tick={{ fontSize: 12 }}
+                        />
+                        <Tooltip
+                          formatter={(value: unknown) => [formatCurrency(Number(value)), 'จำนวน']}
+                        />
+                        <Bar
+                          dataKey="amount"
+                          fill="hsl(var(--primary))"
+                          radius={[0, 4, 4, 0]}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

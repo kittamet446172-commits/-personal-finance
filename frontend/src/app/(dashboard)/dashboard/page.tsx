@@ -117,7 +117,7 @@ export default function DashboardPage() {
                   v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)
                 }
               />
-              <Tooltip formatter={(value: unknown) => formatCurrency(Number(value))} />
+              <Tooltip contentStyle={{ padding: '4px 10px', fontSize: '12px', backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', color: 'hsl(var(--card-foreground))' }} formatter={(value: unknown) => formatCurrency(Number(value))} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
               <Bar dataKey="รายรับ" fill="#16a34a" radius={[4, 4, 0, 0]} />
               <Bar dataKey="รายจ่าย" fill="#dc2626" radius={[4, 4, 0, 0]} />
@@ -150,13 +150,17 @@ export default function DashboardPage() {
                     cy="50%"
                     outerRadius={90}
                     innerRadius={45}
+                    label={({ name, percent, value }) =>
+                      (percent ?? 0) > 0.05
+                        ? `${name} ${((percent ?? 0) * 100).toFixed(0)}% ${formatCurrency(Number(value))}`
+                        : ''
+                    }
+                    labelLine={{ stroke: '#9ca3af', strokeWidth: 1 }}
                   >
                     {expensePieData.map((entry, i) => (
                       <Cell key={i} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: unknown) => formatCurrency(Number(value))} />
-                  <Legend wrapperStyle={{ fontSize: 12 }} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
