@@ -139,8 +139,8 @@ export default function DashboardPage() {
               ไม่มีข้อมูลรายจ่าย
             </p>
           ) : (
-            <div className="flex flex-col lg:flex-row items-center gap-4">
-              <ResponsiveContainer width="100%" height={220}>
+            <div>
+              <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
                   <Pie
                     data={expensePieData}
@@ -148,21 +148,30 @@ export default function DashboardPage() {
                     nameKey="name"
                     cx="50%"
                     cy="50%"
-                    outerRadius={90}
+                    outerRadius={85}
                     innerRadius={45}
-                    label={({ percent }) =>
-                      (percent ?? 0) > 0.08
-                        ? `${((percent ?? 0) * 100).toFixed(0)}%`
-                        : ''
-                    }
-                    labelLine={false}
                   >
                     {expensePieData.map((entry, i) => (
                       <Cell key={i} fill={entry.color} />
                     ))}
                   </Pie>
+                  <Tooltip
+                    formatter={(value: unknown) => [formatCurrency(Number(value)), 'จำนวน']}
+                    contentStyle={{ fontSize: '12px', padding: '4px 10px', backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', color: 'hsl(var(--card-foreground))' }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
+              <div className="mt-2 space-y-1">
+                {expensePieData.map((entry, i) => (
+                  <div key={i} className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <span className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
+                      <span className="text-foreground">{entry.name}</span>
+                    </div>
+                    <span className="text-muted-foreground">{formatCurrency(entry.value)}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </CardContent>
