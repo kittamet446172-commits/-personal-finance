@@ -36,6 +36,8 @@ services:
       PORT: 4000
     ports:
       - '4000:4000'
+    volumes:
+      - uploads_data:/app/uploads
 
   frontend:
     build:
@@ -52,3 +54,4 @@ services:
 
 volumes:
   postgres_data:
+  uploads_data:

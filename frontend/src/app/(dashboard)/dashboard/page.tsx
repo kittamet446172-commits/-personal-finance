@@ -140,16 +140,20 @@ export default function DashboardPage() {
             </p>
           ) : (
             <div>
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
+              <ResponsiveContainer width="100%" height={240}>
+                <PieChart margin={{ top: 16, right: 40, bottom: 16, left: 40 }}>
                   <Pie
                     data={expensePieData}
                     dataKey="value"
                     nameKey="name"
                     cx="50%"
                     cy="50%"
-                    outerRadius={85}
-                    innerRadius={45}
+                    outerRadius={80}
+                    innerRadius={40}
+                    label={({ name, percent }) =>
+                      (percent ?? 0) > 0.08 ? name : ''
+                    }
+                    labelLine={{ stroke: '#9ca3af', strokeWidth: 1 }}
                   >
                     {expensePieData.map((entry, i) => (
                       <Cell key={i} fill={entry.color} />
@@ -161,17 +165,6 @@ export default function DashboardPage() {
                   />
                 </PieChart>
               </ResponsiveContainer>
-              <div className="mt-2 space-y-1">
-                {expensePieData.map((entry, i) => (
-                  <div key={i} className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-1.5">
-                      <span className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
-                      <span className="text-foreground">{entry.name}</span>
-                    </div>
-                    <span className="text-muted-foreground">{formatCurrency(entry.value)}</span>
-                  </div>
-                ))}
-              </div>
             </div>
           )}
         </CardContent>
