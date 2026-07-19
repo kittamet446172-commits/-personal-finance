@@ -104,7 +104,7 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">รายงาน</h1>
+      <h1 className="text-xl font-bold">รายงาน</h1>
 
       {/* Month/Year selector */}
       <div className="flex gap-3">
@@ -143,7 +143,7 @@ export default function ReportsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className={`text-xl font-bold ${color ?? 'text-foreground'}`}>
+              <p className={`text-base font-bold ${color ?? 'text-foreground'}`}>
                 {savings !== undefined
                   ? `${savings.toFixed(1)}%`
                   : formatCurrency(value ?? 0)}
@@ -156,7 +156,7 @@ export default function ReportsPage() {
       {/* Category breakdown */}
       <Card>
         <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle>สัดส่วนตามหมวดหมู่</CardTitle>
+          <CardTitle className="text-base">สัดส่วนตามหมวดหมู่</CardTitle>
           <div className="flex gap-2">
             {(['EXPENSE', 'INCOME'] as TransactionType[]).map((t) => (
               <button
@@ -212,7 +212,7 @@ export default function ReportsPage() {
       {/* Daily category breakdown */}
       <Card>
         <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle>สัดส่วนตามหมวดหมู่ รายวัน</CardTitle>
+          <CardTitle className="text-base">สัดส่วนตามหมวดหมู่ รายวัน</CardTitle>
           <div className="flex gap-2">
             {(['EXPENSE', 'INCOME'] as TransactionType[]).map((t) => (
               <button
@@ -324,7 +324,7 @@ export default function ReportsPage() {
       {/* Yearly trend */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>แนวโน้มรายปี {year}</CardTitle>
+          <CardTitle className="text-base">แนวโน้มรายปี {year}</CardTitle>
           <select
             value={year}
             onChange={(e) => setYear(Number(e.target.value))}

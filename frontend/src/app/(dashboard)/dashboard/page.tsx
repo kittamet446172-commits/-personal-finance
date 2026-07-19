@@ -61,7 +61,7 @@ export default function DashboardPage() {
       <Card>
         <CardContent className="py-6 px-6">
           <p className="text-sm text-muted-foreground mb-1">Net Worth</p>
-          <p className="text-4xl font-bold">{formatCurrency(netWorth)}</p>
+          <p className="text-2xl font-bold">{formatCurrency(netWorth)}</p>
           <p className="text-xs text-muted-foreground mt-1">
             {accounts.length} บัญชี
           </p>
@@ -69,27 +69,27 @@ export default function DashboardPage() {
       </Card>
 
       {/* Income / Expense / Savings */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-2">
         <Card>
-          <CardContent className="py-5 px-5">
-            <p className="text-xs text-muted-foreground mb-1">รายรับเดือนนี้</p>
-            <p className="text-xl font-bold text-green-600">
+          <CardContent className="py-3 px-3">
+            <p className="text-xs text-muted-foreground mb-1">รายรับ</p>
+            <p className="text-sm font-bold text-green-600">
               {formatCurrency(stats?.income ?? 0)}
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="py-5 px-5">
-            <p className="text-xs text-muted-foreground mb-1">รายจ่ายเดือนนี้</p>
-            <p className="text-xl font-bold text-red-600">
+          <CardContent className="py-3 px-3">
+            <p className="text-xs text-muted-foreground mb-1">รายจ่าย</p>
+            <p className="text-sm font-bold text-red-600">
               {formatCurrency(stats?.expense ?? 0)}
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="py-5 px-5">
-            <p className="text-xs text-muted-foreground mb-1">เงินออมเดือนนี้</p>
-            <p className={`text-xl font-bold ${(stats?.savings ?? 0) >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+          <CardContent className="py-3 px-3">
+            <p className="text-xs text-muted-foreground mb-1">ออม</p>
+            <p className={`text-sm font-bold ${(stats?.savings ?? 0) >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
               {formatCurrency(stats?.savings ?? 0)}
             </p>
             {stats && stats.income > 0 && (
@@ -150,12 +150,12 @@ export default function DashboardPage() {
                     cy="50%"
                     outerRadius={90}
                     innerRadius={45}
-                    label={({ name, percent, value }) =>
-                      (percent ?? 0) > 0.05
-                        ? `${name} ${((percent ?? 0) * 100).toFixed(0)}% ${formatCurrency(Number(value))}`
+                    label={({ percent }) =>
+                      (percent ?? 0) > 0.08
+                        ? `${((percent ?? 0) * 100).toFixed(0)}%`
                         : ''
                     }
-                    labelLine={{ stroke: '#9ca3af', strokeWidth: 1 }}
+                    labelLine={false}
                   >
                     {expensePieData.map((entry, i) => (
                       <Cell key={i} fill={entry.color} />
