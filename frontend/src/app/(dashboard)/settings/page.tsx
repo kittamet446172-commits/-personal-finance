@@ -9,8 +9,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'
-
 export default function SettingsPage() {
   const { data: session, refetch } = useSession()
   const [name, setName] = useState(session?.user.name ?? '')
@@ -75,7 +73,7 @@ export default function SettingsPage() {
             >
               {userImage ? (
                 <img
-                  src={`${API_URL}${userImage}`}
+                  src={userImage}
                   alt="avatar"
                   className="h-20 w-20 rounded-full object-cover border"
                 />

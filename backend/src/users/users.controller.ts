@@ -10,8 +10,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname, join } from 'path';
+import { memoryStorage } from 'multer';
 import { UsersService } from './users.service';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -39,14 +38,7 @@ export class UsersController {
   @Post('me/avatar')
   @UseInterceptors(
     FileInterceptor('avatar', {
-      storage: diskStorage({
-        destination: join(process.cwd(), 'uploads', 'avatars'),
-        filename: (req, file, cb) => {
-          const user = (req as any).user as AuthenticatedUser;
-          const ext = extname(file.originalname);
-          cb(null, `${user.id}${ext}`);
-        },
-      }),
+      storage: memoryStorage(),
       fileFilter: (req, file, cb) => {
         if (!file.mimetype.match(/^image\/(jpeg|jpg|png|webp)$/)) {
           return cb(
@@ -64,7 +56,7 @@ export class UsersController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     if (!file) throw new BadRequestException('No file uploaded');
-    const imageUrl = `/uploads/avatars/${file.filename}`;
-    return this.usersService.updateAvatar(user.id, imageUrl);
+    const dataUrl = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+    return this.usersService.updateAvatar(user.id, dataUrl);
   }
 }

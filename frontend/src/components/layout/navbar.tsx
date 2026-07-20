@@ -7,8 +7,6 @@ import { signOut, useSession } from '@/lib/auth-client'
 import { useUiStore } from '@/store/ui.store'
 import { Button } from '@/components/ui/button'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'
-
 export function Navbar() {
   const { data: session } = useSession()
   const router = useRouter()
@@ -50,7 +48,7 @@ export function Navbar() {
 
         {userImage ? (
           <img
-            src={`${API_URL}${userImage}`}
+            src={userImage}
             alt="avatar"
             className="h-7 w-7 rounded-full object-cover"
           />
