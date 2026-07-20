@@ -57,3 +57,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+.recharts-tooltip-cursor {
+  display: none;
+}
+
+svg, svg * {
+  outline: none !important;
+  box-shadow: none !important;
+}

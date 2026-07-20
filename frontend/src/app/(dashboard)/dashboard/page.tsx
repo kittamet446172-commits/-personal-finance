@@ -1,13 +1,11 @@
 'use client'
 
+import { useState } from 'react'
 import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
   Legend,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -28,6 +26,21 @@ const PIE_COLORS = [
   '#ef4444', '#f97316', '#eab308', '#22c55e',
   '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6',
 ]
+
+function polarXY(cx: number, cy: number, r: number, angleDeg: number): [number, number] {
+  const rad = ((angleDeg - 90) * Math.PI) / 180
+  return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)]
+}
+
+function sectorPath(cx: number, cy: number, r1: number, r2: number, a1: number, a2: number): string {
+  const end = a2 - a1 >= 360 ? a1 + 359.999 : a2
+  const [ox1, oy1] = polarXY(cx, cy, r2, a1)
+  const [ox2, oy2] = polarXY(cx, cy, r2, end)
+  const [ix2, iy2] = polarXY(cx, cy, r1, end)
+  const [ix1, iy1] = polarXY(cx, cy, r1, a1)
+  const lg = end - a1 > 180 ? 1 : 0
+  return `M${ox1} ${oy1} A${r2} ${r2} 0 ${lg} 1 ${ox2} ${oy2} L${ix2} ${iy2} A${r1} ${r1} 0 ${lg} 0 ${ix1} ${iy1}Z`
+}
 
 export default function DashboardPage() {
   const now = new Date()
@@ -53,6 +66,16 @@ export default function DashboardPage() {
     value: b.amount,
     color: PIE_COLORS[i % PIE_COLORS.length],
   }))
+
+  const [hoveredSlice, setHoveredSlice] = useState<{ name: string; value: number } | null>(null)
+  const totalExpense = expensePieData.reduce((sum, d) => sum + d.value, 0)
+
+  let pieAngle = 0
+  const pieSectors = expensePieData.map((d) => {
+    const start = pieAngle
+    pieAngle += (d.value / totalExpense) * 360
+    return { ...d, start, end: pieAngle }
+  })
 
   return (
     <div className="space-y-6">
@@ -139,33 +162,56 @@ export default function DashboardPage() {
               ไม่มีข้อมูลรายจ่าย
             </p>
           ) : (
-            <div>
-              <ResponsiveContainer width="100%" height={240}>
-                <PieChart margin={{ top: 16, right: 40, bottom: 16, left: 40 }}>
-                  <Pie
-                    data={expensePieData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    innerRadius={40}
-                    label={({ name, percent }) =>
-                      (percent ?? 0) > 0.08 ? name : ''
-                    }
-                    labelLine={{ stroke: '#9ca3af', strokeWidth: 1 }}
-                  >
-                    {expensePieData.map((entry, i) => (
-                      <Cell key={i} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value: unknown) => [formatCurrency(Number(value)), 'จำนวน']}
-                    contentStyle={{ fontSize: '12px', padding: '4px 10px', backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', color: 'hsl(var(--card-foreground))' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+            <>
+              {/* Custom SVG donut — no Recharts, no tabIndex, no focus box */}
+              <div className="relative select-none mx-auto" style={{ width: 200, height: 200 }}>
+                <svg
+                  width="200"
+                  height="200"
+                  viewBox="0 0 200 200"
+                  style={{ display: 'block', overflow: 'visible' }}
+                >
+                  {pieSectors.map((s, i) => (
+                    <path
+                      key={i}
+                      d={sectorPath(100, 100, 40, 80, s.start, s.end)}
+                      fill={s.color}
+                      stroke="none"
+                      onMouseEnter={() => setHoveredSlice({ name: s.name, value: s.value })}
+                      onMouseLeave={() => setHoveredSlice(null)}
+                      style={{ cursor: 'default' }}
+                    />
+                  ))}
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="text-center">
+                    {hoveredSlice ? (
+                      <>
+                        <p className="text-xs text-muted-foreground leading-tight max-w-[64px] truncate">{hoveredSlice.name}</p>
+                        <p className="text-sm font-bold leading-tight">{formatCurrency(hoveredSlice.value)}</p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-xs text-muted-foreground leading-tight">รวม</p>
+                        <p className="text-sm font-bold leading-tight">{formatCurrency(totalExpense)}</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+              {/* Legend */}
+              <div className="mt-4 space-y-1.5">
+                {expensePieData.map((d, i) => (
+                  <div key={i} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: d.color }} />
+                      <span className="text-xs text-muted-foreground truncate">{d.name}</span>
+                    </div>
+                    <span className="text-xs font-medium ml-2 flex-shrink-0">{formatCurrency(d.value)}</span>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
