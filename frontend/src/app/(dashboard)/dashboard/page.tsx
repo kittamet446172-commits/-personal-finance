@@ -70,6 +70,8 @@ export default function DashboardPage() {
   const [hoveredSlice, setHoveredSlice] = useState<{ name: string; value: number } | null>(null)
   const totalExpense = expensePieData.reduce((sum, d) => sum + d.value, 0)
 
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+
   let pieAngle = 0
   const pieSectors = expensePieData.map((d) => {
     const start = pieAngle
@@ -171,17 +173,21 @@ export default function DashboardPage() {
                   viewBox="0 0 200 200"
                   style={{ display: 'block', overflow: 'visible' }}
                 >
-                  {pieSectors.map((s, i) => (
-                    <path
-                      key={i}
-                      d={sectorPath(100, 100, 40, 80, s.start, s.end)}
-                      fill={s.color}
-                      stroke="none"
-                      onMouseEnter={() => setHoveredSlice({ name: s.name, value: s.value })}
-                      onMouseLeave={() => setHoveredSlice(null)}
-                      style={{ cursor: 'default' }}
-                    />
-                  ))}
+                  {pieSectors.map((s, i) => {
+                    const isHovered = hoveredIndex === i
+                    return (
+                      <path
+                        key={i}
+                        d={sectorPath(100, 100, isHovered ? 36 : 40, isHovered ? 84 : 80, s.start, s.end)}
+                        fill={s.color}
+                        stroke={isHovered ? 'white' : 'none'}
+                        strokeWidth={isHovered ? 2 : 0}
+                        onMouseEnter={() => { setHoveredIndex(i); setHoveredSlice({ name: s.name, value: s.value }) }}
+                        onMouseLeave={() => { setHoveredIndex(null); setHoveredSlice(null) }}
+                        style={{ cursor: 'default', transition: 'all 0.15s ease' }}
+                      />
+                    )
+                  })}
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <div className="text-center">
