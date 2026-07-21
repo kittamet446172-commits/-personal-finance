@@ -14,6 +14,7 @@ import {
 import { useAccounts } from '@/hooks/use-accounts'
 import { useMonthlyStats, useRecentTransactions } from '@/hooks/use-transactions'
 import { useCategoryBreakdown, useYearlyTrend } from '@/hooks/use-reports'
+import { usePortfolio } from '@/hooks/use-investments'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatCurrency, formatDate } from '@/lib/utils'
 
@@ -52,8 +53,11 @@ export default function DashboardPage() {
   const { data: recent = [] } = useRecentTransactions()
   const { data: trend } = useYearlyTrend(year)
   const { data: expenseBreakdown = [] } = useCategoryBreakdown(month, year, 'EXPENSE')
+  const { data: portfolio } = usePortfolio()
 
-  const netWorth = accounts.reduce((sum, a) => sum + Number(a.balance), 0)
+  const accountsBalance = accounts.reduce((sum, a) => sum + Number(a.balance), 0)
+  const investmentValue = portfolio?.summary.totalCurrentValue ?? 0
+  const netWorth = accountsBalance + investmentValue
 
   const incomeChartData = trend?.months.map((m) => ({
     name: MONTH_SHORT[m.month - 1],
@@ -87,9 +91,16 @@ export default function DashboardPage() {
         <CardContent className="py-6 px-6">
           <p className="text-sm text-muted-foreground mb-1">Net Worth</p>
           <p className="text-2xl font-bold">{formatCurrency(netWorth)}</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {accounts.length} บัญชี
-          </p>
+          <div className="flex gap-4 mt-1">
+            <p className="text-xs text-muted-foreground">
+              บัญชี {formatCurrency(accountsBalance)}
+            </p>
+            {investmentValue > 0 && (
+              <p className="text-xs text-muted-foreground">
+                Portfolio {formatCurrency(investmentValue)}
+              </p>
+            )}
+          </div>
         </CardContent>
       </Card>
 
@@ -221,6 +232,55 @@ export default function DashboardPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Portfolio Summary */}
+      {portfolio && portfolio.items.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">📈 Portfolio</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">มูลค่ารวม</span>
+              <span className="text-sm font-bold">{formatCurrency(portfolio.summary.totalCurrentValue)}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">กำไร/ขาดทุน</span>
+              <span className={`text-sm font-semibold ${portfolio.summary.unrealizedGain >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {portfolio.summary.unrealizedGain >= 0 ? '+' : ''}
+                {formatCurrency(portfolio.summary.unrealizedGain)}
+                {' '}
+                <span className="text-xs">
+                  ({portfolio.summary.unrealizedGainPct >= 0 ? '+' : ''}
+                  {portfolio.summary.unrealizedGainPct.toFixed(2)}%)
+                </span>
+              </span>
+            </div>
+            {portfolio.summary.totalDividends > 0 && (
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">เงินปันผลรวม</span>
+                <span className="text-sm font-semibold text-blue-600">{formatCurrency(portfolio.summary.totalDividends)}</span>
+              </div>
+            )}
+            <div className="border-t pt-3 space-y-2">
+              {portfolio.items.map((item) => (
+                <div key={item.id} className="flex items-center justify-between">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium">{item.symbol}</p>
+                    <p className="text-xs text-muted-foreground truncate">{item.name}</p>
+                  </div>
+                  <div className="text-right ml-2 flex-shrink-0">
+                    <p className="text-sm font-medium">{formatCurrency(item.currentValue)}</p>
+                    <p className={`text-xs ${item.unrealizedGain >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {item.unrealizedGain >= 0 ? '+' : ''}{item.unrealizedGainPct.toFixed(2)}%
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Recent Transactions */}
       <Card>

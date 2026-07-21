@@ -8,6 +8,7 @@ import {
   BarChart3,
   DollarSign,
   LayoutDashboard,
+  LineChart,
   Menu,
   Settings,
   Tag,
@@ -29,6 +30,8 @@ const navItems = [
   { href: '/categories', label: 'หมวดหมู่', icon: Tag },
   { href: '/budget', label: 'งบประมาณ', icon: Target },
   { href: '/reports', label: 'รายงาน', icon: BarChart3 },
+  { href: '/investments', label: 'Portfolio', icon: LineChart },
+  { href: '/dividends', label: 'ปันผล', icon: DollarSign },
   { href: '/settings', label: 'ตั้งค่า', icon: Settings },
 ]
 

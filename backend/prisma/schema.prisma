@@ -19,13 +19,16 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  sessions  Session[]
-  accounts  Account[]
-  Account_  FinanceAccount[]
-  Category  Category[]
-  Transaction Transaction[]
-  Budget    Budget[]
-  Transfer  Transfer[]
+  sessions               Session[]
+  accounts               Account[]
+  Account_               FinanceAccount[]
+  Category               Category[]
+  Transaction            Transaction[]
+  Budget                 Budget[]
+  Transfer               Transfer[]
+  investmentHoldings     InvestmentHolding[]
+  investmentTransactions InvestmentTransaction[]
+  dividends              Dividend[]
 
   @@map("users")
 }
@@ -170,6 +173,66 @@ model Transfer {
   @@map("transfers")
 }
 
+// ─── Investment Tables ────────────────────────────────────────────────────────
+
+model InvestmentHolding {
+  id           String         @id @default(cuid())
+  userId       String
+  symbol       String
+  name         String
+  type         InvestmentType
+  exchange     String?
+  sector       String?
+  currency     String         @default("THB")
+  currentPrice Decimal        @default(0) @db.Decimal(15, 4)
+  note         String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  user         User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions InvestmentTransaction[]
+  dividends    Dividend[]
+
+  @@unique([userId, symbol])
+  @@map("investment_holdings")
+}
+
+model InvestmentTransaction {
+  id           String    @id @default(cuid())
+  userId       String
+  holdingId    String
+  type         LotType
+  quantity     Decimal   @db.Decimal(15, 6)
+  pricePerUnit Decimal   @db.Decimal(15, 4)
+  fee          Decimal   @default(0) @db.Decimal(15, 2)
+  date         DateTime
+  note         String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  user    User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  holding InvestmentHolding @relation(fields: [holdingId], references: [id], onDelete: Cascade)
+
+  @@map("investment_transactions")
+}
+
+model Dividend {
+  id        String   @id @default(cuid())
+  userId    String
+  holdingId String
+  amount    Decimal  @db.Decimal(15, 2)
+  perShare  Decimal? @db.Decimal(15, 4)
+  date      DateTime
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  holding InvestmentHolding @relation(fields: [holdingId], references: [id], onDelete: Cascade)
+
+  @@map("dividends")
+}
+
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
 enum AccountType {
@@ -181,4 +244,16 @@ enum AccountType {
 enum TransactionType {
   INCOME
   EXPENSE
+}
+
+enum InvestmentType {
+  STOCK
+  ETF
+  MUTUAL_FUND
+  REIT
+}
+
+enum LotType {
+  BUY
+  SELL
 }
