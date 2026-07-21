@@ -115,16 +115,16 @@ export default function ExpensePage() {
                     <p className="text-sm font-medium">
                       {tx.merchant ?? tx.description ?? tx.category?.name}
                     </p>
-                    <div className="flex items-center gap-2 mt-0.5">
+                    <div className="mt-0.5 space-y-0.5">
                       <p className="text-xs text-muted-foreground">
                         {formatDate(tx.date)}
                       </p>
                       <Badge variant="secondary" className="text-xs">
                         {tx.category?.name}
                       </Badge>
-                      <span className="text-xs text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         {tx.account?.name}
-                      </span>
+                      </p>
                     </div>
                   </div>
                 </div>
