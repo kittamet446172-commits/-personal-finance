@@ -39,12 +39,12 @@ const TYPE_COLORS: Record<InvestmentType, string> = {
   REIT: 'bg-orange-100 text-orange-800',
 }
 
-function GainBadge({ value, pct }: { value: number; pct: number }) {
+function GainBadge({ value, pct, currency = 'THB' }: { value: number; pct: number; currency?: string }) {
   const isPos = value >= 0
   return (
     <span className={`flex items-center gap-1 text-sm font-medium ${isPos ? 'text-green-600' : 'text-red-600'}`}>
       {isPos ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
-      {isPos ? '+' : ''}{formatCurrency(value)} ({isPos ? '+' : ''}{pct.toFixed(2)}%)
+      {isPos ? '+' : ''}{formatCurrency(value, currency)} ({isPos ? '+' : ''}{pct.toFixed(2)}%)
     </span>
   )
 }
@@ -99,7 +99,7 @@ function HoldingCard({
         <div className="flex items-end justify-between">
           <div>
             <p className="text-2xl font-bold">{formatCurrency(item.currentValue, item.currency)}</p>
-            <GainBadge value={item.unrealizedGain} pct={item.unrealizedGainPct} />
+            <GainBadge value={item.unrealizedGain} pct={item.unrealizedGainPct} currency={item.currency} />
           </div>
           <Button variant="outline" size="sm" onClick={onDividend} className="gap-1.5">
             <Plus className="h-3 w-3" />
@@ -206,25 +206,25 @@ export default function InvestmentsPage() {
           <Card>
             <CardContent className="pt-4">
               <p className="text-xs text-muted-foreground">มูลค่าปัจจุบัน</p>
-              <p className="text-xl font-bold">{formatCurrency(summary.totalCurrentValue)}</p>
+              <p className="text-xl font-bold">{formatCurrency(summary.totalCurrentValue, items[0]?.currency)}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-4">
               <p className="text-xs text-muted-foreground">ต้นทุนรวม</p>
-              <p className="text-xl font-bold">{formatCurrency(summary.totalCostBasis)}</p>
+              <p className="text-xl font-bold">{formatCurrency(summary.totalCostBasis, items[0]?.currency)}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-4">
               <p className="text-xs text-muted-foreground">กำไร/ขาดทุนที่ยังไม่รับรู้</p>
-              <GainBadge value={summary.unrealizedGain} pct={summary.unrealizedGainPct} />
+              <GainBadge value={summary.unrealizedGain} pct={summary.unrealizedGainPct} currency={items[0]?.currency} />
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-4">
               <p className="text-xs text-muted-foreground">ปันผลสะสม</p>
-              <p className="text-xl font-bold text-green-600">{formatCurrency(summary.totalDividends)}</p>
+              <p className="text-xl font-bold text-green-600">{formatCurrency(summary.totalDividends, items[0]?.currency)}</p>
             </CardContent>
           </Card>
         </div>
