@@ -129,7 +129,7 @@ export default function ExpensePage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-semibold text-red-600">
+                  <span className="text-sm font-semibold text-red-600 whitespace-nowrap">
                     -{formatCurrency(Number(tx.amount))}
                   </span>
                   <div className="flex gap-1">
