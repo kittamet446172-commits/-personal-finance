@@ -200,7 +200,7 @@ export function InvestmentTransactionDialog({ open, onClose, holding }: Props) {
               <Input
                 type="number"
                 step="0.0001"
-                min="0.000001"
+                min="0"
                 value={form.pricePerUnit}
                 onChange={(e) => setForm({ ...form, pricePerUnit: e.target.value })}
                 onFocus={(e) => e.target.select()}
