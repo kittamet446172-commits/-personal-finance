@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -11,8 +12,13 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useCreateInvestmentTransaction } from '@/hooks/use-investments'
-import type { InvestmentHolding, LotType } from '@/types'
+import {
+  useCreateInvestmentTransaction,
+  useUpdateInvestmentTransaction,
+  useDeleteInvestmentTransaction,
+  useInvestmentTransactions,
+} from '@/hooks/use-investments'
+import type { InvestmentHolding, InvestmentTransaction, LotType } from '@/types'
 
 interface Props {
   open: boolean
@@ -33,8 +39,17 @@ function todayStr() {
   return new Date().toISOString().split('T')[0]
 }
 
+function toDateStr(date: string) {
+  return new Date(date).toISOString().split('T')[0]
+}
+
 export function InvestmentTransactionDialog({ open, onClose, holding }: Props) {
+  const { data: transactions = [] } = useInvestmentTransactions(holding.id)
   const createMutation = useCreateInvestmentTransaction()
+  const updateMutation = useUpdateInvestmentTransaction()
+  const deleteMutation = useDeleteInvestmentTransaction()
+
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<FormState>({
     type: 'BUY',
     quantity: '',
@@ -44,33 +59,113 @@ export function InvestmentTransactionDialog({ open, onClose, holding }: Props) {
     note: '',
   })
 
+  function resetForm() {
+    setEditingId(null)
+    setForm({
+      type: 'BUY',
+      quantity: '',
+      pricePerUnit: String(holding.currentPrice || ''),
+      fee: '0',
+      date: todayStr(),
+      note: '',
+    })
+  }
+
+  function startEdit(tx: InvestmentTransaction) {
+    setEditingId(tx.id)
+    setForm({
+      type: tx.type,
+      quantity: String(tx.quantity),
+      pricePerUnit: String(tx.pricePerUnit),
+      fee: String(tx.fee ?? 0),
+      date: toDateStr(tx.date),
+      note: tx.note ?? '',
+    })
+  }
+
   const totalCost =
     (Number(form.quantity) || 0) * (Number(form.pricePerUnit) || 0) +
     (Number(form.fee) || 0)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    await createMutation.mutateAsync({
-      holdingId: holding.id,
+    const payload = {
       type: form.type,
       quantity: Number(form.quantity),
       pricePerUnit: Number(form.pricePerUnit),
       fee: Number(form.fee),
       date: form.date,
       note: form.note || undefined,
-    })
+    }
+    if (editingId) {
+      await updateMutation.mutateAsync({ id: editingId, ...payload })
+    } else {
+      await createMutation.mutateAsync({ holdingId: holding.id, ...payload })
+    }
+    resetForm()
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm('ลบรายการนี้?')) return
+    await deleteMutation.mutateAsync(id)
+  }
+
+  function handleClose() {
+    resetForm()
     onClose()
   }
 
+  const isPending = createMutation.isPending || updateMutation.isPending
+
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={(o) => { if (!o) handleClose() }}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>
-            บันทึกรายการ — {holding.symbol}
-          </DialogTitle>
+          <DialogTitle>รายการ — {holding.symbol}</DialogTitle>
         </DialogHeader>
+
+        {transactions.length > 0 && (
+          <div className="space-y-1 max-h-40 overflow-y-auto border rounded-md p-2">
+            {transactions.map((tx) => (
+              <div key={tx.id} className="flex items-center gap-2 text-sm py-1">
+                <span className={`w-8 font-medium ${tx.type === 'BUY' ? 'text-green-600' : 'text-red-600'}`}>
+                  {tx.type === 'BUY' ? 'ซื้อ' : 'ขาย'}
+                </span>
+                <span className="flex-1">
+                  {Number(tx.quantity).toLocaleString()} × ${Number(tx.pricePerUnit).toLocaleString()}
+                </span>
+                <span className="text-muted-foreground text-xs">{toDateStr(tx.date)}</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={() => startEdit(tx)}
+                >
+                  <Pencil className="h-3 w-3" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 text-destructive hover:text-destructive"
+                  onClick={() => handleDelete(tx.id)}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium">{editingId ? 'แก้ไขรายการ' : 'รายการใหม่'}</p>
+            {editingId && (
+              <Button type="button" variant="ghost" size="sm" onClick={resetForm}>
+                ยกเลิกแก้ไข
+              </Button>
+            )}
+          </div>
+
           <div className="space-y-2">
             <Label>ประเภท</Label>
             <div className="grid grid-cols-2 gap-2">
@@ -101,11 +196,11 @@ export function InvestmentTransactionDialog({ open, onClose, holding }: Props) {
               />
             </div>
             <div className="space-y-2">
-              <Label>ราคาต่อหน่วย (฿) *</Label>
+              <Label>ราคาต่อหน่วย *</Label>
               <Input
                 type="number"
                 step="0.0001"
-                min="0"
+                min="0.000001"
                 value={form.pricePerUnit}
                 onChange={(e) => setForm({ ...form, pricePerUnit: e.target.value })}
                 onFocus={(e) => e.target.select()}
@@ -116,7 +211,7 @@ export function InvestmentTransactionDialog({ open, onClose, holding }: Props) {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>ค่าธรรมเนียม (฿)</Label>
+              <Label>ค่าธรรมเนียม</Label>
               <Input
                 type="number"
                 step="0.01"
@@ -141,7 +236,10 @@ export function InvestmentTransactionDialog({ open, onClose, holding }: Props) {
             <p className="text-sm text-muted-foreground">
               มูลค่ารวม:{' '}
               <span className="font-semibold text-foreground">
-                ฿{totalCost.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+                {totalCost.toLocaleString('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </span>
             </p>
           )}
@@ -156,11 +254,11 @@ export function InvestmentTransactionDialog({ open, onClose, holding }: Props) {
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              ยกเลิก
+            <Button type="button" variant="outline" onClick={handleClose}>
+              ปิด
             </Button>
-            <Button type="submit" disabled={createMutation.isPending}>
-              {createMutation.isPending ? 'กำลังบันทึก...' : 'บันทึก'}
+            <Button type="submit" disabled={isPending}>
+              {isPending ? 'กำลังบันทึก...' : editingId ? 'บันทึกการแก้ไข' : 'บันทึก'}
             </Button>
           </DialogFooter>
         </form>

@@ -115,6 +115,23 @@ export class InvestmentsService {
     });
   }
 
+  async updateTransaction(
+    id: string,
+    userId: string,
+    dto: import('./dto/update-investment-transaction.dto').UpdateInvestmentTransactionDto,
+  ) {
+    const tx = await this.prisma.investmentTransaction.findUnique({ where: { id } });
+    if (!tx) throw new NotFoundException('Transaction not found');
+    if (tx.userId !== userId) throw new ForbiddenException();
+    return this.prisma.investmentTransaction.update({
+      where: { id },
+      data: {
+        ...dto,
+        date: dto.date ? new Date(dto.date) : undefined,
+      },
+    });
+  }
+
   async deleteTransaction(id: string, userId: string) {
     const tx = await this.prisma.investmentTransaction.findUnique({ where: { id } });
     if (!tx) throw new NotFoundException('Transaction not found');

@@ -9,17 +9,20 @@ import {
   Min,
 } from 'class-validator';
 
-export class CreateInvestmentTransactionDto {
+export class UpdateInvestmentTransactionDto {
   @IsEnum(LotType)
-  type!: LotType;
+  @IsOptional()
+  type?: LotType;
 
   @IsNumber()
   @Min(0.000001)
-  quantity!: number;
+  @IsOptional()
+  quantity?: number;
 
   @IsNumber()
   @Min(0.000001)
-  pricePerUnit!: number;
+  @IsOptional()
+  pricePerUnit?: number;
 
   @IsNumber()
   @Min(0)
@@ -27,7 +30,8 @@ export class CreateInvestmentTransactionDto {
   fee?: number;
 
   @IsDateString()
-  date!: string;
+  @IsOptional()
+  date?: string;
 
   @IsString()
   @MaxLength(500)

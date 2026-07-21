@@ -145,6 +145,17 @@ export function useCreateInvestmentTransaction() {
   })
 }
 
+export function useUpdateInvestmentTransaction() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...data }: Partial<CreateInvestmentTransactionDto> & { id: string }) =>
+      api.patch<InvestmentTransaction>(`/investments/transactions/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: investmentKeys.all })
+    },
+  })
+}
+
 export function useDeleteInvestmentTransaction() {
   const queryClient = useQueryClient()
   return useMutation({
