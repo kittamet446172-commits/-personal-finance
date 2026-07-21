@@ -176,11 +176,8 @@ export default function InvestmentsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Portfolio</h1>
-          <p className="text-sm text-muted-foreground">ติดตาม investment ทั้งหมด</p>
-        </div>
+      <div className="space-y-3">
+        <h1 className="text-2xl font-bold">Portfolio</h1>
         <div className="flex gap-2">
           <Button
             variant="outline"
@@ -188,15 +185,16 @@ export default function InvestmentsPage() {
             onClick={() => refreshAllMutation.mutate()}
             disabled={refreshAllMutation.isPending}
             title="อัปเดตราคาทุกตัว"
+            className="flex-shrink-0"
           >
             <RefreshCw className={`h-4 w-4 ${refreshAllMutation.isPending ? 'animate-spin' : ''}`} />
           </Button>
-          <Button variant="outline" onClick={() => setDialog({ type: 'dividend' })}>
-            <Plus className="h-4 w-4 mr-2" />
+          <Button variant="outline" className="flex-1" onClick={() => setDialog({ type: 'dividend' })}>
+            <Plus className="h-4 w-4 mr-1" />
             ปันผล
           </Button>
-          <Button onClick={() => setDialog({ type: 'holding', editing: null })}>
-            <Plus className="h-4 w-4 mr-2" />
+          <Button className="flex-1" onClick={() => setDialog({ type: 'holding', editing: null })}>
+            <Plus className="h-4 w-4 mr-1" />
             เพิ่มหลักทรัพย์
           </Button>
         </div>
@@ -204,7 +202,7 @@ export default function InvestmentsPage() {
 
       {/* Summary Cards */}
       {summary && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           <Card>
             <CardContent className="pt-4">
               <p className="text-xs text-muted-foreground">มูลค่าปัจจุบัน</p>
