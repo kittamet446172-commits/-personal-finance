@@ -98,7 +98,7 @@ function HoldingCard({
       <CardContent className="space-y-3">
         <div className="flex items-end justify-between">
           <div>
-            <p className="text-2xl font-bold">{formatCurrency(item.currentValue)}</p>
+            <p className="text-2xl font-bold">{formatCurrency(item.currentValue, item.currency)}</p>
             <GainBadge value={item.unrealizedGain} pct={item.unrealizedGainPct} />
           </div>
           <Button variant="outline" size="sm" onClick={onDividend} className="gap-1.5">
@@ -113,16 +113,16 @@ function HoldingCard({
           </div>
           <div className="rounded-md bg-muted px-2 py-1.5">
             <p className="text-muted-foreground">ต้นทุนเฉลี่ย</p>
-            <p className="font-semibold">฿{item.avgCost.toFixed(2)}</p>
+            <p className="font-semibold">{formatCurrency(item.avgCost, item.currency)}</p>
           </div>
           <div className="rounded-md bg-muted px-2 py-1.5">
             <p className="text-muted-foreground">ราคาล่าสุด</p>
-            <p className="font-semibold">฿{item.currentPrice.toFixed(2)}</p>
+            <p className="font-semibold">{formatCurrency(item.currentPrice, item.currency)}</p>
           </div>
         </div>
         {item.totalDividends > 0 && (
           <p className="text-xs text-muted-foreground">
-            ปันผลสะสม: <span className="font-medium text-green-600">{formatCurrency(item.totalDividends)}</span>
+            ปันผลสะสม: <span className="font-medium text-green-600">{formatCurrency(item.totalDividends, item.currency)}</span>
           </p>
         )}
       </CardContent>
