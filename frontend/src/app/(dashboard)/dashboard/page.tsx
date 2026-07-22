@@ -68,7 +68,7 @@ export default function DashboardPage() {
   const expensePieData = expenseBreakdown.map((b, i) => ({
     name: `${b.category?.icon ?? ''} ${b.category?.name ?? ''}`.trim(),
     value: b.amount,
-    color: PIE_COLORS[i % PIE_COLORS.length],
+    color: b.category?.color ?? PIE_COLORS[i % PIE_COLORS.length],
   }))
 
   const [hoveredSlice, setHoveredSlice] = useState<{ name: string; value: number } | null>(null)
