@@ -8,11 +8,24 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useExchangeRate } from '@/hooks/use-exchange-rate'
 
 export default function SettingsPage() {
   const { data: session, refetch } = useSession()
   const [name, setName] = useState(session?.user.name ?? '')
   const [loading, setLoading] = useState(false)
+  const { rate, setRate } = useExchangeRate()
+  const [rateInput, setRateInput] = useState<string>('')
+  const [rateSaved, setRateSaved] = useState(false)
+
+  function handleRateSave(e: React.FormEvent) {
+    e.preventDefault()
+    const val = Number(rateInput)
+    if (!val || val <= 0) return
+    setRate(val)
+    setRateSaved(true)
+    setTimeout(() => setRateSaved(false), 2000)
+  }
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
   const [avatarLoading, setAvatarLoading] = useState(false)
@@ -106,6 +119,31 @@ export default function SettingsPage() {
             className="hidden"
             onChange={handleAvatarChange}
           />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>อัตราแลกเปลี่ยน</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleRateSave} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="rate">1 USD = ? THB</Label>
+              <Input
+                id="rate"
+                type="number"
+                step="0.01"
+                min="1"
+                placeholder={String(rate)}
+                value={rateInput}
+                onChange={(e) => setRateInput(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">ค่าปัจจุบัน: 1 USD = {rate} THB</p>
+            </div>
+            {rateSaved && <p className="text-sm text-green-600">บันทึกแล้ว</p>}
+            <Button type="submit">บันทึก</Button>
+          </form>
         </CardContent>
       </Card>
 

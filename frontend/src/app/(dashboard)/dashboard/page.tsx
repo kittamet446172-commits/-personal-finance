@@ -15,6 +15,7 @@ import { useAccounts } from '@/hooks/use-accounts'
 import { useMonthlyStats, useRecentTransactions } from '@/hooks/use-transactions'
 import { useCategoryBreakdown, useYearlyTrend } from '@/hooks/use-reports'
 import { usePortfolio } from '@/hooks/use-investments'
+import { useExchangeRate } from '@/hooks/use-exchange-rate'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatCurrency, formatDate } from '@/lib/utils'
 
@@ -54,10 +55,14 @@ export default function DashboardPage() {
   const { data: trend } = useYearlyTrend(year)
   const { data: expenseBreakdown = [] } = useCategoryBreakdown(month, year, 'EXPENSE')
   const { data: portfolio } = usePortfolio()
+  const { rate: usdToThb } = useExchangeRate()
 
   const accountsBalance = accounts.reduce((sum, a) => sum + Number(a.balance), 0)
-  const investmentValue = portfolio?.summary.totalCurrentValue ?? 0
-  const netWorth = accountsBalance + investmentValue
+  const investmentValueThb = (portfolio?.items ?? []).reduce((sum, item) => {
+    const val = item.currentValue
+    return sum + (item.currency === 'USD' ? val * usdToThb : val)
+  }, 0)
+  const netWorth = accountsBalance + investmentValueThb
 
   const incomeChartData = trend?.months.map((m) => ({
     name: MONTH_SHORT[m.month - 1],
@@ -95,9 +100,9 @@ export default function DashboardPage() {
             <p className="text-xs text-muted-foreground">
               บัญชี {formatCurrency(accountsBalance)}
             </p>
-            {investmentValue > 0 && (
+            {investmentValueThb > 0 && (
               <p className="text-xs text-muted-foreground">
-                Portfolio {formatCurrency(investmentValue)}
+                Portfolio {formatCurrency(investmentValueThb)}
               </p>
             )}
           </div>
