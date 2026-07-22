@@ -144,7 +144,22 @@ export default function InvestmentsPage() {
   const [activeTab, setActiveTab] = useState('all')
 
   const items = portfolio?.items ?? []
-  const summary = portfolio?.summary
+
+  const byCurrency = items.reduce<Record<string, PortfolioItem[]>>((acc, item) => {
+    const cur = item.currency ?? 'THB'
+    if (!acc[cur]) acc[cur] = []
+    acc[cur].push(item)
+    return acc
+  }, {})
+
+  const currencySummaries = Object.entries(byCurrency).map(([currency, cItems]) => {
+    const totalCurrentValue = cItems.reduce((s, i) => s + i.currentValue, 0)
+    const totalCostBasis = cItems.reduce((s, i) => s + i.costBasis, 0)
+    const unrealizedGain = totalCurrentValue - totalCostBasis
+    const unrealizedGainPct = totalCostBasis > 0 ? (unrealizedGain / totalCostBasis) * 100 : 0
+    const totalDividends = cItems.reduce((s, i) => s + i.totalDividends, 0)
+    return { currency, totalCurrentValue, totalCostBasis, unrealizedGain, unrealizedGainPct, totalDividends }
+  })
 
   const filtered =
     activeTab === 'all'
@@ -200,35 +215,38 @@ export default function InvestmentsPage() {
         </div>
       </div>
 
-      {/* Summary Cards */}
-      {summary && (
-        <div className="grid grid-cols-2 gap-3">
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs text-muted-foreground">มูลค่าปัจจุบัน</p>
-              <p className="text-xl font-bold">{formatCurrency(summary.totalCurrentValue, items[0]?.currency)}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs text-muted-foreground">ต้นทุนรวม</p>
-              <p className="text-xl font-bold">{formatCurrency(summary.totalCostBasis, items[0]?.currency)}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs text-muted-foreground">กำไร/ขาดทุนที่ยังไม่รับรู้</p>
-              <GainBadge value={summary.unrealizedGain} pct={summary.unrealizedGainPct} currency={items[0]?.currency} />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs text-muted-foreground">ปันผลสะสม</p>
-              <p className="text-xl font-bold text-green-600">{formatCurrency(summary.totalDividends, items[0]?.currency)}</p>
-            </CardContent>
-          </Card>
+      {/* Summary Cards — แยกตามสกุลเงิน */}
+      {currencySummaries.map((s) => (
+        <div key={s.currency} className="space-y-2">
+          <p className="text-xs font-semibold text-muted-foreground">{s.currency === 'THB' ? '฿ THB' : '$ USD'}</p>
+          <div className="grid grid-cols-2 gap-3">
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs text-muted-foreground">มูลค่าปัจจุบัน</p>
+                <p className="text-xl font-bold">{formatCurrency(s.totalCurrentValue, s.currency)}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs text-muted-foreground">ต้นทุนรวม</p>
+                <p className="text-xl font-bold">{formatCurrency(s.totalCostBasis, s.currency)}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs text-muted-foreground">กำไร/ขาดทุนที่ยังไม่รับรู้</p>
+                <GainBadge value={s.unrealizedGain} pct={s.unrealizedGainPct} currency={s.currency} />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs text-muted-foreground">ปันผลสะสม</p>
+                <p className="text-xl font-bold text-green-600">{formatCurrency(s.totalDividends, s.currency)}</p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      )}
+      ))}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
