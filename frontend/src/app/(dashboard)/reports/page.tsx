@@ -129,13 +129,11 @@ export default function ReportsPage() {
       </div>
 
       {/* Monthly summary cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         {[
           { label: 'รายรับ', value: summary?.income ?? 0, color: 'text-green-600' },
           { label: 'รายจ่าย', value: summary?.expense ?? 0, color: 'text-red-600' },
-          { label: 'เงินออม', value: summary?.savings ?? 0, color: (summary?.savings ?? 0) >= 0 ? 'text-blue-600' : 'text-red-600' },
-          { label: 'อัตราออม', value: null, savings: summary?.savingsRate ?? 0 },
-        ].map(({ label, value, color, savings }) => (
+        ].map(({ label, value, color }) => (
           <Card key={label}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -143,10 +141,8 @@ export default function ReportsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className={`text-base font-bold ${color ?? 'text-foreground'}`}>
-                {savings !== undefined
-                  ? `${savings.toFixed(1)}%`
-                  : formatCurrency(value ?? 0)}
+              <p className={`text-base font-bold ${color}`}>
+                {formatCurrency(value)}
               </p>
             </CardContent>
           </Card>
