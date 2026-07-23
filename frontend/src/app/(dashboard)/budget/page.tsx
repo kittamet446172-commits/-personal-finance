@@ -201,7 +201,7 @@ export default function BudgetPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editing ? 'แก้ไขงบประมาณ' : 'เพิ่มงบประมาณ'}
+              {editing ? 'แก้ไขงบประมาณ' : `เพิ่มงบประมาณ — ${MONTHS[month - 1]} ${year}`}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
