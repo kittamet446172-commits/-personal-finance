@@ -18,10 +18,10 @@ export function createAuth(prisma: PrismaClient) {
     secret,
     trustedOrigins: [process.env.FRONTEND_URL ?? 'http://localhost:3000'],
     advanced: {
-      useSecureCookies: true,
+      useSecureCookies: process.env.NODE_ENV === 'production',
       defaultCookieAttributes: {
-        sameSite: 'none' as const,
-        secure: true,
+        sameSite: process.env.NODE_ENV === 'production' ? ('none' as const) : ('lax' as const),
+        secure: process.env.NODE_ENV === 'production',
       },
     },
     emailAndPassword: {
