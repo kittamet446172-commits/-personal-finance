@@ -42,4 +42,7 @@ async function bootstrap() {
   await app.listen(process.env.PORT ?? 4000);
 }
 
-bootstrap();
+bootstrap().catch((err) => {
+  process.stderr.write(`BOOTSTRAP_ERROR: ${err?.stack ?? err}\n`);
+  process.exit(1);
+});
