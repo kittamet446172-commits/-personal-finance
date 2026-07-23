@@ -36,6 +36,20 @@ async function bootstrap() {
   const prisma = app.get(PrismaService);
   const auth = createAuth(prisma);
 
+  app.use('/api/auth', (req: import('express').Request, res: import('express').Response, next: import('express').NextFunction) => {
+    const origin = req.headers.origin as string | undefined;
+    if (origin) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie');
+    }
+    if (req.method === 'OPTIONS') {
+      res.status(204).end();
+      return;
+    }
+    next();
+  });
   app.use('/api/auth', toNodeHandler(auth.handler));
 
   app.useGlobalPipes(

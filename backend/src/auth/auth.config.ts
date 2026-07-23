@@ -16,13 +16,10 @@ export function createAuth(prisma: PrismaClient) {
     }),
     baseURL: process.env.BETTER_AUTH_URL ?? 'http://localhost:4000',
     secret,
-    trustedOrigins: (origin) => {
-      if (!origin) return false;
-      if (origin === (process.env.FRONTEND_URL ?? 'http://localhost:3000')) return true;
-      if (origin === 'http://localhost:3000') return true;
-      if (/^https:\/\/.*\.vercel\.app$/.test(origin)) return true;
-      return false;
-    },
+    trustedOrigins: [
+      process.env.FRONTEND_URL ?? 'http://localhost:3000',
+      'http://localhost:3000',
+    ],
     advanced: {
       useSecureCookies: process.env.NODE_ENV === 'production',
       defaultCookieAttributes: {
