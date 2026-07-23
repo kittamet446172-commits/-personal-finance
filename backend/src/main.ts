@@ -43,6 +43,6 @@ async function bootstrap() {
 }
 
 bootstrap().catch((err) => {
-  process.stderr.write(`BOOTSTRAP_ERROR: ${err?.stack ?? err}\n`);
+  process.stderr.write(`FATAL: ${err?.stack ?? err}\n`);
   process.exit(1);
 });
