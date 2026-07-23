@@ -12,6 +12,7 @@ import {
   YAxis,
 } from 'recharts'
 import { useAccounts } from '@/hooks/use-accounts'
+import { useUserProfile } from '@/hooks/use-user'
 import { useMonthlyStats, useRecentTransactions } from '@/hooks/use-transactions'
 import { useCategoryBreakdown, useYearlyTrend } from '@/hooks/use-reports'
 import { usePortfolio } from '@/hooks/use-investments'
@@ -50,6 +51,7 @@ export default function DashboardPage() {
   const year = now.getFullYear()
 
   const { data: accounts = [] } = useAccounts()
+  const { data: userProfile } = useUserProfile()
   const { data: stats } = useMonthlyStats(month, year)
   const { data: recent = [] } = useRecentTransactions()
   const { data: trend } = useYearlyTrend(year)
@@ -108,6 +110,37 @@ export default function DashboardPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Emergency Fund */}
+      {userProfile?.emergencyFundGoal && userProfile.emergencyFundAccountId && (() => {
+        const efAccount = accounts.find((a) => a.id === userProfile.emergencyFundAccountId)
+        const current = efAccount ? Number(efAccount.balance) : 0
+        const goal = Number(userProfile.emergencyFundGoal)
+        const pct = Math.min((current / goal) * 100, 100)
+        const isReached = current >= goal
+        return (
+          <Card>
+            <CardContent className="py-4 px-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium">🛡️ เงินสำรองฉุกเฉิน</p>
+                <p className="text-sm font-semibold">
+                  {formatCurrency(current)}{' '}
+                  <span className="text-muted-foreground font-normal">/ {formatCurrency(goal)}</span>
+                </p>
+              </div>
+              <div className="w-full bg-muted rounded-full h-2">
+                <div
+                  className={`h-2 rounded-full transition-all ${isReached ? 'bg-green-500' : 'bg-primary'}`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {isReached ? '✅ ถึงเป้าหมายแล้ว' : `${pct.toFixed(1)}% — ขาดอีก ${formatCurrency(goal - current)}`}
+              </p>
+            </CardContent>
+          </Card>
+        )
+      })()}
 
       {/* Income / Expense / Savings */}
       <div className="grid grid-cols-2 gap-2">

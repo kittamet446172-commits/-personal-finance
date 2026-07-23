@@ -19,6 +19,9 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  emergencyFundGoal      Decimal? @db.Decimal(15, 2)
+  emergencyFundAccountId String?
+
   sessions               Session[]
   accounts               Account[]
   Account_               FinanceAccount[]

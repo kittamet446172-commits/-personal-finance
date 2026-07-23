@@ -9,6 +9,8 @@ export interface User {
   email: string
   image?: string | null
   createdAt: string
+  emergencyFundGoal?: number | null
+  emergencyFundAccountId?: string | null
 }
 
 export interface Account {
