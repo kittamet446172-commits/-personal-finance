@@ -21,13 +21,8 @@ async function bootstrap() {
   app.useStaticAssets(join(process.cwd(), 'uploads'), { prefix: '/uploads' });
 
   // CORS must be first — before auth handler and helmet
-  const allowedOrigins = [
-    process.env.FRONTEND_URL ?? 'http://localhost:3000',
-    'http://localhost:3000',
-    /^https:\/\/.*\.vercel\.app$/,
-  ];
   app.enableCors({
-    origin: allowedOrigins,
+    origin: true,
     credentials: true,
   });
 

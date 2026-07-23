@@ -8,4 +8,4 @@ RUN npx prisma generate
 RUN npx tsc -p tsconfig.json && echo "=== TSC DONE ===" && ls -la dist/main.js
 
 EXPOSE 4000
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
+CMD ["node", "dist/main.js"]
