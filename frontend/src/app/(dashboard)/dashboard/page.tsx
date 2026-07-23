@@ -129,7 +129,7 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardContent className="py-3 px-3">
-            <p className="text-xs text-muted-foreground mb-1">ออม</p>
+            <p className="text-xs text-muted-foreground mb-1">คงเหลือ</p>
             <p className={`text-sm font-bold ${(stats?.savings ?? 0) >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
               {formatCurrency(stats?.savings ?? 0)}
             </p>
