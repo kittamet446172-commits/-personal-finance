@@ -9,9 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateHoldingDto } from './dto/create-holding.dto';
 import { UpdateHoldingDto } from './dto/update-holding.dto';
 import { CreateInvestmentTransactionDto } from './dto/create-investment-transaction.dto';
-import YahooFinance from 'yahoo-finance2';
-
-const yf = new YahooFinance({ suppressNotices: ['yahooSurvey'] });
+import yahooFinance from 'yahoo-finance2';
 
 type HoldingWithRelations = InvestmentHolding & {
   transactions: InvestmentTransaction[];
@@ -208,7 +206,7 @@ export class InvestmentsService {
 
   async refreshPrice(id: string, userId: string) {
     const holding = await this.findOneHolding(id, userId);
-    const quote = await yf.quote(holding.symbol);
+    const quote = await yahooFinance.quote(holding.symbol);
     const price = quote.regularMarketPrice;
     if (!price) throw new BadRequestException('ไม่พบราคาหุ้น');
     return this.prisma.investmentHolding.update({
@@ -223,7 +221,7 @@ export class InvestmentsService {
     });
     const results = await Promise.allSettled(
       holdings.map(async (h) => {
-        const quote = await yf.quote(h.symbol);
+        const quote = await yahooFinance.quote(h.symbol);
         const price = quote.regularMarketPrice;
         if (!price) return;
         return this.prisma.investmentHolding.update({
