@@ -28,6 +28,7 @@ const TYPE_LABELS: Record<AccountType, string> = {
   CASH: 'เงินสด',
   BANK_ACCOUNT: 'บัญชีธนาคาร',
   WALLET: 'กระเป๋าเงิน',
+  INVESTMENT: 'ลงทุน',
 }
 
 interface FormState {
@@ -192,13 +193,12 @@ export default function AccountsPage() {
             </div>
             <div className="space-y-2">
               <Label>ประเภท</Label>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 {(Object.keys(TYPE_LABELS) as AccountType[]).map((t) => (
                   <Button
                     key={t}
                     type="button"
                     variant={form.type === t ? 'default' : 'outline'}
-                    className="flex-1"
                     onClick={() => setForm({ ...form, type: t })}
                   >
                     {TYPE_LABELS[t]}

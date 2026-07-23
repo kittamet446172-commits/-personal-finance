@@ -242,6 +242,7 @@ enum AccountType {
   CASH
   BANK_ACCOUNT
   WALLET
+  INVESTMENT
 }
 
 enum TransactionType {

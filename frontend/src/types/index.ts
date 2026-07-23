@@ -1,4 +1,4 @@
-export type AccountType = 'CASH' | 'BANK_ACCOUNT' | 'WALLET'
+export type AccountType = 'CASH' | 'BANK_ACCOUNT' | 'WALLET' | 'INVESTMENT'
 export type TransactionType = 'INCOME' | 'EXPENSE'
 export type InvestmentType = 'STOCK' | 'ETF' | 'MUTUAL_FUND' | 'REIT'
 export type LotType = 'BUY' | 'SELL'
