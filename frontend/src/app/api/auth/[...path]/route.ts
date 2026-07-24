@@ -18,13 +18,19 @@ async function handler(
 
   const hasBody = req.method !== 'GET' && req.method !== 'HEAD'
 
-  const response = await fetch(url, {
-    method: req.method,
-    headers,
-    body: hasBody ? req.body : undefined,
-    // @ts-expect-error duplex required for streaming body
-    duplex: hasBody ? 'half' : undefined,
-  })
+  let response: Response
+  try {
+    response = await fetch(url, {
+      method: req.method,
+      headers,
+      body: hasBody ? req.body : undefined,
+      // @ts-expect-error duplex required for streaming body
+      duplex: hasBody ? 'half' : undefined,
+    })
+  } catch (err) {
+    console.error(`[auth-proxy] fetch failed url=${url}`, err)
+    return NextResponse.json({ message: String(err) }, { status: 502 })
+  }
 
   const resHeaders = new Headers()
   response.headers.forEach((value, key) => {
