@@ -49,6 +49,14 @@ async function bootstrap() {
         res.setHeader('Access-Control-Allow-Credentials', 'true');
         return origWriteHead(code, ...args);
       };
+      const origEnd = res.end.bind(res);
+      (res as any).end = function (...args: any[]) {
+        if (!res.headersSent) {
+          res.setHeader('Access-Control-Allow-Origin', origin);
+          res.setHeader('Access-Control-Allow-Credentials', 'true');
+        }
+        return origEnd(...args);
+      };
     }
     next();
   });
