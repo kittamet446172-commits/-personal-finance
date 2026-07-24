@@ -222,23 +222,25 @@ export class InvestmentsService {
     });
     if (holdings.length === 0) return { updated: 0, total: 0 };
 
-    // Debug: fetch first holding's quote to inspect structure
-    const firstQuote = await yahooFinance.quote(holdings[0].symbol, {}, { validateResult: false }) as Record<string, unknown>;
-    const priceKeys = Object.keys(firstQuote).filter(k => k.toLowerCase().includes('price') || k.toLowerCase().includes('market'));
-
     const results = await Promise.allSettled(
       holdings.map(async (h) => {
-        const quote = await yahooFinance.quote(h.symbol, {}, { validateResult: false }) as Record<string, unknown>;
-        const price = (quote.regularMarketPrice ?? quote.currentPrice ?? quote.price) as number | undefined;
-        if (!price) return;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const quote = await (yahooFinance as any).quote(h.symbol) as Record<string, unknown>;
+        const price = Number(quote.regularMarketPrice ?? quote.price ?? 0);
+        if (!price) return null;
         return this.prisma.investmentHolding.update({
           where: { id: h.id },
           data: { currentPrice: price },
         });
       }),
     );
-    const updated = results.filter((r) => r.status === 'fulfilled' && r.value !== undefined).length;
-    return { updated, total: holdings.length, sampleKeys: priceKeys, sampleSymbol: holdings[0].symbol };
+
+    const updated = results.filter((r) => r.status === 'fulfilled' && r.value != null).length;
+    const errors = results
+      .map((r, i) => r.status === 'rejected' ? `${holdings[i].symbol}: ${String(r.reason).slice(0, 120)}` : null)
+      .filter(Boolean);
+
+    return { updated, total: holdings.length, errors };
   }
 
   private async getTotalQuantity(holdingId: string, userId: string) {
