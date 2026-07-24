@@ -214,6 +214,51 @@ export class TransactionsService {
     };
   }
 
+  async exportAll(
+    userId: string,
+    filter: { type?: string; month?: number; year?: number },
+  ): Promise<string> {
+    const where: Prisma.TransactionWhereInput = {
+      userId,
+      ...(filter.type && { type: filter.type as TransactionType }),
+      ...(filter.month && filter.year
+        ? {
+            date: {
+              gte: new Date(filter.year, filter.month - 1, 1),
+              lt: new Date(filter.year, filter.month, 1),
+            },
+          }
+        : {}),
+    };
+
+    const transactions = await this.prisma.transaction.findMany({
+      where,
+      include: {
+        category: { select: { name: true } },
+        account: { select: { name: true } },
+      },
+      orderBy: { date: 'desc' },
+    });
+
+    const escape = (v: string) => `"${v.replace(/"/g, '""')}"`;
+    const header = 'Date,Type,Amount,Category,Account,Description,Merchant';
+    const rows = transactions.map((tx) =>
+      [
+        tx.date.toISOString().split('T')[0],
+        tx.type,
+        Number(tx.amount).toFixed(2),
+        tx.category.name,
+        tx.account.name,
+        tx.description ?? '',
+        tx.merchant ?? '',
+      ]
+        .map(escape)
+        .join(','),
+    );
+
+    return [header, ...rows].join('\n');
+  }
+
   async getRecent(userId: string, limit = 10) {
     return this.prisma.transaction.findMany({
       where: { userId },
