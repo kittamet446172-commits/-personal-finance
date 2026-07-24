@@ -20,10 +20,22 @@ async function bootstrap() {
   }
   app.useStaticAssets(join(process.cwd(), 'uploads'), { prefix: '/uploads' });
 
-  // CORS must be first — before auth handler and helmet
-  app.enableCors({
-    origin: true,
-    credentials: true,
+  // Global CORS — before helmet and all route handlers
+  app.use((req: import('express').Request, res: import('express').Response, next: import('express').NextFunction) => {
+    const origin = req.headers.origin as string | undefined;
+    if (origin) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Vary', 'Origin');
+    }
+    if (req.method === 'OPTIONS') {
+      res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,Cookie,Set-Cookie');
+      res.statusCode = 204;
+      res.end();
+      return;
+    }
+    next();
   });
 
   app.use(helmet({ crossOriginResourcePolicy: false }));
@@ -31,24 +43,10 @@ async function bootstrap() {
   const prisma = app.get(PrismaService);
   const auth = createAuth(prisma);
 
+  // Patch res.end for auth routes — toNodeHandler may write response directly
   app.use('/api/auth', (req: import('express').Request, res: import('express').Response, next: import('express').NextFunction) => {
     const origin = req.headers.origin as string | undefined;
-    if (req.method === 'OPTIONS') {
-      res.setHeader('Access-Control-Allow-Origin', origin ?? '*');
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
-      res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,Cookie,Set-Cookie');
-      res.statusCode = 204;
-      res.end();
-      return;
-    }
     if (origin) {
-      const origWriteHead = res.writeHead.bind(res);
-      (res as any).writeHead = function (code: number, ...args: any[]) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
-        res.setHeader('Access-Control-Allow-Credentials', 'true');
-        return origWriteHead(code, ...args);
-      };
       const origEnd = res.end.bind(res);
       (res as any).end = function (...args: any[]) {
         if (!res.headersSent) {
