@@ -34,7 +34,12 @@ async function handler(
 
   const resHeaders = new Headers()
   response.headers.forEach((value, key) => {
-    resHeaders.set(key, value)
+    if (key.toLowerCase() === 'set-cookie') {
+      // Strip Domain attribute so the browser binds the cookie to the Vercel domain
+      resHeaders.append('set-cookie', value.replace(/;\s*domain=[^;]*/gi, ''))
+    } else {
+      resHeaders.set(key, value)
+    }
   })
 
   return new NextResponse(response.body, {
