@@ -9,8 +9,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateHoldingDto } from './dto/create-holding.dto';
 import { UpdateHoldingDto } from './dto/update-holding.dto';
 import { CreateInvestmentTransactionDto } from './dto/create-investment-transaction.dto';
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports
-const yahooFinance = new ((require('yahoo-finance2') as any).YahooFinance)() as any;
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const yahooFinance = require('yahoo-finance2').default as typeof import('yahoo-finance2').default;
 
 type HoldingWithRelations = InvestmentHolding & {
   transactions: InvestmentTransaction[];
@@ -224,9 +224,8 @@ export class InvestmentsService {
 
     const results = await Promise.allSettled(
       holdings.map(async (h) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const quote = await (yahooFinance as any).quote(h.symbol) as Record<string, unknown>;
-        const price = Number(quote.regularMarketPrice ?? quote.price ?? 0);
+        const quote = await yahooFinance.quote(h.symbol, {}, { validateResult: false }) as { regularMarketPrice?: number };
+        const price = quote.regularMarketPrice;
         if (!price) return null;
         return this.prisma.investmentHolding.update({
           where: { id: h.id },
@@ -236,11 +235,7 @@ export class InvestmentsService {
     );
 
     const updated = results.filter((r) => r.status === 'fulfilled' && r.value != null).length;
-    const errors = results
-      .map((r, i) => r.status === 'rejected' ? `${holdings[i].symbol}: ${String(r.reason).slice(0, 120)}` : null)
-      .filter(Boolean);
-
-    return { updated, total: holdings.length, errors };
+    return { updated, total: holdings.length };
   }
 
   private async getTotalQuantity(holdingId: string, userId: string) {
