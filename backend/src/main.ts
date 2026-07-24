@@ -33,15 +33,22 @@ async function bootstrap() {
 
   app.use('/api/auth', (req: import('express').Request, res: import('express').Response, next: import('express').NextFunction) => {
     const origin = req.headers.origin as string | undefined;
-    if (origin) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie');
-    }
     if (req.method === 'OPTIONS') {
-      res.status(204).end();
+      res.setHeader('Access-Control-Allow-Origin', origin ?? '*');
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,Cookie,Set-Cookie');
+      res.statusCode = 204;
+      res.end();
       return;
+    }
+    if (origin) {
+      const origWriteHead = res.writeHead.bind(res);
+      (res as any).writeHead = function (code: number, ...args: any[]) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+        return origWriteHead(code, ...args);
+      };
     }
     next();
   });
