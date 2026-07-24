@@ -23,3 +23,13 @@ Thumbs.db
 .idea/
 
 .vercel
+
+# TypeScript build cache
+*.tsbuildinfo
+
+# Uploads
+backend/uploads/
+
+# Obsidian
+.obsidian/
+*.canvas
