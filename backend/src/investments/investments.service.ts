@@ -9,8 +9,6 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateHoldingDto } from './dto/create-holding.dto';
 import { UpdateHoldingDto } from './dto/update-holding.dto';
 import { CreateInvestmentTransactionDto } from './dto/create-investment-transaction.dto';
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const yahooFinance = require('yahoo-finance2').default as typeof import('yahoo-finance2').default;
 
 type HoldingWithRelations = InvestmentHolding & {
   transactions: InvestmentTransaction[];
@@ -207,8 +205,7 @@ export class InvestmentsService {
 
   async refreshPrice(id: string, userId: string) {
     const holding = await this.findOneHolding(id, userId);
-    const quote = (await yahooFinance.quote(holding.symbol, {}, { validateResult: false })) as { regularMarketPrice?: number };
-    const price = quote.regularMarketPrice;
+    const price = await this.fetchYahooPrice(holding.symbol);
     if (!price) throw new BadRequestException('ไม่พบราคาหุ้น');
     return this.prisma.investmentHolding.update({
       where: { id },
@@ -224,8 +221,7 @@ export class InvestmentsService {
 
     const results = await Promise.allSettled(
       holdings.map(async (h) => {
-        const quote = await yahooFinance.quote(h.symbol, {}, { validateResult: false }) as { regularMarketPrice?: number };
-        const price = quote.regularMarketPrice;
+        const price = await this.fetchYahooPrice(h.symbol);
         if (!price) return null;
         return this.prisma.investmentHolding.update({
           where: { id: h.id },
@@ -236,6 +232,20 @@ export class InvestmentsService {
 
     const updated = results.filter((r) => r.status === 'fulfilled' && r.value != null).length;
     return { updated, total: holdings.length };
+  }
+
+  private async fetchYahooPrice(symbol: string): Promise<number | null> {
+    try {
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`;
+      const res = await fetch(url, {
+        headers: { 'User-Agent': 'Mozilla/5.0' },
+      });
+      if (!res.ok) return null;
+      const json = await res.json() as { chart?: { result?: { meta?: { regularMarketPrice?: number } }[] } };
+      return json?.chart?.result?.[0]?.meta?.regularMarketPrice ?? null;
+    } catch {
+      return null;
+    }
   }
 
   private async getTotalQuantity(holdingId: string, userId: string) {
