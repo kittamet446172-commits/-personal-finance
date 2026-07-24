@@ -7,7 +7,8 @@ async function handler(
   { params }: { params: Promise<{ path: string[] }> },
 ) {
   const { path } = await params
-  const url = `${BACKEND_URL}/${path.join('/')}`
+  const search = new URL(req.url).search
+  const url = `${BACKEND_URL}/${path.join('/')}${search}`
 
   const headers = new Headers()
   req.headers.forEach((value, key) => {
