@@ -236,9 +236,27 @@ export class InvestmentsService {
 
   private async fetchYahooPrice(symbol: string): Promise<number | null> {
     try {
-      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`;
+      const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
+
+      // Step 1: get cookie
+      const cookieRes = await fetch('https://fc.yahoo.com', {
+        headers: { 'User-Agent': ua },
+        redirect: 'follow',
+      });
+      const rawCookie = cookieRes.headers.get('set-cookie') ?? '';
+      const cookie = rawCookie.split(';')[0];
+
+      // Step 2: get crumb
+      const crumbRes = await fetch('https://query2.finance.yahoo.com/v1/test/getcrumb', {
+        headers: { 'User-Agent': ua, Cookie: cookie },
+      });
+      if (!crumbRes.ok) return null;
+      const crumb = await crumbRes.text();
+
+      // Step 3: fetch price
+      const url = `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d&crumb=${encodeURIComponent(crumb)}`;
       const res = await fetch(url, {
-        headers: { 'User-Agent': 'Mozilla/5.0' },
+        headers: { 'User-Agent': ua, Cookie: cookie },
       });
       if (!res.ok) return null;
       const json = await res.json() as { chart?: { result?: { meta?: { regularMarketPrice?: number } }[] } };
