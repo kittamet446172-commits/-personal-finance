@@ -20,6 +20,13 @@ async function bootstrap() {
   }
   app.useStaticAssets(join(process.cwd(), 'uploads'), { prefix: '/uploads' });
 
+  // Request logger
+  app.use((req: import('express').Request, res: import('express').Response, next: import('express').NextFunction) => {
+    console.log(`[REQ] ${req.method} ${req.path} origin=${req.headers.origin ?? '-'}`);
+    res.on('finish', () => console.log(`[RES] ${req.method} ${req.path} status=${res.statusCode}`));
+    next();
+  });
+
   // Global CORS — before helmet and all route handlers
   app.use((req: import('express').Request, res: import('express').Response, next: import('express').NextFunction) => {
     const origin = req.headers.origin as string | undefined;
