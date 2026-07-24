@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowLeftRight, Pencil, Plus, Trash2, Wallet } from 'lucide-react'
+import { ArrowLeftRight, Download, Pencil, Plus, Trash2, Wallet } from 'lucide-react'
 import { TransferDialog } from '@/components/transfers/transfer-dialog'
 import {
   useAccounts,
@@ -9,7 +9,7 @@ import {
   useDeleteAccount,
   useUpdateAccount,
 } from '@/hooks/use-accounts'
-import { formatCurrency } from '@/lib/utils'
+import { downloadCsv, formatCurrency } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -101,6 +101,18 @@ export default function AccountsPage() {
   const totalBalance = accounts.reduce((sum, a) => sum + Number(a.balance), 0)
   const isPending = createMutation.isPending || updateMutation.isPending
 
+  function handleExport() {
+    downloadCsv('accounts.csv', [
+      ['ชื่อบัญชี', 'ประเภท', 'ยอดเงิน', 'หมายเหตุ'],
+      ...accounts.map((a) => [
+        a.name,
+        TYPE_LABELS[a.type],
+        String(Number(a.balance)),
+        a.description ?? '',
+      ]),
+    ])
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -111,6 +123,10 @@ export default function AccountsPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExport} disabled={accounts.length === 0}>
+            <Download className="h-4 w-4 mr-2" />
+            Export CSV
+          </Button>
           <Button variant="outline" onClick={() => setTransferOpen(true)}>
             <ArrowLeftRight className="h-4 w-4 mr-2" />
             โอนเงิน

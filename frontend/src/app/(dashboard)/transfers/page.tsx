@@ -1,12 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowRight, Plus, Trash2 } from 'lucide-react'
+import { ArrowRight, Download, Plus, Trash2 } from 'lucide-react'
 import { useDeleteTransfer, useTransfers } from '@/hooks/use-transfers'
 import { TransferDialog } from '@/components/transfers/transfer-dialog'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { formatCurrency, formatDate } from '@/lib/utils'
+import { downloadCsv, formatCurrency, formatDate } from '@/lib/utils'
 
 export default function TransfersPage() {
   const { data: transfers = [], isLoading } = useTransfers()
@@ -18,6 +18,19 @@ export default function TransfersPage() {
     await deleteMutation.mutateAsync(id)
   }
 
+  function handleExport() {
+    downloadCsv('transfers.csv', [
+      ['วันที่', 'จากบัญชี', 'ไปบัญชี', 'จำนวน', 'หมายเหตุ'],
+      ...transfers.map((t) => [
+        formatDate(t.date),
+        t.fromAccount?.name ?? '',
+        t.toAccount?.name ?? '',
+        String(Number(t.amount)),
+        t.description ?? '',
+      ]),
+    ])
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -25,10 +38,16 @@ export default function TransfersPage() {
           <h1 className="text-2xl font-bold">โอนเงิน</h1>
           <p className="text-sm text-muted-foreground">{transfers.length} รายการ</p>
         </div>
-        <Button onClick={() => setDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          โอนเงิน
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExport} disabled={transfers.length === 0}>
+            <Download className="h-4 w-4 mr-2" />
+            Export CSV
+          </Button>
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            โอนเงิน
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (

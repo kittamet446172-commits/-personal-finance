@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import {
+  Download,
   Pencil,
   Plus,
   Trash2,
@@ -23,7 +24,7 @@ import {
   useRefreshAllPrices,
   useUpdateHolding,
 } from '@/hooks/use-investments'
-import { formatCurrency } from '@/lib/utils'
+import { downloadCsv, formatCurrency } from '@/lib/utils'
 import type { InvestmentHolding, InvestmentType, PortfolioItem } from '@/types'
 
 const TYPE_LABELS: Record<InvestmentType, string> = {
@@ -187,6 +188,19 @@ export default function InvestmentsPage() {
   const deleteMutation = useDeleteHolding()
   const refreshAllMutation = useRefreshAllPrices()
   const updateHoldingMutation = useUpdateHolding()
+
+  function handleExport() {
+    downloadCsv('portfolio.csv', [
+      ['Symbol', 'ชื่อ', 'ประเภท', 'ตลาด', 'จำนวน', 'ต้นทุนเฉลี่ย', 'ต้นทุนรวม', 'ราคาล่าสุด', 'มูลค่าปัจจุบัน', 'กำไร/ขาดทุน', 'กำไร/ขาดทุน%', 'ปันผลสะสม', 'สกุลเงิน'],
+      ...(portfolio?.items ?? []).map((i) => [
+        i.symbol, i.name, i.type, i.exchange ?? '', String(i.totalQty),
+        String(i.avgCost.toFixed(4)), String(i.costBasis.toFixed(2)),
+        String(i.currentPrice), String(i.currentValue.toFixed(2)),
+        String(i.unrealizedGain.toFixed(2)), String(i.unrealizedGainPct.toFixed(2)),
+        String(i.totalDividends.toFixed(2)), i.currency,
+      ]),
+    ])
+  }
   const [dialog, setDialog] = useState<DialogState>({ type: 'none' })
   const [activeTab, setActiveTab] = useState('all')
 
@@ -250,6 +264,10 @@ export default function InvestmentsPage() {
             className="flex-shrink-0"
           >
             <RefreshCw className={`h-4 w-4 ${refreshAllMutation.isPending ? 'animate-spin' : ''}`} />
+          </Button>
+          <Button variant="outline" onClick={handleExport} disabled={!portfolio?.items?.length}>
+            <Download className="h-4 w-4 mr-1" />
+            Export CSV
           </Button>
           <Button variant="outline" className="flex-1" onClick={() => setDialog({ type: 'dividend' })}>
             <Plus className="h-4 w-4 mr-1" />
