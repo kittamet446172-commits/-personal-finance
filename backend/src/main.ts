@@ -26,6 +26,10 @@ async function bootstrap() {
   const prisma = app.get(PrismaService);
   const auth = createAuth(prisma);
 
+  app.use('/ping', (_req: import('express').Request, res: import('express').Response) => {
+    res.json({ ok: true, ts: new Date().toISOString() });
+  });
+
   app.use('/api/auth', toNodeHandler(auth.handler));
 
   app.useGlobalPipes(
