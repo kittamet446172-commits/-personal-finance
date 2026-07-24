@@ -10,7 +10,9 @@ import { CreateHoldingDto } from './dto/create-holding.dto';
 import { UpdateHoldingDto } from './dto/update-holding.dto';
 import { CreateInvestmentTransactionDto } from './dto/create-investment-transaction.dto';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const yahooFinance = require('yahoo-finance2').default as typeof import('yahoo-finance2').default;
+const { YahooFinance } = require('yahoo-finance2');
+// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
+const yahooFinance = new YahooFinance();
 
 type HoldingWithRelations = InvestmentHolding & {
   transactions: InvestmentTransaction[];
