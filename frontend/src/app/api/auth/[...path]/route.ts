@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 const BACKEND_URL = process.env.BACKEND_URL ?? 'http://localhost:4000'
+// Stable production URL — rewritten as origin so all Vercel preview deployments are trusted
+const APP_ORIGIN =
+  process.env.NEXT_PUBLIC_APP_URL ??
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : 'http://localhost:3000')
 
 async function handler(
   req: NextRequest,
@@ -11,10 +17,11 @@ async function handler(
 
   const headers = new Headers()
   req.headers.forEach((value, key) => {
-    if (!['host', 'connection', 'transfer-encoding'].includes(key.toLowerCase())) {
+    if (!['host', 'connection', 'transfer-encoding', 'origin'].includes(key.toLowerCase())) {
       headers.set(key, value)
     }
   })
+  headers.set('origin', APP_ORIGIN)
 
   const hasBody = req.method !== 'GET' && req.method !== 'HEAD'
 
