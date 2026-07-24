@@ -20,51 +20,12 @@ async function bootstrap() {
   }
   app.useStaticAssets(join(process.cwd(), 'uploads'), { prefix: '/uploads' });
 
-  // Request logger
-  app.use((req: import('express').Request, res: import('express').Response, next: import('express').NextFunction) => {
-    console.log(`[REQ] ${req.method} ${req.path} origin=${req.headers.origin ?? '-'}`);
-    res.on('finish', () => console.log(`[RES] ${req.method} ${req.path} status=${res.statusCode}`));
-    next();
-  });
-
-  // Global CORS — before helmet and all route handlers
-  app.use((req: import('express').Request, res: import('express').Response, next: import('express').NextFunction) => {
-    const origin = req.headers.origin as string | undefined;
-    if (origin) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
-      res.setHeader('Vary', 'Origin');
-    }
-    if (req.method === 'OPTIONS') {
-      res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,Cookie,Set-Cookie');
-      res.statusCode = 204;
-      res.end();
-      return;
-    }
-    next();
-  });
-
+  app.enableCors({ origin: true, credentials: true });
   app.use(helmet({ crossOriginResourcePolicy: false }));
 
   const prisma = app.get(PrismaService);
   const auth = createAuth(prisma);
 
-  // Patch res.end for auth routes — toNodeHandler may write response directly
-  app.use('/api/auth', (req: import('express').Request, res: import('express').Response, next: import('express').NextFunction) => {
-    const origin = req.headers.origin as string | undefined;
-    if (origin) {
-      const origEnd = res.end.bind(res);
-      (res as any).end = function (...args: any[]) {
-        if (!res.headersSent) {
-          res.setHeader('Access-Control-Allow-Origin', origin);
-          res.setHeader('Access-Control-Allow-Credentials', 'true');
-        }
-        return origEnd(...args);
-      };
-    }
-    next();
-  });
   app.use('/api/auth', toNodeHandler(auth.handler));
 
   app.useGlobalPipes(
