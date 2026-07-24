@@ -232,7 +232,10 @@ export class InvestmentsService {
       }),
     );
     const updated = results.filter((r) => r.status === 'fulfilled' && r.value !== undefined).length;
-    return { updated, total: holdings.length };
+    const errors = results
+      .map((r, i) => r.status === 'rejected' ? { symbol: holdings[i].symbol, error: String(r.reason) } : null)
+      .filter(Boolean);
+    return { updated, total: holdings.length, errors };
   }
 
   private async getTotalQuantity(holdingId: string, userId: string) {
