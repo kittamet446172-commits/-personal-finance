@@ -137,11 +137,14 @@ function HoldingCard({
             <p className="font-semibold">{formatCurrency(item.avgCost, item.currency)}</p>
           </div>
           <div
-            className="rounded-md bg-muted px-2 py-1.5 cursor-pointer hover:bg-accent transition-colors"
+            className="rounded-md bg-muted px-2 py-1.5 cursor-pointer hover:ring-2 hover:ring-primary/40 transition-all group"
             onClick={startEdit}
             title="กดเพื่อแก้ไขราคา"
           >
-            <p className="text-muted-foreground">ราคาล่าสุด</p>
+            <p className="text-muted-foreground flex items-center justify-center gap-1">
+              ราคาล่าสุด
+              <Pencil className="h-2.5 w-2.5 opacity-0 group-hover:opacity-60 transition-opacity" />
+            </p>
             {editing ? (
               <input
                 ref={inputRef}
