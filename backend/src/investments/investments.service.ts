@@ -207,7 +207,7 @@ export class InvestmentsService {
 
   async refreshPrice(id: string, userId: string) {
     const holding = await this.findOneHolding(id, userId);
-    const quote = (await yahooFinance.quote(holding.symbol)) as { regularMarketPrice?: number };
+    const quote = (await yahooFinance.quote(holding.symbol, {}, { validateResult: false })) as { regularMarketPrice?: number };
     const price = quote.regularMarketPrice;
     if (!price) throw new BadRequestException('ไม่พบราคาหุ้น');
     return this.prisma.investmentHolding.update({
@@ -222,7 +222,7 @@ export class InvestmentsService {
     });
     const results = await Promise.allSettled(
       holdings.map(async (h) => {
-        const quote = (await yahooFinance.quote(h.symbol)) as { regularMarketPrice?: number };
+        const quote = (await yahooFinance.quote(h.symbol, {}, { validateResult: false })) as { regularMarketPrice?: number };
         const price = quote.regularMarketPrice;
         if (!price) return;
         return this.prisma.investmentHolding.update({
@@ -231,7 +231,7 @@ export class InvestmentsService {
         });
       }),
     );
-    const updated = results.filter((r) => r.status === 'fulfilled').length;
+    const updated = results.filter((r) => r.status === 'fulfilled' && r.value !== undefined).length;
     return { updated, total: holdings.length };
   }
 
