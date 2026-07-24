@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import {
   Pencil,
   Plus,
@@ -21,6 +21,7 @@ import {
   usePortfolio,
   useDeleteHolding,
   useRefreshAllPrices,
+  useUpdateHolding,
 } from '@/hooks/use-investments'
 import { formatCurrency } from '@/lib/utils'
 import type { InvestmentHolding, InvestmentType, PortfolioItem } from '@/types'
@@ -55,13 +56,33 @@ function HoldingCard({
   onTransaction,
   onDividend,
   onDelete,
+  onPriceUpdate,
 }: {
   item: PortfolioItem
   onEdit: () => void
   onTransaction: () => void
   onDividend: () => void
   onDelete: () => void
+  onPriceUpdate: (price: number) => void
 }) {
+  const [editing, setEditing] = useState(false)
+  const [priceInput, setPriceInput] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  function startEdit() {
+    setPriceInput(item.currentPrice > 0 ? String(item.currentPrice) : '')
+    setEditing(true)
+    setTimeout(() => inputRef.current?.select(), 0)
+  }
+
+  function commitEdit() {
+    const val = parseFloat(priceInput)
+    if (!isNaN(val) && val >= 0 && val !== item.currentPrice) {
+      onPriceUpdate(val)
+    }
+    setEditing(false)
+  }
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-start justify-between pb-2">
@@ -81,7 +102,7 @@ function HoldingCard({
           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onTransaction} title="บันทึกรายการ">
             <Receipt className="h-3.5 w-3.5" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onEdit} title="แก้ไข / อัปเดตราคา">
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onEdit} title="แก้ไข">
             <Pencil className="h-3.5 w-3.5" />
           </Button>
           <Button
@@ -115,9 +136,31 @@ function HoldingCard({
             <p className="text-muted-foreground">ต้นทุนเฉลี่ย</p>
             <p className="font-semibold">{formatCurrency(item.avgCost, item.currency)}</p>
           </div>
-          <div className="rounded-md bg-muted px-2 py-1.5">
+          <div
+            className="rounded-md bg-muted px-2 py-1.5 cursor-pointer hover:bg-accent transition-colors"
+            onClick={startEdit}
+            title="กดเพื่อแก้ไขราคา"
+          >
             <p className="text-muted-foreground">ราคาล่าสุด</p>
-            <p className="font-semibold">{formatCurrency(item.currentPrice, item.currency)}</p>
+            {editing ? (
+              <input
+                ref={inputRef}
+                type="number"
+                step="0.01"
+                value={priceInput}
+                onChange={(e) => setPriceInput(e.target.value)}
+                onBlur={commitEdit}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') commitEdit()
+                  if (e.key === 'Escape') setEditing(false)
+                }}
+                className="w-full bg-transparent text-center font-semibold outline-none border-b border-primary"
+                onClick={(e) => e.stopPropagation()}
+                autoFocus
+              />
+            ) : (
+              <p className="font-semibold">{formatCurrency(item.currentPrice, item.currency)}</p>
+            )}
           </div>
         </div>
         {item.totalDividends > 0 && (
@@ -137,9 +180,10 @@ type DialogState =
   | { type: 'dividend'; holdingId?: string }
 
 export default function InvestmentsPage() {
-  const { data: portfolio, isLoading, refetch } = usePortfolio()
+  const { data: portfolio, isLoading } = usePortfolio()
   const deleteMutation = useDeleteHolding()
   const refreshAllMutation = useRefreshAllPrices()
+  const updateHoldingMutation = useUpdateHolding()
   const [dialog, setDialog] = useState<DialogState>({ type: 'none' })
   const [activeTab, setActiveTab] = useState('all')
 
@@ -276,6 +320,7 @@ export default function InvestmentsPage() {
                   onTransaction={() => setDialog({ type: 'transaction', holding: holdingFromItem(item) })}
                   onDividend={() => setDialog({ type: 'dividend', holdingId: item.id })}
                   onDelete={() => handleDelete(item)}
+                  onPriceUpdate={(price) => updateHoldingMutation.mutate({ id: item.id, currentPrice: price })}
                 />
               ))}
             </div>
