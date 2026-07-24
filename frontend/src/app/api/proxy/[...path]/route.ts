@@ -28,7 +28,9 @@ async function handler(
 
   const resHeaders = new Headers()
   response.headers.forEach((value, key) => {
-    resHeaders.set(key, value)
+    if (!['content-encoding', 'content-length'].includes(key.toLowerCase())) {
+      resHeaders.set(key, value)
+    }
   })
 
   return new NextResponse(response.body, {
