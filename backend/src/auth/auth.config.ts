@@ -16,15 +16,14 @@ export function createAuth(prisma: PrismaClient) {
     }),
     baseURL: process.env.BETTER_AUTH_URL ?? 'http://localhost:4000',
     secret,
-    trustedOrigins: (origin: string) => {
-      const allowed = (process.env.FRONTEND_URL ?? 'http://localhost:3000')
+    trustedOrigins: async (request: Request) => {
+      const origin = request.headers.get('origin') ?? ''
+      const base = (process.env.FRONTEND_URL ?? 'http://localhost:3000')
         .split(',')
         .map((u) => u.trim())
         .filter(Boolean)
-      if (allowed.includes(origin)) return true
-      if (origin.endsWith('.vercel.app')) return true
-      if (origin === 'http://localhost:3000') return true
-      return false
+      if (origin.endsWith('.vercel.app')) base.push(origin)
+      return base
     },
     advanced: {
       useSecureCookies: true,
