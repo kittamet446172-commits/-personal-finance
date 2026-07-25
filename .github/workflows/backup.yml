@@ -27,7 +27,7 @@ jobs:
           TIMESTAMP=$(date +%Y%m%d_%H%M%S)
           # Railway sometimes uses postgres:// — normalize to postgresql://
           DB_URL="${DATABASE_URL/postgres:\/\//postgresql://}"
-          PGSSLMODE=require pg_dump --dbname="$DB_URL" -f "backup_${TIMESTAMP}.sql"
+          PGSSLMODE=require /usr/lib/postgresql/18/bin/pg_dump --dbname="$DB_URL" -f "backup_${TIMESTAMP}.sql"
           echo "TIMESTAMP=${TIMESTAMP}" >> $GITHUB_ENV
           echo "Backup size: $(du -sh backup_${TIMESTAMP}.sql | cut -f1)"
 
