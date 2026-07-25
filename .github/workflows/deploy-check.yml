@@ -25,7 +25,7 @@ jobs:
         env:
           BACKEND_URL: ${{ secrets.RAILWAY_BACKEND_URL }}
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BACKEND_URL/health")
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -L "$BACKEND_URL/health")
           echo "Backend status: $STATUS"
           if [ "$STATUS" != "200" ]; then
             echo "::error::Backend returned $STATUS"
