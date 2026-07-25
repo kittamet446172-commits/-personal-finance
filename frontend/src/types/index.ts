@@ -16,6 +16,8 @@ export interface InvestmentHolding {
   note?: string | null
   createdAt: string
   updatedAt: string
+  transactions?: InvestmentTransaction[]
+  dividends?: { id: string; amount: number; date: string }[]
 }
 
 export interface InvestmentTransaction {
