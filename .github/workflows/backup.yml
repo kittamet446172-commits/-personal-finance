@@ -1,0 +1,33 @@
+name: Database Backup
+
+on:
+  schedule:
+    - cron: '0 19 * * *'  # 02:00 AM Bangkok time (UTC+7)
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client
+
+      - name: Backup database
+        env:
+          DATABASE_URL: ${{ secrets.RAILWAY_DATABASE_URL }}
+        run: |
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          PGSSLMODE=require pg_dump "$DATABASE_URL" > "backup_${TIMESTAMP}.sql"
+          echo "TIMESTAMP=${TIMESTAMP}" >> $GITHUB_ENV
+          echo "Backup size: $(du -sh backup_${TIMESTAMP}.sql | cut -f1)"
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-${{ env.TIMESTAMP }}
+          path: backup_*.sql
+          retention-days: 90

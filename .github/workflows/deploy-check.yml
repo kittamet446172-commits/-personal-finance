@@ -1,0 +1,36 @@
+name: Deploy Health Check
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for Vercel deploy
+        run: sleep 60
+
+      - name: Check frontend
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://personal-finance-mrtam207.vercel.app)
+          echo "Frontend status: $STATUS"
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::Frontend returned $STATUS"
+            exit 1
+          fi
+
+      - name: Check backend health
+        env:
+          BACKEND_URL: ${{ secrets.RAILWAY_BACKEND_URL }}
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BACKEND_URL/health")
+          echo "Backend status: $STATUS"
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::Backend returned $STATUS"
+            exit 1
+          fi
+
+      - name: All checks passed
+        run: echo "Frontend and backend are up"
