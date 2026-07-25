@@ -70,7 +70,6 @@ export default function CategoriesPage() {
       await updateMutation.mutateAsync({
         id: editing.id,
         name: form.name,
-        type: form.type,
         icon: form.icon || undefined,
         color: form.color || undefined,
       })
@@ -203,7 +202,7 @@ export default function CategoriesPage() {
                 />
               </div>
             </div>
-            {!editing?.isDefault && (
+            {!editing && (
               <div className="space-y-2">
                 <Label>ประเภท</Label>
                 <div className="flex gap-2">

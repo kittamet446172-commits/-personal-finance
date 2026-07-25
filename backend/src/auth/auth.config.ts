@@ -16,15 +16,12 @@ export function createAuth(prisma: PrismaClient) {
     }),
     baseURL: process.env.BETTER_AUTH_URL ?? 'http://localhost:4000',
     secret,
-    trustedOrigins: [
-      'http://localhost:3000',
-      ...(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',').map(u => u.trim()) : []),
-    ],
+    trustedOrigins: [process.env.FRONTEND_URL ?? 'http://localhost:3000'],
     advanced: {
-      useSecureCookies: process.env.NODE_ENV === 'production',
+      useSecureCookies: true,
       defaultCookieAttributes: {
-        sameSite: process.env.NODE_ENV === 'production' ? ('none' as const) : ('lax' as const),
-        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'none' as const,
+        secure: true,
       },
     },
     emailAndPassword: {

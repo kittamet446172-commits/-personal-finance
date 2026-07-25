@@ -33,7 +33,6 @@ interface FormState {
   type: InvestmentType
   exchange: string
   sector: string
-  currency: string
   currentPrice: string
   note: string
 }
@@ -44,7 +43,6 @@ const defaultForm: FormState = {
   type: 'STOCK',
   exchange: '',
   sector: '',
-  currency: 'THB',
   currentPrice: '0',
   note: '',
 }
@@ -62,7 +60,6 @@ export function HoldingDialog({ open, onClose, editing }: Props) {
         type: editing.type,
         exchange: editing.exchange ?? '',
         sector: editing.sector ?? '',
-        currency: editing.currency ?? 'THB',
         currentPrice: String(editing.currentPrice),
         note: editing.note ?? '',
       })
@@ -79,7 +76,6 @@ export function HoldingDialog({ open, onClose, editing }: Props) {
       type: form.type,
       exchange: form.exchange || undefined,
       sector: form.sector || undefined,
-      currency: form.currency,
       currentPrice: Number(form.currentPrice),
       note: form.note || undefined,
     }
@@ -147,23 +143,6 @@ export function HoldingDialog({ open, onClose, editing }: Props) {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>สกุลเงิน</Label>
-            <div className="flex gap-2">
-              {['THB', 'USD'].map((c) => (
-                <Button
-                  key={c}
-                  type="button"
-                  variant={form.currency === c ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setForm({ ...form, currency: c })}
-                >
-                  {c === 'THB' ? '฿ THB' : '$ USD'}
-                </Button>
-              ))}
-            </div>
-          </div>
-
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>กลุ่มอุตสาหกรรม</Label>
@@ -174,7 +153,7 @@ export function HoldingDialog({ open, onClose, editing }: Props) {
               />
             </div>
             <div className="space-y-2">
-              <Label>ราคาปัจจุบัน ({form.currency === 'USD' ? '$' : '฿'})</Label>
+              <Label>ราคาปัจจุบัน (฿)</Label>
               <Input
                 type="number"
                 step="0.0001"

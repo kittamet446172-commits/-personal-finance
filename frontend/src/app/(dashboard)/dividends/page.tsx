@@ -1,13 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { Download, Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DividendDialog } from '@/components/investments/dividend-dialog'
 import { useDividends, useDeleteDividend, useDividendSummary } from '@/hooks/use-dividends'
-import { downloadCsv, formatCurrency } from '@/lib/utils'
+import { formatCurrency } from '@/lib/utils'
 import type { InvestmentType } from '@/types'
 
 const TYPE_LABELS: Record<InvestmentType, string> = {
@@ -36,19 +36,6 @@ export default function DividendsPage() {
     await deleteMutation.mutateAsync(id)
   }
 
-  function handleExport() {
-    downloadCsv('dividends.csv', [
-      ['วันที่', 'Symbol', 'จำนวนเงิน', 'ต่อหน่วย', 'หมายเหตุ'],
-      ...dividends.map((d) => [
-        formatDate(d.date),
-        d.holding?.symbol ?? '',
-        String(Number(d.amount)),
-        d.perShare ? String(Number(d.perShare)) : '',
-        d.note ?? '',
-      ]),
-    ])
-  }
-
   const years = summary?.byYear
     ? Object.entries(summary.byYear).sort((a, b) => Number(b[0]) - Number(a[0]))
     : []
@@ -65,16 +52,10 @@ export default function DividendsPage() {
             </span>
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleExport} disabled={dividends.length === 0}>
-            <Download className="h-4 w-4 mr-2" />
-            Export CSV
-          </Button>
-          <Button onClick={() => setOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            บันทึกปันผล
-          </Button>
-        </div>
+        <Button onClick={() => setOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          บันทึกปันผล
+        </Button>
       </div>
 
       {years.length > 0 && (

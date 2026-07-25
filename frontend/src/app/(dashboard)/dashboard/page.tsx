@@ -12,11 +12,8 @@ import {
   YAxis,
 } from 'recharts'
 import { useAccounts } from '@/hooks/use-accounts'
-import { useUserProfile } from '@/hooks/use-user'
 import { useMonthlyStats, useRecentTransactions } from '@/hooks/use-transactions'
 import { useCategoryBreakdown, useYearlyTrend } from '@/hooks/use-reports'
-import { usePortfolio } from '@/hooks/use-investments'
-import { useExchangeRate } from '@/hooks/use-exchange-rate'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatCurrency, formatDate } from '@/lib/utils'
 
@@ -51,20 +48,12 @@ export default function DashboardPage() {
   const year = now.getFullYear()
 
   const { data: accounts = [] } = useAccounts()
-  const { data: userProfile } = useUserProfile()
   const { data: stats } = useMonthlyStats(month, year)
   const { data: recent = [] } = useRecentTransactions()
   const { data: trend } = useYearlyTrend(year)
   const { data: expenseBreakdown = [] } = useCategoryBreakdown(month, year, 'EXPENSE')
-  const { data: portfolio } = usePortfolio()
-  const { rate: usdToThb } = useExchangeRate()
 
-  const accountsBalance = accounts.reduce((sum, a) => sum + Number(a.balance), 0)
-  const investmentValueThb = (portfolio?.items ?? []).reduce((sum, item) => {
-    const val = item.currentValue
-    return sum + (item.currency === 'USD' ? val * usdToThb : val)
-  }, 0)
-  const netWorth = accountsBalance + investmentValueThb
+  const netWorth = accounts.reduce((sum, a) => sum + Number(a.balance), 0)
 
   const incomeChartData = trend?.months.map((m) => ({
     name: MONTH_SHORT[m.month - 1],
@@ -75,7 +64,7 @@ export default function DashboardPage() {
   const expensePieData = expenseBreakdown.map((b, i) => ({
     name: `${b.category?.icon ?? ''} ${b.category?.name ?? ''}`.trim(),
     value: b.amount,
-    color: b.category?.color ?? PIE_COLORS[i % PIE_COLORS.length],
+    color: PIE_COLORS[i % PIE_COLORS.length],
   }))
 
   const [hoveredSlice, setHoveredSlice] = useState<{ name: string; value: number } | null>(null)
@@ -98,52 +87,14 @@ export default function DashboardPage() {
         <CardContent className="py-6 px-6">
           <p className="text-sm text-muted-foreground mb-1">Net Worth</p>
           <p className="text-2xl font-bold">{formatCurrency(netWorth)}</p>
-          <div className="flex gap-4 mt-1">
-            <p className="text-xs text-muted-foreground">
-              บัญชี {formatCurrency(accountsBalance)}
-            </p>
-            {investmentValueThb > 0 && (
-              <p className="text-xs text-muted-foreground">
-                Portfolio {formatCurrency(investmentValueThb)}
-              </p>
-            )}
-          </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            {accounts.length} บัญชี
+          </p>
         </CardContent>
       </Card>
 
-      {/* Emergency Fund */}
-      {userProfile?.emergencyFundGoal && userProfile.emergencyFundAccountId && (() => {
-        const efAccount = accounts.find((a) => a.id === userProfile.emergencyFundAccountId)
-        const current = efAccount ? Number(efAccount.balance) : 0
-        const goal = Number(userProfile.emergencyFundGoal)
-        const pct = Math.min((current / goal) * 100, 100)
-        const isReached = current >= goal
-        return (
-          <Card>
-            <CardContent className="py-4 px-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium">🛡️ เงินสำรองฉุกเฉิน</p>
-                <p className="text-sm font-semibold">
-                  {formatCurrency(current)}{' '}
-                  <span className="text-muted-foreground font-normal">/ {formatCurrency(goal)}</span>
-                </p>
-              </div>
-              <div className="w-full bg-muted rounded-full h-2">
-                <div
-                  className={`h-2 rounded-full transition-all ${isReached ? 'bg-green-500' : 'bg-primary'}`}
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {isReached ? '✅ ถึงเป้าหมายแล้ว' : `${pct.toFixed(1)}% — ขาดอีก ${formatCurrency(goal - current)}`}
-              </p>
-            </CardContent>
-          </Card>
-        )
-      })()}
-
       {/* Income / Expense / Savings */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         <Card>
           <CardContent className="py-3 px-3">
             <p className="text-xs text-muted-foreground mb-1">รายรับ</p>
@@ -158,6 +109,19 @@ export default function DashboardPage() {
             <p className="text-sm font-bold text-red-600">
               {formatCurrency(stats?.expense ?? 0)}
             </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="py-3 px-3">
+            <p className="text-xs text-muted-foreground mb-1">ออม</p>
+            <p className={`text-sm font-bold ${(stats?.savings ?? 0) >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+              {formatCurrency(stats?.savings ?? 0)}
+            </p>
+            {stats && stats.income > 0 && (
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {stats.savingsRate.toFixed(1)}%
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -257,55 +221,6 @@ export default function DashboardPage() {
           )}
         </CardContent>
       </Card>
-
-      {/* Portfolio Summary */}
-      {portfolio && portfolio.items.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">📈 Portfolio</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">มูลค่ารวม</span>
-              <span className="text-sm font-bold">{formatCurrency(portfolio.summary.totalCurrentValue)}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">กำไร/ขาดทุน</span>
-              <span className={`text-sm font-semibold ${portfolio.summary.unrealizedGain >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {portfolio.summary.unrealizedGain >= 0 ? '+' : ''}
-                {formatCurrency(portfolio.summary.unrealizedGain)}
-                {' '}
-                <span className="text-xs">
-                  ({portfolio.summary.unrealizedGainPct >= 0 ? '+' : ''}
-                  {portfolio.summary.unrealizedGainPct.toFixed(2)}%)
-                </span>
-              </span>
-            </div>
-            {portfolio.summary.totalDividends > 0 && (
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">เงินปันผลรวม</span>
-                <span className="text-sm font-semibold text-blue-600">{formatCurrency(portfolio.summary.totalDividends)}</span>
-              </div>
-            )}
-            <div className="border-t pt-3 space-y-2">
-              {portfolio.items.map((item) => (
-                <div key={item.id} className="flex items-center justify-between">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium">{item.symbol}</p>
-                    <p className="text-xs text-muted-foreground truncate">{item.name}</p>
-                  </div>
-                  <div className="text-right ml-2 flex-shrink-0">
-                    <p className="text-sm font-medium">{formatCurrency(item.currentValue)}</p>
-                    <p className={`text-xs ${item.unrealizedGain >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {item.unrealizedGain >= 0 ? '+' : ''}{item.unrealizedGainPct.toFixed(2)}%
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Recent Transactions */}
       <Card>

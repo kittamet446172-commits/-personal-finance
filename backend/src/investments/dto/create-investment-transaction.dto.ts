@@ -18,7 +18,7 @@ export class CreateInvestmentTransactionDto {
   quantity!: number;
 
   @IsNumber()
-  @Min(0.000001)
+  @Min(0)
   pricePerUnit!: number;
 
   @IsNumber()

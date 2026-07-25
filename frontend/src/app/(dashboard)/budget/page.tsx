@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Download, Pencil, Plus, Trash2 } from 'lucide-react'
+import { Pencil, Plus, Trash2 } from 'lucide-react'
 import {
   useBudgets,
   useCreateBudget,
@@ -27,7 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { downloadCsv, formatCurrency } from '@/lib/utils'
+import { formatCurrency } from '@/lib/utils'
 import type { Budget } from '@/types'
 
 const MONTHS = [
@@ -87,34 +87,14 @@ export default function BudgetPage() {
 
   const isPending = createMutation.isPending || updateMutation.isPending
 
-  function handleExport() {
-    downloadCsv(`budget-${year}-${String(month).padStart(2, '0')}.csv`, [
-      ['หมวดหมู่', 'งบประมาณ', 'ใช้ไป', 'คงเหลือ', 'เดือน', 'ปี'],
-      ...budgets.map((b) => [
-        b.category?.name ?? '',
-        String(Number(b.amount)),
-        String(b.spent),
-        String(b.remaining),
-        String(month),
-        String(year),
-      ]),
-    ])
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">งบประมาณ</h1>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleExport} disabled={budgets.length === 0}>
-            <Download className="h-4 w-4 mr-2" />
-            Export CSV
-          </Button>
-          <Button onClick={openCreate}>
-            <Plus className="h-4 w-4 mr-2" />
-            เพิ่มงบ
-          </Button>
-        </div>
+        <Button onClick={openCreate}>
+          <Plus className="h-4 w-4 mr-2" />
+          เพิ่มงบ
+        </Button>
       </div>
 
       <div className="flex gap-3">
@@ -221,7 +201,7 @@ export default function BudgetPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editing ? 'แก้ไขงบประมาณ' : `เพิ่มงบประมาณ — ${MONTHS[month - 1]} ${year}`}
+              {editing ? 'แก้ไขงบประมาณ' : 'เพิ่มงบประมาณ'}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">

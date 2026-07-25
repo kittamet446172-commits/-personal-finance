@@ -48,14 +48,18 @@ export class DividendsService {
   async getSummary(userId: string) {
     const dividends = await this.prisma.dividend.findMany({
       where: { userId },
+      include: { holding: { select: { symbol: true, name: true, type: true } } },
     });
 
-    const total = dividends.reduce((s: number, d) => s + Number(d.amount), 0);
+    const total = dividends.reduce(
+      (s, d) => s + (d.amount as unknown as { toNumber: () => number }).toNumber(),
+      0,
+    );
 
     const byYear: Record<number, number> = {};
     for (const d of dividends) {
       const year = new Date(d.date).getFullYear();
-      byYear[year] = (byYear[year] ?? 0) + Number(d.amount);
+      byYear[year] = (byYear[year] ?? 0) + (d.amount as unknown as { toNumber: () => number }).toNumber();
     }
 
     return { total, byYear };

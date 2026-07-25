@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Download, Pencil, Plus, Search, Trash2 } from 'lucide-react'
+import { Pencil, Plus, Search, Trash2 } from 'lucide-react'
 import { useDeleteTransaction, useTransactions } from '@/hooks/use-transactions'
 import { TransactionDialog } from '@/components/transactions/transaction-dialog'
 import { Badge } from '@/components/ui/badge'
@@ -51,20 +51,6 @@ export default function ExpensePage() {
     await deleteMutation.mutateAsync(id)
   }
 
-  async function handleExport() {
-    const params = new URLSearchParams({ type: 'EXPENSE', month: String(month), year: String(year) })
-    const res = await fetch(`/api/proxy/transactions/export?${params}`, { credentials: 'include' })
-    const blob = await res.blob()
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `expense-${year}-${String(month).padStart(2, '0')}.csv`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  }
-
   const transactions = data?.data ?? []
   const totalPages = data?.totalPages ?? 1
 
@@ -72,16 +58,10 @@ export default function ExpensePage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">รายจ่าย</h1>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleExport}>
-            <Download className="h-4 w-4 mr-2" />
-            Export CSV
-          </Button>
-          <Button onClick={openCreate}>
-            <Plus className="h-4 w-4 mr-2" />
-            เพิ่มรายจ่าย
-          </Button>
-        </div>
+        <Button onClick={openCreate}>
+          <Plus className="h-4 w-4 mr-2" />
+          เพิ่มรายจ่าย
+        </Button>
       </div>
 
       <div className="flex flex-wrap gap-3">
@@ -135,23 +115,21 @@ export default function ExpensePage() {
                     <p className="text-sm font-medium">
                       {tx.merchant ?? tx.description ?? tx.category?.name}
                     </p>
-                    <div className="mt-0.5 space-y-0.5">
+                    <div className="flex items-center gap-2 mt-0.5">
                       <p className="text-xs text-muted-foreground">
                         {formatDate(tx.date)}
                       </p>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary" className="text-xs">
-                          {tx.category?.name}
-                        </Badge>
-                        <span className="text-xs text-muted-foreground">
-                          {tx.account?.name}
-                        </span>
-                      </div>
+                      <Badge variant="secondary" className="text-xs">
+                        {tx.category?.name}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {tx.account?.name}
+                      </span>
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-semibold text-red-600 whitespace-nowrap">
+                  <span className="text-sm font-semibold text-red-600">
                     -{formatCurrency(Number(tx.amount))}
                   </span>
                   <div className="flex gap-1">

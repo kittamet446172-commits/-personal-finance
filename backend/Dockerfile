@@ -5,7 +5,8 @@ COPY package*.json ./
 RUN npm ci
 COPY . .
 RUN npx prisma generate
-RUN npx tsc -p tsconfig.json && echo "=== TSC DONE ===" && ls -la dist/main.js
+RUN npx tsc -p tsconfig.json
+RUN ls -la /app/dist/
 
 EXPOSE 4000
-CMD ["sh", "-c", "echo 'STARTING...' && npx prisma migrate deploy 2>&1 && echo 'MIGRATE DONE' && node dist/main.js 2>&1"]
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]

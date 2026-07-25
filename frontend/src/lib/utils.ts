@@ -5,10 +5,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatCurrency(amount: number, currency = 'THB'): string {
-  return new Intl.NumberFormat(currency === 'THB' ? 'th-TH' : 'en-US', {
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('th-TH', {
     style: 'currency',
-    currency,
+    currency: 'THB',
     minimumFractionDigits: 2,
   }).format(amount)
 }
@@ -19,17 +19,4 @@ export function formatDate(date: string | Date): string {
     month: 'short',
     day: 'numeric',
   }).format(new Date(date))
-}
-
-export function downloadCsv(filename: string, rows: string[][]): void {
-  const csv = rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
-  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
 }

@@ -8,49 +8,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useExchangeRate } from '@/hooks/use-exchange-rate'
-import { useUserProfile, useUpdateUserProfile } from '@/hooks/use-user'
-import { useAccounts } from '@/hooks/use-accounts'
 
 export default function SettingsPage() {
   const { data: session, refetch } = useSession()
   const [name, setName] = useState(session?.user.name ?? '')
   const [loading, setLoading] = useState(false)
-  const { rate, setRate } = useExchangeRate()
-  const [rateInput, setRateInput] = useState<string>('')
-  const [rateSaved, setRateSaved] = useState(false)
-
-  const { data: userProfile } = useUserProfile()
-  const { data: accounts = [] } = useAccounts()
-  const updateProfile = useUpdateUserProfile()
-  const [efGoal, setEfGoal] = useState('')
-  const [efAccountId, setEfAccountId] = useState('')
-  const [efSaved, setEfSaved] = useState(false)
-
-  function handleEfSave(e: React.FormEvent) {
-    e.preventDefault()
-    updateProfile.mutate(
-      {
-        emergencyFundGoal: efGoal ? Number(efGoal) : null,
-        emergencyFundAccountId: efAccountId || null,
-      },
-      {
-        onSuccess: () => {
-          setEfSaved(true)
-          setTimeout(() => setEfSaved(false), 2000)
-        },
-      },
-    )
-  }
-
-  function handleRateSave(e: React.FormEvent) {
-    e.preventDefault()
-    const val = Number(rateInput)
-    if (!val || val <= 0) return
-    setRate(val)
-    setRateSaved(true)
-    setTimeout(() => setRateSaved(false), 2000)
-  }
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
   const [avatarLoading, setAvatarLoading] = useState(false)
@@ -144,67 +106,6 @@ export default function SettingsPage() {
             className="hidden"
             onChange={handleAvatarChange}
           />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>อัตราแลกเปลี่ยน</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleRateSave} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="rate">1 USD = ? THB</Label>
-              <Input
-                id="rate"
-                type="number"
-                step="0.01"
-                min="1"
-                placeholder={String(rate)}
-                value={rateInput}
-                onChange={(e) => setRateInput(e.target.value)}
-              />
-              <p className="text-xs text-muted-foreground">ค่าปัจจุบัน: 1 USD = {rate} THB</p>
-            </div>
-            {rateSaved && <p className="text-sm text-green-600">บันทึกแล้ว</p>}
-            <Button type="submit">บันทึก</Button>
-          </form>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>เงินสำรองฉุกเฉิน</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleEfSave} className="space-y-4">
-            <div className="space-y-2">
-              <Label>เป้าหมาย (บาท)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder={userProfile?.emergencyFundGoal ? String(userProfile.emergencyFundGoal) : '0'}
-                value={efGoal}
-                onChange={(e) => setEfGoal(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>บัญชีที่ใช้เก็บ</Label>
-              <select
-                value={efAccountId || userProfile?.emergencyFundAccountId || ''}
-                onChange={(e) => setEfAccountId(e.target.value)}
-                className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-              >
-                <option value="">— ไม่ระบุ —</option>
-                {accounts.map((a) => (
-                  <option key={a.id} value={a.id}>{a.name}</option>
-                ))}
-              </select>
-            </div>
-            {efSaved && <p className="text-sm text-green-600">บันทึกแล้ว</p>}
-            <Button type="submit" disabled={updateProfile.isPending}>บันทึก</Button>
-          </form>
         </CardContent>
       </Card>
 

@@ -30,7 +30,6 @@ interface UpdateCategoryDto {
   name?: string
   icon?: string
   color?: string
-  type?: TransactionType
 }
 
 export function useCreateCategory() {

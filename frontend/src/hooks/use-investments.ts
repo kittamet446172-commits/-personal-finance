@@ -72,28 +72,6 @@ interface CreateInvestmentTransactionDto {
   note?: string
 }
 
-export function useRefreshPrice() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (id: string) =>
-      api.post<InvestmentHolding>(`/investments/holdings/${id}/refresh-price`, {}),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: investmentKeys.all })
-    },
-  })
-}
-
-export function useRefreshAllPrices() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: () =>
-      api.post<{ updated: number; total: number }>('/investments/holdings/refresh-all', {}),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: investmentKeys.all })
-    },
-  })
-}
-
 export function useCreateHolding() {
   const queryClient = useQueryClient()
   return useMutation({
@@ -123,7 +101,6 @@ export function useDeleteHolding() {
       api.delete<InvestmentHolding>(`/investments/holdings/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: investmentKeys.all })
-      queryClient.invalidateQueries({ queryKey: ['dividends'] })
     },
   })
 }
@@ -139,17 +116,6 @@ export function useCreateInvestmentTransaction() {
         `/investments/holdings/${holdingId}/transactions`,
         data,
       ),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: investmentKeys.all })
-    },
-  })
-}
-
-export function useUpdateInvestmentTransaction() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: ({ id, ...data }: Partial<CreateInvestmentTransactionDto> & { id: string }) =>
-      api.patch<InvestmentTransaction>(`/investments/transactions/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: investmentKeys.all })
     },

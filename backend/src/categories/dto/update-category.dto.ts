@@ -1,5 +1,4 @@
-import { IsEnum, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
-import { TransactionType } from '@prisma/client';
+import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class UpdateCategoryDto {
   @IsString()
@@ -17,8 +16,4 @@ export class UpdateCategoryDto {
   @MaxLength(20)
   @IsOptional()
   color?: string;
-
-  @IsEnum(TransactionType)
-  @IsOptional()
-  type?: TransactionType;
 }

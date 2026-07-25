@@ -4,16 +4,10 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InvestmentHolding, InvestmentTransaction, Dividend } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateHoldingDto } from './dto/create-holding.dto';
 import { UpdateHoldingDto } from './dto/update-holding.dto';
 import { CreateInvestmentTransactionDto } from './dto/create-investment-transaction.dto';
-
-type HoldingWithRelations = InvestmentHolding & {
-  transactions: InvestmentTransaction[];
-  dividends: Dividend[];
-};
 
 @Injectable()
 export class InvestmentsService {
@@ -32,10 +26,7 @@ export class InvestmentsService {
   async findOneHolding(id: string, userId: string) {
     const holding = await this.prisma.investmentHolding.findUnique({
       where: { id },
-      include: {
-        transactions: { orderBy: { date: 'desc' } },
-        dividends: { orderBy: { date: 'desc' } },
-      },
+      include: { transactions: { orderBy: { date: 'desc' } }, dividends: { orderBy: { date: 'desc' } } },
     });
     if (!holding) throw new NotFoundException('Holding not found');
     if (holding.userId !== userId) throw new ForbiddenException();
@@ -112,23 +103,6 @@ export class InvestmentsService {
     });
   }
 
-  async updateTransaction(
-    id: string,
-    userId: string,
-    dto: import('./dto/update-investment-transaction.dto').UpdateInvestmentTransactionDto,
-  ) {
-    const tx = await this.prisma.investmentTransaction.findUnique({ where: { id } });
-    if (!tx) throw new NotFoundException('Transaction not found');
-    if (tx.userId !== userId) throw new ForbiddenException();
-    return this.prisma.investmentTransaction.update({
-      where: { id },
-      data: {
-        ...dto,
-        date: dto.date ? new Date(dto.date) : undefined,
-      },
-    });
-  }
-
   async deleteTransaction(id: string, userId: string) {
     const tx = await this.prisma.investmentTransaction.findUnique({ where: { id } });
     if (!tx) throw new NotFoundException('Transaction not found');
@@ -144,10 +118,10 @@ export class InvestmentsService {
       include: { transactions: true, dividends: true },
     });
 
-    const items = holdings.map((h: HoldingWithRelations) => this.calcHolding(h));
-    const totalCurrentValue = items.reduce((s: number, i) => s + i.currentValue, 0);
-    const totalCostBasis = items.reduce((s: number, i) => s + i.costBasis, 0);
-    const totalDividends = items.reduce((s: number, i) => s + i.totalDividends, 0);
+    const items = holdings.map((h) => this.calcHolding(h));
+    const totalCurrentValue = items.reduce((s, i) => s + i.currentValue, 0);
+    const totalCostBasis = items.reduce((s, i) => s + i.costBasis, 0);
+    const totalDividends = items.reduce((s, i) => s + i.totalDividends, 0);
     const unrealizedGain = totalCurrentValue - totalCostBasis;
 
     return {
@@ -162,26 +136,43 @@ export class InvestmentsService {
     };
   }
 
-  private calcHolding(h: HoldingWithRelations) {
+  private calcHolding(h: {
+    id: string;
+    symbol: string;
+    name: string;
+    type: string;
+    exchange: string | null;
+    sector: string | null;
+    currency: string;
+    currentPrice: { toNumber: () => number };
+    note: string | null;
+    transactions: {
+      type: string;
+      quantity: { toNumber: () => number };
+      pricePerUnit: { toNumber: () => number };
+      fee: { toNumber: () => number };
+    }[];
+    dividends: { amount: { toNumber: () => number } }[];
+  }) {
     const buys = h.transactions.filter((t) => t.type === 'BUY');
     const sells = h.transactions.filter((t) => t.type === 'SELL');
 
-    const totalBuyQty = buys.reduce((s: number, t) => s + Number(t.quantity), 0);
-    const totalSellQty = sells.reduce((s: number, t) => s + Number(t.quantity), 0);
+    const totalBuyQty = buys.reduce((s, t) => s + t.quantity.toNumber(), 0);
+    const totalSellQty = sells.reduce((s, t) => s + t.quantity.toNumber(), 0);
     const totalQty = totalBuyQty - totalSellQty;
 
     const totalBuyCost = buys.reduce(
-      (s: number, t) => s + Number(t.quantity) * Number(t.pricePerUnit) + Number(t.fee),
+      (s, t) => s + t.quantity.toNumber() * t.pricePerUnit.toNumber() + t.fee.toNumber(),
       0,
     );
     const avgCost = totalBuyQty > 0 ? totalBuyCost / totalBuyQty : 0;
     const costBasis = avgCost * totalQty;
 
-    const currentPrice = Number(h.currentPrice);
+    const currentPrice = h.currentPrice.toNumber();
     const currentValue = totalQty * currentPrice;
     const unrealizedGain = currentValue - costBasis;
 
-    const totalDividends = h.dividends.reduce((s: number, d) => s + Number(d.amount), 0);
+    const totalDividends = h.dividends.reduce((s, d) => s + d.amount.toNumber(), 0);
 
     return {
       id: h.id,
@@ -203,75 +194,13 @@ export class InvestmentsService {
     };
   }
 
-  async refreshPrice(id: string, userId: string) {
-    const holding = await this.findOneHolding(id, userId);
-    const price = await this.fetchYahooPrice(holding.symbol);
-    if (!price) throw new BadRequestException('ไม่พบราคาหุ้น');
-    return this.prisma.investmentHolding.update({
-      where: { id },
-      data: { currentPrice: price },
-    });
-  }
-
-  async refreshAllPrices(userId: string) {
-    const holdings = await this.prisma.investmentHolding.findMany({
-      where: { userId },
-    });
-    if (holdings.length === 0) return { updated: 0, total: 0 };
-
-    const results = await Promise.allSettled(
-      holdings.map(async (h) => {
-        const price = await this.fetchYahooPrice(h.symbol);
-        if (!price) return null;
-        return this.prisma.investmentHolding.update({
-          where: { id: h.id },
-          data: { currentPrice: price },
-        });
-      }),
-    );
-
-    const updated = results.filter((r) => r.status === 'fulfilled' && r.value != null).length;
-    return { updated, total: holdings.length };
-  }
-
-  private async fetchYahooPrice(symbol: string): Promise<number | null> {
-    try {
-      const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
-
-      // Step 1: get cookie
-      const cookieRes = await fetch('https://fc.yahoo.com', {
-        headers: { 'User-Agent': ua },
-        redirect: 'follow',
-      });
-      const rawCookie = cookieRes.headers.get('set-cookie') ?? '';
-      const cookie = rawCookie.split(';')[0];
-
-      // Step 2: get crumb
-      const crumbRes = await fetch('https://query2.finance.yahoo.com/v1/test/getcrumb', {
-        headers: { 'User-Agent': ua, Cookie: cookie },
-      });
-      if (!crumbRes.ok) return null;
-      const crumb = await crumbRes.text();
-
-      // Step 3: fetch price
-      const url = `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d&crumb=${encodeURIComponent(crumb)}`;
-      const res = await fetch(url, {
-        headers: { 'User-Agent': ua, Cookie: cookie },
-      });
-      if (!res.ok) return null;
-      const json = await res.json() as { chart?: { result?: { meta?: { regularMarketPrice?: number } }[] } };
-      return json?.chart?.result?.[0]?.meta?.regularMarketPrice ?? null;
-    } catch {
-      return null;
-    }
-  }
-
   private async getTotalQuantity(holdingId: string, userId: string) {
     const txs = await this.prisma.investmentTransaction.findMany({
       where: { holdingId, userId },
     });
-    return txs.reduce((s: number, t) => {
-      return t.type === 'BUY' ? s + Number(t.quantity) : s - Number(t.quantity);
+    return txs.reduce((s, t) => {
+      const qty = (t.quantity as unknown as { toNumber: () => number }).toNumber();
+      return t.type === 'BUY' ? s + qty : s - qty;
     }, 0);
   }
 }

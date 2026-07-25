@@ -1,8 +1,7 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import {
-  Download,
   Pencil,
   Plus,
   Trash2,
@@ -21,10 +20,8 @@ import { DividendDialog } from '@/components/investments/dividend-dialog'
 import {
   usePortfolio,
   useDeleteHolding,
-  useRefreshAllPrices,
-  useUpdateHolding,
 } from '@/hooks/use-investments'
-import { downloadCsv, formatCurrency } from '@/lib/utils'
+import { formatCurrency } from '@/lib/utils'
 import type { InvestmentHolding, InvestmentType, PortfolioItem } from '@/types'
 
 const TYPE_LABELS: Record<InvestmentType, string> = {
@@ -41,12 +38,12 @@ const TYPE_COLORS: Record<InvestmentType, string> = {
   REIT: 'bg-orange-100 text-orange-800',
 }
 
-function GainBadge({ value, pct, currency = 'THB' }: { value: number; pct: number; currency?: string }) {
+function GainBadge({ value, pct }: { value: number; pct: number }) {
   const isPos = value >= 0
   return (
     <span className={`flex items-center gap-1 text-sm font-medium ${isPos ? 'text-green-600' : 'text-red-600'}`}>
       {isPos ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
-      {isPos ? '+' : ''}{formatCurrency(value, currency)} ({isPos ? '+' : ''}{pct.toFixed(2)}%)
+      {isPos ? '+' : ''}{formatCurrency(value)} ({isPos ? '+' : ''}{pct.toFixed(2)}%)
     </span>
   )
 }
@@ -57,33 +54,13 @@ function HoldingCard({
   onTransaction,
   onDividend,
   onDelete,
-  onPriceUpdate,
 }: {
   item: PortfolioItem
   onEdit: () => void
   onTransaction: () => void
   onDividend: () => void
   onDelete: () => void
-  onPriceUpdate: (price: number) => void
 }) {
-  const [editing, setEditing] = useState(false)
-  const [priceInput, setPriceInput] = useState('')
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  function startEdit() {
-    setPriceInput(item.currentPrice > 0 ? String(item.currentPrice) : '')
-    setEditing(true)
-    setTimeout(() => inputRef.current?.select(), 0)
-  }
-
-  function commitEdit() {
-    const val = parseFloat(priceInput)
-    if (!isNaN(val) && val >= 0 && val !== item.currentPrice) {
-      onPriceUpdate(val)
-    }
-    setEditing(false)
-  }
-
   return (
     <Card>
       <CardHeader className="flex flex-row items-start justify-between pb-2">
@@ -103,7 +80,7 @@ function HoldingCard({
           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onTransaction} title="บันทึกรายการ">
             <Receipt className="h-3.5 w-3.5" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onEdit} title="แก้ไข">
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onEdit} title="แก้ไข / อัปเดตราคา">
             <Pencil className="h-3.5 w-3.5" />
           </Button>
           <Button
@@ -120,8 +97,8 @@ function HoldingCard({
       <CardContent className="space-y-3">
         <div className="flex items-end justify-between">
           <div>
-            <p className="text-2xl font-bold">{formatCurrency(item.currentValue, item.currency)}</p>
-            <GainBadge value={item.unrealizedGain} pct={item.unrealizedGainPct} currency={item.currency} />
+            <p className="text-2xl font-bold">{formatCurrency(item.currentValue)}</p>
+            <GainBadge value={item.unrealizedGain} pct={item.unrealizedGainPct} />
           </div>
           <Button variant="outline" size="sm" onClick={onDividend} className="gap-1.5">
             <Plus className="h-3 w-3" />
@@ -135,41 +112,16 @@ function HoldingCard({
           </div>
           <div className="rounded-md bg-muted px-2 py-1.5">
             <p className="text-muted-foreground">ต้นทุนเฉลี่ย</p>
-            <p className="font-semibold">{formatCurrency(item.avgCost, item.currency)}</p>
+            <p className="font-semibold">฿{item.avgCost.toFixed(2)}</p>
           </div>
-          <div
-            className="rounded-md bg-muted px-2 py-1.5 cursor-pointer hover:ring-2 hover:ring-primary/40 transition-all group"
-            onClick={startEdit}
-            title="กดเพื่อแก้ไขราคา"
-          >
-            <p className="text-muted-foreground flex items-center justify-center gap-1">
-              ราคาล่าสุด
-              <Pencil className="h-2.5 w-2.5 opacity-0 group-hover:opacity-60 transition-opacity" />
-            </p>
-            {editing ? (
-              <input
-                ref={inputRef}
-                type="number"
-                step="0.01"
-                value={priceInput}
-                onChange={(e) => setPriceInput(e.target.value)}
-                onBlur={commitEdit}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') commitEdit()
-                  if (e.key === 'Escape') setEditing(false)
-                }}
-                className="w-full bg-transparent text-center font-semibold outline-none border-b border-primary"
-                onClick={(e) => e.stopPropagation()}
-                autoFocus
-              />
-            ) : (
-              <p className="font-semibold">{formatCurrency(item.currentPrice, item.currency)}</p>
-            )}
+          <div className="rounded-md bg-muted px-2 py-1.5">
+            <p className="text-muted-foreground">ราคาล่าสุด</p>
+            <p className="font-semibold">฿{item.currentPrice.toFixed(2)}</p>
           </div>
         </div>
         {item.totalDividends > 0 && (
           <p className="text-xs text-muted-foreground">
-            ปันผลสะสม: <span className="font-medium text-green-600">{formatCurrency(item.totalDividends, item.currency)}</span>
+            ปันผลสะสม: <span className="font-medium text-green-600">{formatCurrency(item.totalDividends)}</span>
           </p>
         )}
       </CardContent>
@@ -184,43 +136,13 @@ type DialogState =
   | { type: 'dividend'; holdingId?: string }
 
 export default function InvestmentsPage() {
-  const { data: portfolio, isLoading } = usePortfolio()
+  const { data: portfolio, isLoading, refetch } = usePortfolio()
   const deleteMutation = useDeleteHolding()
-  const refreshAllMutation = useRefreshAllPrices()
-  const updateHoldingMutation = useUpdateHolding()
-
-  function handleExport() {
-    downloadCsv('portfolio.csv', [
-      ['Symbol', 'ชื่อ', 'ประเภท', 'ตลาด', 'จำนวน', 'ต้นทุนเฉลี่ย', 'ต้นทุนรวม', 'ราคาล่าสุด', 'มูลค่าปัจจุบัน', 'กำไร/ขาดทุน', 'กำไร/ขาดทุน%', 'ปันผลสะสม', 'สกุลเงิน'],
-      ...(portfolio?.items ?? []).map((i) => [
-        i.symbol, i.name, i.type, i.exchange ?? '', String(i.totalQty),
-        String(i.avgCost.toFixed(4)), String(i.costBasis.toFixed(2)),
-        String(i.currentPrice), String(i.currentValue.toFixed(2)),
-        String(i.unrealizedGain.toFixed(2)), String(i.unrealizedGainPct.toFixed(2)),
-        String(i.totalDividends.toFixed(2)), i.currency,
-      ]),
-    ])
-  }
   const [dialog, setDialog] = useState<DialogState>({ type: 'none' })
   const [activeTab, setActiveTab] = useState('all')
 
   const items = portfolio?.items ?? []
-
-  const byCurrency = items.reduce<Record<string, PortfolioItem[]>>((acc, item) => {
-    const cur = item.currency ?? 'THB'
-    if (!acc[cur]) acc[cur] = []
-    acc[cur].push(item)
-    return acc
-  }, {})
-
-  const currencySummaries = Object.entries(byCurrency).map(([currency, cItems]) => {
-    const totalCurrentValue = cItems.reduce((s, i) => s + i.currentValue, 0)
-    const totalCostBasis = cItems.reduce((s, i) => s + i.costBasis, 0)
-    const unrealizedGain = totalCurrentValue - totalCostBasis
-    const unrealizedGainPct = totalCostBasis > 0 ? (unrealizedGain / totalCostBasis) * 100 : 0
-    const totalDividends = cItems.reduce((s, i) => s + i.totalDividends, 0)
-    return { currency, totalCurrentValue, totalCostBasis, unrealizedGain, unrealizedGainPct, totalDividends }
-  })
+  const summary = portfolio?.summary
 
   const filtered =
     activeTab === 'all'
@@ -252,66 +174,55 @@ export default function InvestmentsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-3">
-        <h1 className="text-2xl font-bold">Portfolio</h1>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Portfolio</h1>
+          <p className="text-sm text-muted-foreground">ติดตาม investment ทั้งหมด</p>
+        </div>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => refreshAllMutation.mutate()}
-            disabled={refreshAllMutation.isPending}
-            title="อัปเดตราคาทุกตัว"
-            className="flex-shrink-0"
-          >
-            <RefreshCw className={`h-4 w-4 ${refreshAllMutation.isPending ? 'animate-spin' : ''}`} />
+          <Button variant="outline" size="icon" onClick={() => refetch()} title="รีเฟรช">
+            <RefreshCw className="h-4 w-4" />
           </Button>
-          <Button variant="outline" onClick={handleExport} disabled={!portfolio?.items?.length}>
-            <Download className="h-4 w-4 mr-1" />
-            Export CSV
-          </Button>
-          <Button variant="outline" className="flex-1" onClick={() => setDialog({ type: 'dividend' })}>
-            <Plus className="h-4 w-4 mr-1" />
+          <Button variant="outline" onClick={() => setDialog({ type: 'dividend' })}>
+            <Plus className="h-4 w-4 mr-2" />
             ปันผล
           </Button>
-          <Button className="flex-1" onClick={() => setDialog({ type: 'holding', editing: null })}>
-            <Plus className="h-4 w-4 mr-1" />
+          <Button onClick={() => setDialog({ type: 'holding', editing: null })}>
+            <Plus className="h-4 w-4 mr-2" />
             เพิ่มหลักทรัพย์
           </Button>
         </div>
       </div>
 
-      {/* Summary Cards — แยกตามสกุลเงิน */}
-      {currencySummaries.map((s) => (
-        <div key={s.currency} className="space-y-2">
-          <p className="text-xs font-semibold text-muted-foreground">{s.currency === 'THB' ? '฿ THB' : '$ USD'}</p>
-          <div className="grid grid-cols-2 gap-3">
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground">มูลค่าปัจจุบัน</p>
-                <p className="text-xl font-bold">{formatCurrency(s.totalCurrentValue, s.currency)}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground">ต้นทุนรวม</p>
-                <p className="text-xl font-bold">{formatCurrency(s.totalCostBasis, s.currency)}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground">กำไร/ขาดทุนที่ยังไม่รับรู้</p>
-                <GainBadge value={s.unrealizedGain} pct={s.unrealizedGainPct} currency={s.currency} />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground">ปันผลสะสม</p>
-                <p className="text-xl font-bold text-green-600">{formatCurrency(s.totalDividends, s.currency)}</p>
-              </CardContent>
-            </Card>
-          </div>
+      {/* Summary Cards */}
+      {summary && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="pt-4">
+              <p className="text-xs text-muted-foreground">มูลค่าปัจจุบัน</p>
+              <p className="text-xl font-bold">{formatCurrency(summary.totalCurrentValue)}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4">
+              <p className="text-xs text-muted-foreground">ต้นทุนรวม</p>
+              <p className="text-xl font-bold">{formatCurrency(summary.totalCostBasis)}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4">
+              <p className="text-xs text-muted-foreground">กำไร/ขาดทุนที่ยังไม่รับรู้</p>
+              <GainBadge value={summary.unrealizedGain} pct={summary.unrealizedGainPct} />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4">
+              <p className="text-xs text-muted-foreground">ปันผลสะสม</p>
+              <p className="text-xl font-bold text-green-600">{formatCurrency(summary.totalDividends)}</p>
+            </CardContent>
+          </Card>
         </div>
-      ))}
+      )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
@@ -341,7 +252,6 @@ export default function InvestmentsPage() {
                   onTransaction={() => setDialog({ type: 'transaction', holding: holdingFromItem(item) })}
                   onDividend={() => setDialog({ type: 'dividend', holdingId: item.id })}
                   onDelete={() => handleDelete(item)}
-                  onPriceUpdate={(price) => updateHoldingMutation.mutate({ id: item.id, currentPrice: price })}
                 />
               ))}
             </div>

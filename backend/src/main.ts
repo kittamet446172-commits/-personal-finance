@@ -20,15 +20,16 @@ async function bootstrap() {
   }
   app.useStaticAssets(join(process.cwd(), 'uploads'), { prefix: '/uploads' });
 
-  app.enableCors({ origin: true, credentials: true });
+  // CORS must be first — before auth handler and helmet
+  app.enableCors({
+    origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',
+    credentials: true,
+  });
+
   app.use(helmet({ crossOriginResourcePolicy: false }));
 
   const prisma = app.get(PrismaService);
   const auth = createAuth(prisma);
-
-  app.use('/ping', (_req: import('express').Request, res: import('express').Response) => {
-    res.json({ ok: true, ts: new Date().toISOString() });
-  });
 
   app.use('/api/auth', toNodeHandler(auth.handler));
 
@@ -41,7 +42,4 @@ async function bootstrap() {
   await app.listen(process.env.PORT ?? 4000);
 }
 
-bootstrap().catch((err) => {
-  process.stderr.write(`FATAL: ${err?.stack ?? err}\n`);
-  process.exit(1);
-});
+bootstrap();

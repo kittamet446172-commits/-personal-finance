@@ -35,13 +35,12 @@ export default function TransfersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">โอนเงิน</h1>
+          <h1 className="text-2xl font-bold whitespace-nowrap">โอนเงิน</h1>
           <p className="text-sm text-muted-foreground">{transfers.length} รายการ</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleExport} disabled={transfers.length === 0}>
-            <Download className="h-4 w-4 mr-2" />
-            Export CSV
+          <Button variant="outline" size="icon" onClick={handleExport} disabled={transfers.length === 0}>
+            <Download className="h-4 w-4" />
           </Button>
           <Button onClick={() => setDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />

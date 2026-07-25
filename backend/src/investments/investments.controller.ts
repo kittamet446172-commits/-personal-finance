@@ -15,7 +15,6 @@ import { AuthenticatedUser } from '../common/types/request.type';
 import { CreateHoldingDto } from './dto/create-holding.dto';
 import { UpdateHoldingDto } from './dto/update-holding.dto';
 import { CreateInvestmentTransactionDto } from './dto/create-investment-transaction.dto';
-import { UpdateInvestmentTransactionDto } from './dto/update-investment-transaction.dto';
 
 @Controller('investments')
 @UseGuards(AuthGuard)
@@ -61,19 +60,6 @@ export class InvestmentsController {
     return this.investmentsService.updateHolding(id, user.id, dto);
   }
 
-  @Post('holdings/refresh-all')
-  refreshAllPrices(@CurrentUser() user: AuthenticatedUser) {
-    return this.investmentsService.refreshAllPrices(user.id);
-  }
-
-  @Post('holdings/:id/refresh-price')
-  refreshPrice(
-    @Param('id') id: string,
-    @CurrentUser() user: AuthenticatedUser,
-  ) {
-    return this.investmentsService.refreshPrice(id, user.id);
-  }
-
   @Delete('holdings/:id')
   deleteHolding(
     @Param('id') id: string,
@@ -99,15 +85,6 @@ export class InvestmentsController {
     @Body() dto: CreateInvestmentTransactionDto,
   ) {
     return this.investmentsService.createTransaction(holdingId, user.id, dto);
-  }
-
-  @Patch('transactions/:id')
-  updateTransaction(
-    @Param('id') id: string,
-    @CurrentUser() user: AuthenticatedUser,
-    @Body() dto: UpdateInvestmentTransactionDto,
-  ) {
-    return this.investmentsService.updateTransaction(id, user.id, dto);
   }
 
   @Delete('transactions/:id')
