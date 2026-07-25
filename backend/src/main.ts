@@ -22,7 +22,14 @@ async function bootstrap() {
 
   // CORS must be first — before auth handler and helmet
   app.enableCors({
-    origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true)
+      const allowed = (process.env.FRONTEND_URL ?? 'http://localhost:3000').split(',').map(u => u.trim())
+      if (allowed.includes(origin) || origin.endsWith('.vercel.app') || origin === 'http://localhost:3000') {
+        return callback(null, true)
+      }
+      callback(null, false)
+    },
     credentials: true,
   });
 

@@ -5,7 +5,7 @@ COPY package*.json ./
 RUN npm ci
 COPY . .
 RUN npx prisma generate
-RUN npx tsc -p tsconfig.json
+RUN ./node_modules/.bin/tsc -p tsconfig.json
 RUN ls -la /app/dist/
 
 EXPOSE 4000
