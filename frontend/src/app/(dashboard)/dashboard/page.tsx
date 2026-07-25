@@ -14,6 +14,7 @@ import {
 import { useAccounts } from '@/hooks/use-accounts'
 import { useMonthlyStats, useRecentTransactions } from '@/hooks/use-transactions'
 import { useCategoryBreakdown, useYearlyTrend } from '@/hooks/use-reports'
+import { usePortfolio } from '@/hooks/use-investments'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatCurrency, formatDate } from '@/lib/utils'
 
@@ -52,8 +53,11 @@ export default function DashboardPage() {
   const { data: recent = [] } = useRecentTransactions()
   const { data: trend } = useYearlyTrend(year)
   const { data: expenseBreakdown = [] } = useCategoryBreakdown(month, year, 'EXPENSE')
+  const { data: portfolio } = usePortfolio()
 
-  const netWorth = accounts.reduce((sum, a) => sum + Number(a.balance), 0)
+  const accountsTotal = accounts.reduce((sum, a) => sum + Number(a.balance), 0)
+  const portfolioTotal = portfolio?.summary.totalCurrentValue ?? 0
+  const netWorth = accountsTotal + portfolioTotal
 
   const incomeChartData = trend?.months.map((m) => ({
     name: MONTH_SHORT[m.month - 1],
@@ -88,7 +92,7 @@ export default function DashboardPage() {
           <p className="text-sm text-muted-foreground mb-1">Net Worth</p>
           <p className="text-2xl font-bold">{formatCurrency(netWorth)}</p>
           <p className="text-xs text-muted-foreground mt-1">
-            {accounts.length} บัญชี
+            {accounts.length} บัญชี {portfolioTotal > 0 && `· ลงทุน ${formatCurrency(portfolioTotal)}`}
           </p>
         </CardContent>
       </Card>
