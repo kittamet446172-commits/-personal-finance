@@ -5,7 +5,7 @@ export type LotType = 'BUY' | 'SELL'
 
 export interface InvestmentHolding {
   id: string
-  userId: string
+  userId?: string
   symbol: string
   name: string
   type: InvestmentType
