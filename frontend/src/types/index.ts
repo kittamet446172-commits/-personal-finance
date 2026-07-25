@@ -51,6 +51,18 @@ export interface PortfolioItem {
   totalDividends: number
 }
 
+export interface Dividend {
+  id: string
+  holdingId: string
+  userId: string
+  amount: number
+  perShare?: number | null
+  date: string
+  note?: string | null
+  createdAt: string
+  holding?: Pick<InvestmentHolding, 'id' | 'symbol' | 'name' | 'type'>
+}
+
 export interface Portfolio {
   items: PortfolioItem[]
   summary: {
