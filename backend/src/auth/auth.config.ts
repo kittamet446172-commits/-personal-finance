@@ -25,6 +25,7 @@ export function createAuth(prisma: PrismaClient) {
     ],
     advanced: {
       useSecureCookies: true,
+      disableCSRFCheck: true,
       defaultCookieAttributes: {
         sameSite: 'none' as const,
         secure: true,
