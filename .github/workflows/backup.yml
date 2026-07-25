@@ -21,7 +21,9 @@ jobs:
           DATABASE_URL: ${{ secrets.RAILWAY_DATABASE_URL }}
         run: |
           TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-          PGSSLMODE=require pg_dump "$DATABASE_URL" > "backup_${TIMESTAMP}.sql"
+          # Railway sometimes uses postgres:// — normalize to postgresql://
+          DB_URL="${DATABASE_URL/postgres:\/\//postgresql://}"
+          PGSSLMODE=require pg_dump --dbname="$DB_URL" -f "backup_${TIMESTAMP}.sql"
           echo "TIMESTAMP=${TIMESTAMP}" >> $GITHUB_ENV
           echo "Backup size: $(du -sh backup_${TIMESTAMP}.sql | cut -f1)"
 
