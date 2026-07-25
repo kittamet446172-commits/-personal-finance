@@ -5,13 +5,17 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { ExchangeRateService } from './exchange-rate.service';
 import { CreateHoldingDto } from './dto/create-holding.dto';
 import { UpdateHoldingDto } from './dto/update-holding.dto';
 import { CreateInvestmentTransactionDto } from './dto/create-investment-transaction.dto';
 
 @Injectable()
 export class InvestmentsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly exchangeRate: ExchangeRateService,
+  ) {}
 
   // ─── Holdings ──────────────────────────────────────────────────────────────
 
@@ -118,7 +122,15 @@ export class InvestmentsService {
       include: { transactions: true, dividends: true },
     });
 
-    const items = holdings.map((h) => this.calcHolding(h));
+    const currencies = [...new Set(holdings.map((h) => h.currency).filter((c) => c !== 'THB'))];
+    const rates: Record<string, number> = { THB: 1 };
+    await Promise.all(
+      currencies.map(async (currency) => {
+        rates[currency] = await this.exchangeRate.getRate(currency, 'THB');
+      }),
+    );
+
+    const items = holdings.map((h) => this.calcHolding(h, rates[h.currency] ?? 1));
     const totalCurrentValue = items.reduce((s, i) => s + i.currentValue, 0);
     const totalCostBasis = items.reduce((s, i) => s + i.costBasis, 0);
     const totalDividends = items.reduce((s, i) => s + i.totalDividends, 0);
@@ -153,7 +165,7 @@ export class InvestmentsService {
       fee: { toNumber: () => number };
     }[];
     dividends: { amount: { toNumber: () => number } }[];
-  }) {
+  }, exchangeRate = 1) {
     const buys = h.transactions.filter((t) => t.type === 'BUY');
     const sells = h.transactions.filter((t) => t.type === 'SELL');
 
@@ -169,8 +181,9 @@ export class InvestmentsService {
     const costBasis = avgCost * totalQty;
 
     const currentPrice = h.currentPrice.toNumber();
-    const currentValue = totalQty * currentPrice;
-    const unrealizedGain = currentValue - costBasis;
+    const currentValue = totalQty * currentPrice * exchangeRate;
+    const costBasisTHB = costBasis * exchangeRate;
+    const unrealizedGain = currentValue - costBasisTHB;
 
     const totalDividends = h.dividends.reduce((s, d) => s + d.amount.toNumber(), 0);
 
@@ -183,13 +196,14 @@ export class InvestmentsService {
       sector: h.sector,
       currency: h.currency,
       currentPrice,
+      exchangeRate,
       note: h.note,
       totalQty,
       avgCost,
-      costBasis,
+      costBasis: costBasisTHB,
       currentValue,
       unrealizedGain,
-      unrealizedGainPct: costBasis > 0 ? (unrealizedGain / costBasis) * 100 : 0,
+      unrealizedGainPct: costBasisTHB > 0 ? (unrealizedGain / costBasisTHB) * 100 : 0,
       totalDividends,
     };
   }
