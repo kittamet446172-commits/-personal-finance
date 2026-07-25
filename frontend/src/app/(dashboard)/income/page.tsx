@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Pencil, Plus, Search, Trash2 } from 'lucide-react'
+import { Download, Pencil, Plus, Search, Trash2 } from 'lucide-react'
 import { useDeleteTransaction, useTransactions } from '@/hooks/use-transactions'
 import { TransactionDialog } from '@/components/transactions/transaction-dialog'
 import { Badge } from '@/components/ui/badge'
@@ -51,6 +51,20 @@ export default function IncomePage() {
     await deleteMutation.mutateAsync(id)
   }
 
+  async function handleExport() {
+    const params = new URLSearchParams({ type: 'INCOME', month: String(month), year: String(year) })
+    const res = await fetch(`/api/proxy/transactions/export?${params}`, { credentials: 'include' })
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `income-${year}-${String(month).padStart(2, '0')}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
   const transactions = data?.data ?? []
   const totalPages = data?.totalPages ?? 1
 
@@ -58,10 +72,16 @@ export default function IncomePage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">รายรับ</h1>
-        <Button onClick={openCreate}>
-          <Plus className="h-4 w-4 mr-2" />
-          เพิ่มรายรับ
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExport}>
+            <Download className="h-4 w-4 mr-2" />
+            Export CSV
+          </Button>
+          <Button onClick={openCreate}>
+            <Plus className="h-4 w-4 mr-2" />
+            เพิ่มรายรับ
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-3">
