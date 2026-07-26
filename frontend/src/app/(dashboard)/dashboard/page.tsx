@@ -97,8 +97,8 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
 
-      {/* Income / Expense / Savings */}
-      <div className="grid grid-cols-3 gap-2">
+      {/* Income / Expense */}
+      <div className="grid grid-cols-2 gap-2">
         <Card>
           <CardContent className="py-3 px-3">
             <p className="text-xs text-muted-foreground mb-1">รายรับ</p>
@@ -113,19 +113,6 @@ export default function DashboardPage() {
             <p className="text-sm font-bold text-red-600">
               {formatCurrency(stats?.expense ?? 0)}
             </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="py-3 px-3">
-            <p className="text-xs text-muted-foreground mb-1">ออม</p>
-            <p className={`text-sm font-bold ${(stats?.savings ?? 0) >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
-              {formatCurrency(stats?.savings ?? 0)}
-            </p>
-            {stats && stats.income > 0 && (
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {stats.savingsRate.toFixed(1)}%
-              </p>
-            )}
           </CardContent>
         </Card>
       </div>
