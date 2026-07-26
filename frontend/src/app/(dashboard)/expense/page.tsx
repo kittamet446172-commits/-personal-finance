@@ -142,16 +142,18 @@ export default function ExpensePage() {
                       <Badge variant="secondary" className="text-xs">
                         {tx.category?.name}
                       </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {tx.account?.name}
-                      </span>
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-semibold text-red-600">
-                    -{formatCurrency(Number(tx.amount))}
-                  </span>
+                  <div className="text-right">
+                    <span className="text-sm font-semibold text-red-600">
+                      -{formatCurrency(Number(tx.amount))}
+                    </span>
+                    {tx.account?.name && (
+                      <p className="text-xs text-muted-foreground mt-0.5">{tx.account.name}</p>
+                    )}
+                  </div>
                   <div className="flex gap-1">
                     <Button
                       variant="ghost"
