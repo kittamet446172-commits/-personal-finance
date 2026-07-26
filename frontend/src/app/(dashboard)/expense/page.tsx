@@ -126,52 +126,36 @@ export default function ExpensePage() {
         <div className="space-y-2">
           {transactions.map((tx) => (
             <Card key={tx.id}>
-              <CardContent className="flex items-center justify-between py-4 px-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-xl w-8 text-center">
+              <CardContent className="flex items-start justify-between py-4 px-4 gap-2">
+                <div className="flex items-start gap-3 min-w-0">
+                  <span className="text-xl w-8 text-center mt-0.5 flex-shrink-0">
                     {tx.category?.icon ?? '📦'}
                   </span>
-                  <div>
-                    <p className="text-sm font-medium">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">
                       {tx.merchant ?? tx.description ?? tx.category?.name}
                     </p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <p className="text-xs text-muted-foreground">
-                        {formatDate(tx.date)}
-                      </p>
-                      <Badge variant="secondary" className="text-xs">
-                        {tx.category?.name}
-                      </Badge>
+                    <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                      <p className="text-xs text-muted-foreground">{formatDate(tx.date)}</p>
+                      <Badge variant="secondary" className="text-xs">{tx.category?.name}</Badge>
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="text-right">
-                    <span className="text-sm font-semibold text-red-600">
+                <div className="flex items-start gap-1 flex-shrink-0">
+                  <div className="text-right mr-1">
+                    <p className="text-sm font-semibold text-red-600">
                       -{formatCurrency(Number(tx.amount))}
-                    </span>
+                    </p>
                     {tx.account?.name && (
                       <p className="text-xs text-muted-foreground mt-0.5">{tx.account.name}</p>
                     )}
                   </div>
-                  <div className="flex gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => openEdit(tx)}
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive"
-                      onClick={() => handleDelete(tx.id)}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(tx)}>
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDelete(tx.id)}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>
