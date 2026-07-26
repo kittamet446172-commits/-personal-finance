@@ -1,5 +1,5 @@
 import { AccountType } from '@prisma/client';
-import { IsEnum, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, IsString, MaxLength, Min, MinLength } from 'class-validator';
 
 export class UpdateAccountDto {
   @IsString()
@@ -11,6 +11,11 @@ export class UpdateAccountDto {
   @IsEnum(AccountType)
   @IsOptional()
   type?: AccountType;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  balance?: number;
 
   @IsString()
   @MaxLength(500)
