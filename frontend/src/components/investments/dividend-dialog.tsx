@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -38,6 +38,17 @@ export function DividendDialog({ open, onClose, holdingId }: Props) {
   const [usdAmount, setUsdAmount] = useState('')
   const [usdPerShare, setUsdPerShare] = useState('')
   const [rate, setRate] = useState('33.5')
+  const [rateFetching, setRateFetching] = useState(false)
+
+  useEffect(() => {
+    if (!usdMode) return
+    setRateFetching(true)
+    fetch('https://api.frankfurter.app/latest?from=USD&to=THB')
+      .then((r) => r.json())
+      .then((data) => setRate(String(data.rates.THB)))
+      .catch(() => {})
+      .finally(() => setRateFetching(false))
+  }, [usdMode])
 
   function applyRate() {
     const r = Number(rate)
@@ -122,13 +133,14 @@ export function DividendDialog({ open, onClose, holdingId }: Props) {
               </div>
               <div className="flex items-end gap-2">
                 <div className="space-y-2 flex-1">
-                  <Label>อัตราแลกเปลี่ยน (1 USD = ? ฿)</Label>
+                  <Label>อัตราแลกเปลี่ยน (1 USD = ? ฿) {rateFetching && <span className="text-muted-foreground text-xs">กำลังโหลด...</span>}</Label>
                   <Input
                     type="number"
                     step="0.01"
                     value={rate}
                     onChange={(e) => setRate(e.target.value)}
                     onFocus={(e) => e.target.select()}
+                    disabled={rateFetching}
                   />
                 </div>
                 <Button type="button" variant="outline" onClick={applyRate}>
