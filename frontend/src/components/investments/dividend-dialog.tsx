@@ -41,6 +41,14 @@ export function DividendDialog({ open, onClose, holdingId }: Props) {
   const [rateFetching, setRateFetching] = useState(false)
 
   useEffect(() => {
+    if (!open) return
+    setForm({ holdingId: holdingId ?? '', amount: '', perShare: '', date: todayStr(), note: '' })
+    setUsdMode(false)
+    setUsdAmount('')
+    setUsdPerShare('')
+  }, [open])
+
+  useEffect(() => {
     if (!usdMode) return
     setRateFetching(true)
     fetch('https://api.frankfurter.app/latest?from=USD&to=THB')
