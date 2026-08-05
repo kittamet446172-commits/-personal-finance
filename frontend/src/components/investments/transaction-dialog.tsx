@@ -92,8 +92,8 @@ export function InvestmentTransactionDialog({ open, onClose, holding }: Props) {
               <Label>จำนวน (หน่วย/หุ้น) *</Label>
               <Input
                 type="number"
-                step="0.000001"
-                min="0.000001"
+                step="any"
+                min="0"
                 value={form.quantity}
                 onChange={(e) => setForm({ ...form, quantity: e.target.value })}
                 onFocus={(e) => e.target.select()}
