@@ -112,11 +112,11 @@ function HoldingCard({
           </div>
           <div className="rounded-md bg-muted px-2 py-1.5">
             <p className="text-muted-foreground">ต้นทุนเฉลี่ย</p>
-            <p className="font-semibold">฿{item.avgCost.toFixed(2)}</p>
+            <p className="font-semibold">{item.currency === 'USD' ? '$' : '฿'}{item.avgCost.toFixed(2)}</p>
           </div>
           <div className="rounded-md bg-muted px-2 py-1.5">
             <p className="text-muted-foreground">ราคาล่าสุด</p>
-            <p className="font-semibold">฿{item.currentPrice.toFixed(2)}</p>
+            <p className="font-semibold">{item.currency === 'USD' ? '$' : '฿'}{item.currentPrice.toFixed(2)}</p>
           </div>
         </div>
         {item.totalDividends > 0 && (
