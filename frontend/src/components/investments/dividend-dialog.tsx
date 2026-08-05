@@ -34,6 +34,17 @@ export function DividendDialog({ open, onClose, holdingId }: Props) {
     date: todayStr(),
     note: '',
   })
+  const [usdMode, setUsdMode] = useState(false)
+  const [usdAmount, setUsdAmount] = useState('')
+  const [usdPerShare, setUsdPerShare] = useState('')
+  const [rate, setRate] = useState('33.5')
+
+  function applyRate() {
+    const r = Number(rate)
+    if (!r) return
+    if (usdAmount) setForm((f) => ({ ...f, amount: (Number(usdAmount) * r).toFixed(2) }))
+    if (usdPerShare) setForm((f) => ({ ...f, perShare: (Number(usdPerShare) * r).toFixed(4) }))
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -70,6 +81,62 @@ export function DividendDialog({ open, onClose, holdingId }: Props) {
               ))}
             </select>
           </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="usdMode"
+              checked={usdMode}
+              onChange={(e) => setUsdMode(e.target.checked)}
+            />
+            <Label htmlFor="usdMode" className="cursor-pointer">กรอกเป็น USD</Label>
+          </div>
+
+          {usdMode && (
+            <div className="rounded-md border border-dashed p-3 space-y-3">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>จำนวนรวม (USD) *</Label>
+                  <Input
+                    type="number"
+                    step="0.0001"
+                    min="0"
+                    value={usdAmount}
+                    onChange={(e) => setUsdAmount(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    placeholder="0.00"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>ต่อหน่วย (USD)</Label>
+                  <Input
+                    type="number"
+                    step="0.0001"
+                    min="0"
+                    value={usdPerShare}
+                    onChange={(e) => setUsdPerShare(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    placeholder="ไม่บังคับ"
+                  />
+                </div>
+              </div>
+              <div className="flex items-end gap-2">
+                <div className="space-y-2 flex-1">
+                  <Label>อัตราแลกเปลี่ยน (1 USD = ? ฿)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={rate}
+                    onChange={(e) => setRate(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                  />
+                </div>
+                <Button type="button" variant="outline" onClick={applyRate}>
+                  แปลง
+                </Button>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
