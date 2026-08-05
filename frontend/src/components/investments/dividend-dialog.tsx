@@ -183,6 +183,7 @@ export function DividendDialog({ open, onClose, holdingId }: Props) {
               type="date"
               value={form.date}
               onChange={(e) => setForm({ ...form, date: e.target.value })}
+              onPointerDown={(e) => e.stopPropagation()}
               required
             />
           </div>
