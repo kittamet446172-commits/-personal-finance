@@ -21,15 +21,3 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
-
-.vercel
-
-# TypeScript build cache
-*.tsbuildinfo
-
-# Uploads
-backend/uploads/
-
-# Obsidian
-.obsidian/
-*.canvas

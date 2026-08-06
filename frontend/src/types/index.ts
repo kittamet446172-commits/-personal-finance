@@ -41,6 +41,7 @@ export interface PortfolioItem {
   sector: string | null
   currency: string
   currentPrice: number
+  priceUpdatedAt: string | null
   note: string | null
   totalQty: number
   avgCost: number

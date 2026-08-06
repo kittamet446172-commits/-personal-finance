@@ -132,3 +132,14 @@ export function useDeleteInvestmentTransaction() {
     },
   })
 }
+
+export function useRefreshPrices() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () =>
+      api.post<{ updated: number; failed: number }>('/investments/refresh-prices', {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: investmentKeys.all })
+    },
+  })
+}

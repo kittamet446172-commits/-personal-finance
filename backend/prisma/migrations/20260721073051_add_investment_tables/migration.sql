@@ -1,11 +1,11 @@
 -- CreateEnum
-CREATE TYPE IF NOT EXISTS "InvestmentType" AS ENUM ('STOCK', 'ETF', 'MUTUAL_FUND', 'REIT');
+CREATE TYPE "InvestmentType" AS ENUM ('STOCK', 'ETF', 'MUTUAL_FUND', 'REIT');
 
 -- CreateEnum
-CREATE TYPE IF NOT EXISTS "LotType" AS ENUM ('BUY', 'SELL');
+CREATE TYPE "LotType" AS ENUM ('BUY', 'SELL');
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "investment_holdings" (
+CREATE TABLE "investment_holdings" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "symbol" TEXT NOT NULL,
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS "investment_holdings" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "investment_transactions" (
+CREATE TABLE "investment_transactions" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "holdingId" TEXT NOT NULL,
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS "investment_transactions" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "dividends" (
+CREATE TABLE "dividends" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "holdingId" TEXT NOT NULL,
@@ -55,30 +55,19 @@ CREATE TABLE IF NOT EXISTS "dividends" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX IF NOT EXISTS "investment_holdings_userId_symbol_key" ON "investment_holdings"("userId", "symbol");
+CREATE UNIQUE INDEX "investment_holdings_userId_symbol_key" ON "investment_holdings"("userId", "symbol");
 
--- AddForeignKey (safe to ignore if exists)
-DO $$ BEGIN
-  ALTER TABLE "investment_holdings" ADD CONSTRAINT "investment_holdings_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-EXCEPTION WHEN duplicate_object THEN NULL;
-END $$;
+-- AddForeignKey
+ALTER TABLE "investment_holdings" ADD CONSTRAINT "investment_holdings_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
-DO $$ BEGIN
-  ALTER TABLE "investment_transactions" ADD CONSTRAINT "investment_transactions_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-EXCEPTION WHEN duplicate_object THEN NULL;
-END $$;
+-- AddForeignKey
+ALTER TABLE "investment_transactions" ADD CONSTRAINT "investment_transactions_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
-DO $$ BEGIN
-  ALTER TABLE "investment_transactions" ADD CONSTRAINT "investment_transactions_holdingId_fkey" FOREIGN KEY ("holdingId") REFERENCES "investment_holdings"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-EXCEPTION WHEN duplicate_object THEN NULL;
-END $$;
+-- AddForeignKey
+ALTER TABLE "investment_transactions" ADD CONSTRAINT "investment_transactions_holdingId_fkey" FOREIGN KEY ("holdingId") REFERENCES "investment_holdings"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
-DO $$ BEGIN
-  ALTER TABLE "dividends" ADD CONSTRAINT "dividends_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-EXCEPTION WHEN duplicate_object THEN NULL;
-END $$;
+-- AddForeignKey
+ALTER TABLE "dividends" ADD CONSTRAINT "dividends_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
-DO $$ BEGIN
-  ALTER TABLE "dividends" ADD CONSTRAINT "dividends_holdingId_fkey" FOREIGN KEY ("holdingId") REFERENCES "investment_holdings"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-EXCEPTION WHEN duplicate_object THEN NULL;
-END $$;
+-- AddForeignKey
+ALTER TABLE "dividends" ADD CONSTRAINT "dividends_holdingId_fkey" FOREIGN KEY ("holdingId") REFERENCES "investment_holdings"("id") ON DELETE CASCADE ON UPDATE CASCADE;

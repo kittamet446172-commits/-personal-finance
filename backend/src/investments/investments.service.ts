@@ -157,6 +157,7 @@ export class InvestmentsService {
     sector: string | null;
     currency: string;
     currentPrice: { toNumber: () => number };
+    priceUpdatedAt: Date | null;
     note: string | null;
     transactions: {
       type: string;
@@ -196,6 +197,7 @@ export class InvestmentsService {
       sector: h.sector,
       currency: h.currency,
       currentPrice,
+      priceUpdatedAt: h.priceUpdatedAt,
       exchangeRate,
       note: h.note,
       totalQty,

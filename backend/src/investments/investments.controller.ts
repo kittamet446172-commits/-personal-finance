@@ -9,6 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { InvestmentsService } from './investments.service';
+import { StockPriceCronService } from './stock-price-cron.service';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../common/types/request.type';
@@ -19,7 +20,17 @@ import { CreateInvestmentTransactionDto } from './dto/create-investment-transact
 @Controller('investments')
 @UseGuards(AuthGuard)
 export class InvestmentsController {
-  constructor(private readonly investmentsService: InvestmentsService) {}
+  constructor(
+    private readonly investmentsService: InvestmentsService,
+    private readonly cronService: StockPriceCronService,
+  ) {}
+
+  // ─── Price Refresh ──────────────────────────────────────────────────────────
+
+  @Post('refresh-prices')
+  refreshPrices() {
+    return this.cronService.refreshAllPrices();
+  }
 
   // ─── Portfolio ──────────────────────────────────────────────────────────────
 

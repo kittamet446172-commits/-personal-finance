@@ -20,6 +20,7 @@ import { DividendDialog } from '@/components/investments/dividend-dialog'
 import {
   usePortfolio,
   useDeleteHolding,
+  useRefreshPrices,
 } from '@/hooks/use-investments'
 import { formatCurrency } from '@/lib/utils'
 import type { InvestmentHolding, InvestmentType, PortfolioItem } from '@/types'
@@ -138,11 +139,18 @@ type DialogState =
 export default function InvestmentsPage() {
   const { data: portfolio, isLoading, refetch } = usePortfolio()
   const deleteMutation = useDeleteHolding()
+  const refreshPrices = useRefreshPrices()
   const [dialog, setDialog] = useState<DialogState>({ type: 'none' })
   const [activeTab, setActiveTab] = useState('all')
 
   const items = portfolio?.items ?? []
   const summary = portfolio?.summary
+
+  const lastUpdated = items.reduce<string | null>((latest, item) => {
+    if (!item.priceUpdatedAt) return latest
+    if (!latest) return item.priceUpdatedAt
+    return item.priceUpdatedAt > latest ? item.priceUpdatedAt : latest
+  }, null)
 
   const filtered =
     activeTab === 'all'
@@ -179,18 +187,32 @@ export default function InvestmentsPage() {
           <h1 className="text-2xl font-bold">Portfolio</h1>
           <p className="text-sm text-muted-foreground">ติดตาม investment ทั้งหมด</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="icon" onClick={() => refetch()} title="รีเฟรช">
-            <RefreshCw className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" onClick={() => setDialog({ type: 'dividend' })}>
-            <Plus className="h-4 w-4 mr-2" />
-            ปันผล
-          </Button>
-          <Button onClick={() => setDialog({ type: 'holding', editing: null })}>
-            <Plus className="h-4 w-4 mr-2" />
-            เพิ่มหลักทรัพย์
-          </Button>
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refreshPrices.mutate()}
+              disabled={refreshPrices.isPending}
+              title="อัพเดทราคาจาก Yahoo Finance"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${refreshPrices.isPending ? 'animate-spin' : ''}`} />
+              {refreshPrices.isPending ? 'กำลังอัพเดท...' : 'อัพเดทราคา'}
+            </Button>
+            <Button variant="outline" onClick={() => setDialog({ type: 'dividend' })}>
+              <Plus className="h-4 w-4 mr-2" />
+              ปันผล
+            </Button>
+            <Button onClick={() => setDialog({ type: 'holding', editing: null })}>
+              <Plus className="h-4 w-4 mr-2" />
+              เพิ่มหลักทรัพย์
+            </Button>
+          </div>
+          {lastUpdated && (
+            <p className="text-xs text-muted-foreground">
+              อัพเดทล่าสุด: {new Date(lastUpdated).toLocaleString('th-TH')}
+            </p>
+          )}
         </div>
       </div>
 
