@@ -1,15 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const yahooFinance = require('yahoo-finance2').default as {
-  quote: (symbol: string) => Promise<{ regularMarketPrice?: number }>;
-};
-
 @Injectable()
 export class StockPriceService {
   private readonly logger = new Logger(StockPriceService.name);
   private readonly cache = new Map<string, { price: number; expiresAt: number }>();
-  private readonly TTL = 15 * 60 * 1000; // 15 minutes
+  private readonly TTL = 15 * 60 * 1000;
 
   async getPrice(symbol: string): Promise<number | null> {
     const key = symbol.toUpperCase();
@@ -17,7 +12,9 @@ export class StockPriceService {
     if (cached && Date.now() < cached.expiresAt) return cached.price;
 
     try {
-      const quote = await yahooFinance.quote(key);
+      const yf = await import('yahoo-finance2');
+      const yahooFinance = yf.default ?? yf;
+      const quote = await (yahooFinance as { quote: (s: string) => Promise<{ regularMarketPrice?: number }> }).quote(key);
       const price = quote.regularMarketPrice;
       if (!price) return null;
 
