@@ -78,6 +78,7 @@ export default function AccountsPage() {
         id: editing.id,
         name: form.name,
         type: form.type,
+        balance: Number(form.balance),
         description: form.description || undefined,
       })
     } else {
@@ -206,19 +207,17 @@ export default function AccountsPage() {
                 ))}
               </div>
             </div>
-            {!editing && (
-              <div className="space-y-2">
-                <Label>ยอดเงินเริ่มต้น</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={form.balance}
-                  onChange={(e) => setForm({ ...form, balance: e.target.value })}
-                  onFocus={(e) => e.target.select()}
-                />
-              </div>
-            )}
+            <div className="space-y-2">
+              <Label>{editing ? 'ยอดเงิน' : 'ยอดเงินเริ่มต้น'}</Label>
+              <Input
+                type="number"
+                step="0.01"
+                min="0"
+                value={form.balance}
+                onChange={(e) => setForm({ ...form, balance: e.target.value })}
+                onFocus={(e) => e.target.select()}
+              />
+            </div>
             <div className="space-y-2">
               <Label>หมายเหตุ</Label>
               <Input

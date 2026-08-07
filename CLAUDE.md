@@ -76,3 +76,30 @@ docker-compose up --build
 - Every API route is protected by AuthGuard
 - Balance updates always run inside Prisma transactions
 - Do not add features beyond Version 1 scope until explicitly asked
+
+## Deployment & Data Safety
+
+- **Railway hobby plan ไม่มี automatic backup** — ถ้า DB ถูก recreate ข้อมูลหายถาวร
+- ทุกครั้งที่ setup หรือแนะนำการ deploy บน cloud ต้องแจ้งเรื่องนี้ก่อนเสมอ
+- ต้องมี export/backup mechanism ก่อน go live เสมอ
+- ข้อมูลที่หายแล้วกู้คืนไม่ได้ถ้าไม่มี backup
+
+## Automated Backup
+
+- GitHub Actions รัน backup อัตโนมัติ: **ทุกวัน 02:00** + **ทุกครั้งที่ push to main**
+- Backup เก็บใน GitHub Actions Artifacts **90 วัน**
+- ดาวน์โหลด backup: GitHub repo → Actions → เลือก workflow run → Artifacts
+- Restore: `psql "$DATABASE_URL" < backup_YYYYMMDD_HHMMSS.sql`
+- Secret ที่ต้องตั้งใน GitHub: `RAILWAY_DATABASE_URL`, `RAILWAY_BACKEND_URL`
+
+## Deploy Checklist
+
+ทุกครั้งที่ push to main ให้เช็คหลัง deploy เสร็จ (~2 นาที):
+
+- [ ] Login ได้
+- [ ] หน้า Dashboard โหลด Net Worth ถูกต้อง
+- [ ] หน้า บัญชี เห็นข้อมูล
+- [ ] หน้า รายการ เห็นข้อมูล
+- [ ] หน้า ลงทุน เห็น holdings
+- [ ] Export CSV ยังมีปุ่มอยู่
+- [ ] GitHub Actions backup workflow ผ่าน ✅

@@ -14,6 +14,7 @@ import {
 import { useAccounts } from '@/hooks/use-accounts'
 import { useMonthlyStats, useRecentTransactions } from '@/hooks/use-transactions'
 import { useCategoryBreakdown, useYearlyTrend } from '@/hooks/use-reports'
+import { usePortfolio } from '@/hooks/use-investments'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatCurrency, formatDate } from '@/lib/utils'
 
@@ -52,8 +53,11 @@ export default function DashboardPage() {
   const { data: recent = [] } = useRecentTransactions()
   const { data: trend } = useYearlyTrend(year)
   const { data: expenseBreakdown = [] } = useCategoryBreakdown(month, year, 'EXPENSE')
+  const { data: portfolio } = usePortfolio()
 
-  const netWorth = accounts.reduce((sum, a) => sum + Number(a.balance), 0)
+  const accountsTotal = accounts.reduce((sum, a) => sum + Number(a.balance), 0)
+  const portfolioTotal = portfolio?.summary.totalCurrentValue ?? 0
+  const netWorth = accountsTotal + portfolioTotal
 
   const incomeChartData = trend?.months.map((m) => ({
     name: MONTH_SHORT[m.month - 1],
@@ -88,13 +92,13 @@ export default function DashboardPage() {
           <p className="text-sm text-muted-foreground mb-1">Net Worth</p>
           <p className="text-2xl font-bold">{formatCurrency(netWorth)}</p>
           <p className="text-xs text-muted-foreground mt-1">
-            {accounts.length} บัญชี
+            {accounts.length} บัญชี {portfolioTotal > 0 && `· ลงทุน ${formatCurrency(portfolioTotal)}`}
           </p>
         </CardContent>
       </Card>
 
-      {/* Income / Expense / Savings */}
-      <div className="grid grid-cols-3 gap-2">
+      {/* Income / Expense */}
+      <div className="grid grid-cols-2 gap-2">
         <Card>
           <CardContent className="py-3 px-3">
             <p className="text-xs text-muted-foreground mb-1">รายรับ</p>
@@ -109,19 +113,6 @@ export default function DashboardPage() {
             <p className="text-sm font-bold text-red-600">
               {formatCurrency(stats?.expense ?? 0)}
             </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="py-3 px-3">
-            <p className="text-xs text-muted-foreground mb-1">ออม</p>
-            <p className={`text-sm font-bold ${(stats?.savings ?? 0) >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
-              {formatCurrency(stats?.savings ?? 0)}
-            </p>
-            {stats && stats.income > 0 && (
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {stats.savingsRate.toFixed(1)}%
-              </p>
-            )}
           </CardContent>
         </Card>
       </div>

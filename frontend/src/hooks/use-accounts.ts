@@ -25,6 +25,7 @@ interface CreateAccountDto {
 interface UpdateAccountDto {
   name?: string
   type?: Account['type']
+  balance?: number
   description?: string
 }
 

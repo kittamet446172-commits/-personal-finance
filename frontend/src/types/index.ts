@@ -1,5 +1,79 @@
 export type AccountType = 'CASH' | 'BANK_ACCOUNT' | 'WALLET'
 export type TransactionType = 'INCOME' | 'EXPENSE'
+export type InvestmentType = 'STOCK' | 'ETF' | 'MUTUAL_FUND' | 'REIT'
+export type LotType = 'BUY' | 'SELL'
+
+export interface InvestmentHolding {
+  id: string
+  userId?: string
+  symbol: string
+  name: string
+  type: InvestmentType
+  exchange?: string | null
+  sector?: string | null
+  currency: string
+  currentPrice: number
+  note?: string | null
+  createdAt: string
+  updatedAt: string
+  transactions?: InvestmentTransaction[]
+  dividends?: { id: string; amount: number; date: string }[]
+}
+
+export interface InvestmentTransaction {
+  id: string
+  holdingId: string
+  type: LotType
+  quantity: number
+  pricePerUnit: number
+  fee: number
+  date: string
+  note?: string | null
+  createdAt: string
+}
+
+export interface PortfolioItem {
+  id: string
+  symbol: string
+  name: string
+  type: string
+  exchange: string | null
+  sector: string | null
+  currency: string
+  currentPrice: number
+  priceUpdatedAt: string | null
+  note: string | null
+  totalQty: number
+  avgCost: number
+  costBasis: number
+  currentValue: number
+  unrealizedGain: number
+  unrealizedGainPct: number
+  totalDividends: number
+}
+
+export interface Dividend {
+  id: string
+  holdingId: string
+  userId: string
+  amount: number
+  perShare?: number | null
+  date: string
+  note?: string | null
+  createdAt: string
+  holding?: Pick<InvestmentHolding, 'id' | 'symbol' | 'name' | 'type'>
+}
+
+export interface Portfolio {
+  items: PortfolioItem[]
+  summary: {
+    totalCurrentValue: number
+    totalCostBasis: number
+    unrealizedGain: number
+    unrealizedGainPct: number
+    totalDividends: number
+  }
+}
 
 export interface User {
   id: string

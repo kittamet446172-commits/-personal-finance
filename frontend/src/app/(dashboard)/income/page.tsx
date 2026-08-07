@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Pencil, Plus, Search, Trash2 } from 'lucide-react'
+import { Download, Pencil, Plus, Search, Trash2 } from 'lucide-react'
 import { useDeleteTransaction, useTransactions } from '@/hooks/use-transactions'
 import { TransactionDialog } from '@/components/transactions/transaction-dialog'
 import { Badge } from '@/components/ui/badge'
@@ -51,6 +51,20 @@ export default function IncomePage() {
     await deleteMutation.mutateAsync(id)
   }
 
+  async function handleExport() {
+    const params = new URLSearchParams({ type: 'INCOME', month: String(month), year: String(year) })
+    const res = await fetch(`/api/proxy/transactions/export?${params}`, { credentials: 'include' })
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `income-${year}-${String(month).padStart(2, '0')}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
   const transactions = data?.data ?? []
   const totalPages = data?.totalPages ?? 1
 
@@ -58,10 +72,16 @@ export default function IncomePage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">รายรับ</h1>
-        <Button onClick={openCreate}>
-          <Plus className="h-4 w-4 mr-2" />
-          เพิ่มรายรับ
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExport}>
+            <Download className="h-4 w-4 mr-2" />
+            Export CSV
+          </Button>
+          <Button onClick={openCreate}>
+            <Plus className="h-4 w-4 mr-2" />
+            เพิ่มรายรับ
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-3">
@@ -106,50 +126,36 @@ export default function IncomePage() {
         <div className="space-y-2">
           {transactions.map((tx) => (
             <Card key={tx.id}>
-              <CardContent className="flex items-center justify-between py-4 px-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-xl w-8 text-center">
+              <CardContent className="flex items-start justify-between py-4 px-4 gap-2">
+                <div className="flex items-start gap-3 min-w-0">
+                  <span className="text-xl w-8 text-center mt-0.5 flex-shrink-0">
                     {tx.category?.icon ?? '💰'}
                   </span>
-                  <div>
-                    <p className="text-sm font-medium">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">
                       {tx.merchant ?? tx.description ?? tx.category?.name}
                     </p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <p className="text-xs text-muted-foreground">
-                        {formatDate(tx.date)}
-                      </p>
-                      <Badge variant="secondary" className="text-xs">
-                        {tx.category?.name}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {tx.account?.name}
-                      </span>
+                    <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                      <p className="text-xs text-muted-foreground">{formatDate(tx.date)}</p>
+                      <Badge variant="secondary" className="text-xs">{tx.category?.name}</Badge>
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-semibold text-green-600">
-                    +{formatCurrency(Number(tx.amount))}
-                  </span>
-                  <div className="flex gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => openEdit(tx)}
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive"
-                      onClick={() => handleDelete(tx.id)}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
+                <div className="flex items-start gap-1 flex-shrink-0">
+                  <div className="text-right mr-1">
+                    <p className="text-sm font-semibold text-green-600">
+                      +{formatCurrency(Number(tx.amount))}
+                    </p>
+                    {tx.account?.name && (
+                      <p className="text-xs text-muted-foreground mt-0.5">{tx.account.name}</p>
+                    )}
                   </div>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(tx)}>
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDelete(tx.id)}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>
