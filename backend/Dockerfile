@@ -8,4 +8,4 @@ RUN npx prisma generate
 RUN npm run build
 
 EXPOSE 4000
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]
+CMD ["sh", "-c", "npx prisma migrate deploy && echo '=== Starting node ===' && node dist/main.js 2>&1; echo \"=== Node exited: $? ===\""]
