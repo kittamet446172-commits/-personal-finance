@@ -1,4 +1,5 @@
 import { betterAuth } from 'better-auth';
+import { createAuthMiddleware, APIError } from 'better-auth/api';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { PrismaClient } from '@prisma/client';
 
@@ -37,6 +38,17 @@ export function createAuth(prisma: PrismaClient) {
     },
     user: {
       additionalFields: {},
+    },
+    hooks: {
+      before: createAuthMiddleware(async (ctx) => {
+        if (ctx.path === '/sign-up/email') {
+          const inviteCode = ctx.headers?.get('x-invite-code');
+          const expected = process.env.INVITE_CODE;
+          if (expected && inviteCode !== expected) {
+            throw new APIError('FORBIDDEN', { message: 'รหัสเชิญไม่ถูกต้อง' });
+          }
+        }
+      }),
     },
   }) as ReturnType<typeof betterAuth>;
 
