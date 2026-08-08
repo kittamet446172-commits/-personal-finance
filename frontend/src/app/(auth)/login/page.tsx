@@ -43,7 +43,7 @@ export default function LoginPage() {
     <Card>
       <CardHeader>
         <CardTitle className="text-2xl">เข้าสู่ระบบ</CardTitle>
-        <CardDescription>Personal Finance</CardDescription>
+        <CardDescription>Mone</CardDescription>
       </CardHeader>
 
       <form onSubmit={handleSubmit}>

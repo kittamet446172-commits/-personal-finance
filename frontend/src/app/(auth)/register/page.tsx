@@ -44,7 +44,7 @@ export default function RegisterPage() {
     <Card>
       <CardHeader>
         <CardTitle className="text-2xl">สมัครสมาชิก</CardTitle>
-        <CardDescription>Personal Finance</CardDescription>
+        <CardDescription>Mone</CardDescription>
       </CardHeader>
 
       <form onSubmit={handleSubmit}>
