@@ -22,6 +22,7 @@ model User {
   sessions  Session[]
   accounts  Account[]
   Account_  FinanceAccount[]
+  settings  UserSettings?
   Category  Category[]
   Transaction Transaction[]
   Budget    Budget[]
@@ -95,6 +96,7 @@ model FinanceAccount {
   transactions      Transaction[]
   transfersFrom     Transfer[]    @relation("TransferFrom")
   transfersTo       Transfer[]    @relation("TransferTo")
+  userSettings      UserSettings[]
 
   @@map("finance_accounts")
 }
@@ -236,10 +238,25 @@ model Dividend {
   @@map("dividends")
 }
 
+model UserSettings {
+  id                     String          @id @default(cuid())
+  userId                 String          @unique
+  emergencyFundAccountId String?
+  monthlySalary          Decimal?        @db.Decimal(15, 2)
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+
+  user                 User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emergencyFundAccount FinanceAccount? @relation(fields: [emergencyFundAccountId], references: [id], onDelete: SetNull)
+
+  @@map("user_settings")
+}
+
 enum AccountType {
   CASH
   BANK_ACCOUNT
   WALLET
+  INVESTMENT
 }
 
 enum TransactionType {

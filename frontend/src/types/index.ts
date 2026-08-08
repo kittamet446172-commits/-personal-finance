@@ -139,6 +139,13 @@ export interface Transfer {
   toAccount?: Pick<Account, 'id' | 'name'>
 }
 
+export interface UserSettings {
+  id: string
+  userId: string
+  emergencyFundAccountId: string | null
+  monthlySalary: number | null
+}
+
 export interface Paginated<T> {
   data: T[]
   total: number
