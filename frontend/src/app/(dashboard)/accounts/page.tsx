@@ -28,6 +28,7 @@ const TYPE_LABELS: Record<AccountType, string> = {
   CASH: 'เงินสด',
   BANK_ACCOUNT: 'บัญชีธนาคาร',
   WALLET: 'กระเป๋าเงิน',
+  INVESTMENT: 'บัญชีลงทุน',
 }
 
 interface FormState {
