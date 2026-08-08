@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { ShieldCheck } from 'lucide-react'
 import {
   Bar,
   BarChart,
@@ -113,7 +114,7 @@ export default function DashboardPage() {
       <Card>
         <CardContent className="py-6 px-6">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-sm font-medium">🛡️ เงินสำรองฉุกเฉิน</p>
+            <p className="text-sm font-medium flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-primary" />เงินสำรองฉุกเฉิน</p>
             {settings?.emergencyFundAccountId && (
               <span
                 className={`text-xs px-2 py-0.5 rounded-full font-medium ${

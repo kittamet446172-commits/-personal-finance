@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState, useEffect } from 'react'
-import { Camera } from 'lucide-react'
+import { Camera, ShieldCheck } from 'lucide-react'
 import { useSession } from '@/lib/auth-client'
 import { api } from '@/lib/api'
 import { Button } from '@/components/ui/button'
@@ -179,7 +179,7 @@ export default function SettingsPage() {
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>🛡️ เงินสำรองฉุกเฉิน</CardTitle>
+          <CardTitle className="flex items-center gap-1.5"><ShieldCheck className="h-5 w-5 text-primary" />เงินสำรองฉุกเฉิน</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {efSuccess && (
