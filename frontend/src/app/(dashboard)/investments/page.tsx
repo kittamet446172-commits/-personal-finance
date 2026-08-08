@@ -233,7 +233,7 @@ export default function InvestmentsPage() {
           </Card>
           <Card>
             <CardContent className="pt-4">
-              <p className="text-xs text-muted-foreground leading-tight">กำไร/ขาดทุน<br className="sm:hidden" />ที่ยังไม่รับรู้</p>
+              <p className="text-xs text-muted-foreground">กำไร/ขาดทุน</p>
               <GainBadge value={summary.unrealizedGain} pct={summary.unrealizedGainPct} />
             </CardContent>
           </Card>
