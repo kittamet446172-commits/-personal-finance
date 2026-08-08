@@ -188,7 +188,7 @@ export default function InvestmentsPage() {
           <p className="text-sm text-muted-foreground">ติดตาม investment ทั้งหมด</p>
         </div>
         <div className="flex flex-col items-end gap-2">
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
               size="sm"
