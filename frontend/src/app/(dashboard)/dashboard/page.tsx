@@ -59,6 +59,17 @@ export default function DashboardPage() {
   const portfolioTotal = portfolio?.summary.totalCurrentValue ?? 0
   const netWorth = accountsTotal + portfolioTotal
 
+  const savingsTotal = accounts
+    .filter((a) => a.type !== 'INVESTMENT')
+    .reduce((sum, a) => sum + Number(a.balance), 0)
+  const monthlyExpense = stats?.expense ?? 0
+  const monthsCovered = monthlyExpense > 0 ? savingsTotal / monthlyExpense : 0
+  const minTarget = monthlyExpense * 3
+  const maxTarget = monthlyExpense * 6
+  const progressPct = minTarget > 0 ? Math.min((savingsTotal / minTarget) * 100, 100) : 0
+  const emergencyStatus =
+    monthsCovered >= 6 ? 'safe' : monthsCovered >= 3 ? 'ok' : 'low'
+
   const incomeChartData = trend?.months.map((m) => ({
     name: MONTH_SHORT[m.month - 1],
     รายรับ: m.income,
@@ -94,6 +105,51 @@ export default function DashboardPage() {
           <p className="text-xs text-muted-foreground mt-1">
             {accounts.length} บัญชี {portfolioTotal > 0 && `· ลงทุน ${formatCurrency(portfolioTotal)}`}
           </p>
+        </CardContent>
+      </Card>
+
+      {/* Emergency Fund */}
+      <Card>
+        <CardContent className="py-6 px-6">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-medium">🛡️ เงินสำรองฉุกเฉิน</p>
+            <span
+              className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                emergencyStatus === 'safe'
+                  ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+                  : emergencyStatus === 'ok'
+                  ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
+                  : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
+              }`}
+            >
+              {emergencyStatus === 'safe' ? 'ปลอดภัย' : emergencyStatus === 'ok' ? 'พอใช้' : 'ยังไม่พอ'}
+            </span>
+          </div>
+          <p className="text-xl font-bold">{formatCurrency(savingsTotal)}</p>
+          <p className="text-xs text-muted-foreground mt-0.5 mb-3">
+            ครอบคลุม {monthsCovered.toFixed(1)} เดือน · เป้าหมาย {formatCurrency(minTarget)} – {formatCurrency(maxTarget)}
+          </p>
+          <div className="w-full bg-muted rounded-full h-2">
+            <div
+              className={`h-2 rounded-full transition-all ${
+                emergencyStatus === 'safe'
+                  ? 'bg-green-500'
+                  : emergencyStatus === 'ok'
+                  ? 'bg-yellow-500'
+                  : 'bg-red-500'
+              }`}
+              style={{ width: `${progressPct}%` }}
+            />
+          </div>
+          <div className="flex justify-between mt-1">
+            <span className="text-xs text-muted-foreground">0</span>
+            <span className="text-xs text-muted-foreground">3 เดือน</span>
+          </div>
+          {monthlyExpense === 0 && (
+            <p className="text-xs text-muted-foreground mt-2">
+              ยังไม่มีข้อมูลรายจ่ายเดือนนี้
+            </p>
+          )}
         </CardContent>
       </Card>
 
