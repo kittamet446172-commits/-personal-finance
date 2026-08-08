@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { Camera } from 'lucide-react'
 import { useSession } from '@/lib/auth-client'
 import { api } from '@/lib/api'
@@ -8,6 +8,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useAccounts } from '@/hooks/use-accounts'
+import { useUserSettings, useUpsertUserSettings } from '@/hooks/use-user-settings'
+import { formatCurrency } from '@/lib/utils'
 
 export default function SettingsPage() {
   const { data: session, refetch } = useSession()
@@ -18,6 +22,31 @@ export default function SettingsPage() {
   const [avatarLoading, setAvatarLoading] = useState(false)
   const [avatarError, setAvatarError] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const { data: accounts = [] } = useAccounts()
+  const { data: settings } = useUserSettings()
+  const upsertSettings = useUpsertUserSettings()
+  const [selectedAccountId, setSelectedAccountId] = useState('')
+  const [salaryInput, setSalaryInput] = useState('')
+  const [efSuccess, setEfSuccess] = useState(false)
+
+  useEffect(() => {
+    if (settings) {
+      setSelectedAccountId(settings.emergencyFundAccountId ?? '')
+      setSalaryInput(settings.monthlySalary?.toString() ?? '')
+    }
+  }, [settings])
+
+  function saveEfSettings() {
+    setEfSuccess(false)
+    upsertSettings.mutate(
+      {
+        emergencyFundAccountId: selectedAccountId || null,
+        monthlySalary: salaryInput ? Number(salaryInput) : undefined,
+      },
+      { onSuccess: () => setEfSuccess(true) },
+    )
+  }
 
   const userImage = (session?.user as { image?: string | null })?.image
 
@@ -146,6 +175,45 @@ export default function SettingsPage() {
               {loading ? 'กำลังบันทึก...' : 'บันทึก'}
             </Button>
           </form>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>🛡️ เงินสำรองฉุกเฉิน</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {efSuccess && (
+            <p className="text-sm text-green-600 bg-green-50 px-3 py-2 rounded-md">
+              บันทึกเรียบร้อยแล้ว
+            </p>
+          )}
+          <div className="space-y-2">
+            <Label>บัญชีเงินสำรอง</Label>
+            <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
+              <SelectTrigger>
+                <SelectValue placeholder="เลือกบัญชี" />
+              </SelectTrigger>
+              <SelectContent>
+                {accounts.map((a) => (
+                  <SelectItem key={a.id} value={a.id}>
+                    {a.name} ({formatCurrency(Number(a.balance))})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>เงินเดือน (บาท)</Label>
+            <Input
+              type="number"
+              placeholder="16500"
+              value={salaryInput}
+              onChange={(e) => setSalaryInput(e.target.value)}
+            />
+          </div>
+          <Button onClick={saveEfSettings} disabled={upsertSettings.isPending}>
+            {upsertSettings.isPending ? 'กำลังบันทึก...' : 'บันทึก'}
+          </Button>
         </CardContent>
       </Card>
     </div>

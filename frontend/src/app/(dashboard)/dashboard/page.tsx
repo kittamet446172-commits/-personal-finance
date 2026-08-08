@@ -11,18 +11,12 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { Settings } from 'lucide-react'
 import { useAccounts } from '@/hooks/use-accounts'
 import { useMonthlyStats, useRecentTransactions } from '@/hooks/use-transactions'
 import { useCategoryBreakdown, useYearlyTrend } from '@/hooks/use-reports'
 import { usePortfolio } from '@/hooks/use-investments'
-import { useUserSettings, useUpsertUserSettings } from '@/hooks/use-user-settings'
+import { useUserSettings } from '@/hooks/use-user-settings'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { formatCurrency, formatDate } from '@/lib/utils'
 
 const MONTH_SHORT = [
@@ -80,10 +74,6 @@ export default function DashboardPage() {
   }))
 
   const { data: settings } = useUserSettings()
-  const upsertSettings = useUpsertUserSettings()
-  const [settingsOpen, setSettingsOpen] = useState(false)
-  const [salaryInput, setSalaryInput] = useState('')
-  const [selectedAccountId, setSelectedAccountId] = useState<string>('')
 
   const emergencyAccount = accounts.find((a) => a.id === settings?.emergencyFundAccountId)
   const savingsTotal = Number(emergencyAccount?.balance ?? 0)
@@ -92,22 +82,6 @@ export default function DashboardPage() {
   const monthsCovered = salary > 0 ? savingsTotal / salary : 0
   const progressPct = target > 0 ? Math.min((savingsTotal / target) * 100, 100) : 0
   const emergencyStatus = monthsCovered >= 6 ? 'safe' : monthsCovered >= 3 ? 'ok' : 'low'
-
-  function openSettings() {
-    setSalaryInput(settings?.monthlySalary?.toString() ?? '')
-    setSelectedAccountId(settings?.emergencyFundAccountId ?? '')
-    setSettingsOpen(true)
-  }
-
-  function saveSettings() {
-    upsertSettings.mutate(
-      {
-        emergencyFundAccountId: selectedAccountId || null,
-        monthlySalary: salaryInput ? Number(salaryInput) : undefined,
-      },
-      { onSuccess: () => setSettingsOpen(false) },
-    )
-  }
 
   const [hoveredSlice, setHoveredSlice] = useState<{ name: string; value: number } | null>(null)
   const totalExpense = expensePieData.reduce((sum, d) => sum + d.value, 0)
@@ -140,28 +114,23 @@ export default function DashboardPage() {
         <CardContent className="py-6 px-6">
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm font-medium">🛡️ เงินสำรองฉุกเฉิน</p>
-            <div className="flex items-center gap-2">
-              {settings?.emergencyFundAccountId && (
-                <span
-                  className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                    emergencyStatus === 'safe'
-                      ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
-                      : emergencyStatus === 'ok'
-                      ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
-                      : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
-                  }`}
-                >
-                  {emergencyStatus === 'safe' ? 'ปลอดภัย' : emergencyStatus === 'ok' ? 'พอใช้' : 'ยังไม่พอ'}
-                </span>
-              )}
-              <button onClick={openSettings} className="text-muted-foreground hover:text-foreground">
-                <Settings className="h-4 w-4" />
-              </button>
-            </div>
+            {settings?.emergencyFundAccountId && (
+              <span
+                className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                  emergencyStatus === 'safe'
+                    ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+                    : emergencyStatus === 'ok'
+                    ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
+                    : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
+                }`}
+              >
+                {emergencyStatus === 'safe' ? 'ปลอดภัย' : emergencyStatus === 'ok' ? 'พอใช้' : 'ยังไม่พอ'}
+              </span>
+            )}
           </div>
           {!settings?.emergencyFundAccountId ? (
             <p className="text-sm text-muted-foreground">
-              กด ⚙️ เพื่อเลือกบัญชีและตั้งเงินเดือน
+              ไปที่ ตั้งค่า เพื่อเลือกบัญชีและกรอกเงินเดือน
             </p>
           ) : (
             <>
@@ -178,51 +147,14 @@ export default function DashboardPage() {
                 />
               </div>
               <div className="flex justify-between mt-1">
-                <span className="text-xs text-muted-foreground">0</span>
-                <span className="text-xs text-muted-foreground">6 เดือน</span>
+                <span className="text-xs text-muted-foreground">0%</span>
+                <span className="text-xs text-muted-foreground">{progressPct.toFixed(1)}%</span>
               </div>
             </>
           )}
         </CardContent>
       </Card>
 
-      {/* Emergency Fund Settings Dialog */}
-      <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>ตั้งค่าเงินสำรองฉุกเฉิน</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 pt-2">
-            <div className="space-y-1.5">
-              <Label>บัญชีเงินสำรอง</Label>
-              <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="เลือกบัญชี" />
-                </SelectTrigger>
-                <SelectContent>
-                  {accounts.map((a) => (
-                    <SelectItem key={a.id} value={a.id}>
-                      {a.name} ({formatCurrency(Number(a.balance))})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>เงินเดือน (บาท)</Label>
-              <Input
-                type="number"
-                placeholder="16500"
-                value={salaryInput}
-                onChange={(e) => setSalaryInput(e.target.value)}
-              />
-            </div>
-            <Button className="w-full" onClick={saveSettings} disabled={upsertSettings.isPending}>
-              {upsertSettings.isPending ? 'กำลังบันทึก...' : 'บันทึก'}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Income / Expense */}
       <div className="grid grid-cols-2 gap-2">
