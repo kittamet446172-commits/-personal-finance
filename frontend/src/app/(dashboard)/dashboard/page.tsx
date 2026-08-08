@@ -60,7 +60,7 @@ export default function DashboardPage() {
   const netWorth = accountsTotal + portfolioTotal
 
   const savingsTotal = accounts
-    .filter((a) => a.type !== 'INVESTMENT')
+    .filter((a) => a.type === 'BANK_ACCOUNT')
     .reduce((sum, a) => sum + Number(a.balance), 0)
   const monthlyExpense = stats?.expense ?? 0
   const monthsCovered = monthlyExpense > 0 ? savingsTotal / monthlyExpense : 0
