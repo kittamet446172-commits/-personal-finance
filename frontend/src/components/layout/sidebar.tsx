@@ -1,13 +1,13 @@
 'use client'
 
 import { useEffect } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   ArrowLeftRight,
   BarChart3,
   Coins,
-  DollarSign,
   LayoutDashboard,
   LineChart,
   Menu,
@@ -74,7 +74,7 @@ export function Sidebar() {
         <div className="flex h-14 items-center justify-between border-b px-4">
           {sidebarOpen && (
             <div className="flex items-center gap-2">
-              <DollarSign className="h-6 w-6 shrink-0 text-primary" />
+              <Image src="/logo.png" alt="logo" width={32} height={32} className="rounded-lg shrink-0" />
               <span className="font-bold text-lg">Mone</span>
             </div>
           )}
