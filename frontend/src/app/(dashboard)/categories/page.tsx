@@ -186,9 +186,11 @@ export default function CategoriesPage() {
                 <Label>Emoji</Label>
                 <Input
                   value={form.icon}
-                  onChange={(e) => setForm({ ...form, icon: e.target.value })}
+                  onChange={(e) => {
+                    const segments = [...new Intl.Segmenter().segment(e.target.value)]
+                    setForm({ ...form, icon: segments[0]?.segment ?? '' })
+                  }}
                   placeholder="เช่น 🍔"
-                  maxLength={4}
                   autoComplete="off"
                 />
               </div>
