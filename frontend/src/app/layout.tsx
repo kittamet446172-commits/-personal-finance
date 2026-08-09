@@ -12,13 +12,13 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'Personal Finance',
-  description: 'Personal Finance App',
+  title: 'Mone',
+  description: 'Mone — personal finance app',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Finance',
+    title: 'Mone',
   },
   icons: {
     apple: '/icons/apple-touch-icon.png',

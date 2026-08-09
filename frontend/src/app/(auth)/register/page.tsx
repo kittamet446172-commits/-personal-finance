@@ -21,6 +21,7 @@ export default function RegisterPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [inviteCode, setInviteCode] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -29,7 +30,10 @@ export default function RegisterPage() {
     setError('')
     setLoading(true)
 
-    const { error: authError } = await signUp.email({ name, email, password })
+    const { error: authError } = await signUp.email(
+      { name, email, password },
+      { headers: { 'x-invite-code': inviteCode } } as Parameters<typeof signUp.email>[1],
+    )
 
     if (authError) {
       setError(authError.message ?? 'สมัครสมาชิกไม่สำเร็จ')
@@ -44,7 +48,7 @@ export default function RegisterPage() {
     <Card>
       <CardHeader>
         <CardTitle className="text-2xl">สมัครสมาชิก</CardTitle>
-        <CardDescription>Personal Finance</CardDescription>
+        <CardDescription>Mone</CardDescription>
       </CardHeader>
 
       <form onSubmit={handleSubmit}>
@@ -89,6 +93,18 @@ export default function RegisterPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               minLength={8}
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="inviteCode">รหัสเชิญ</Label>
+            <Input
+              id="inviteCode"
+              type="text"
+              placeholder="กรอกรหัสเชิญ"
+              value={inviteCode}
+              onChange={(e) => setInviteCode(e.target.value)}
               required
             />
           </div>

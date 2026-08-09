@@ -1,7 +1,7 @@
 {
-  "name": "Personal Finance",
-  "short_name": "Finance",
-  "description": "Personal Finance App",
+  "name": "Mone",
+  "short_name": "Mone",
+  "description": "Mone — personal finance app",
   "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#ffffff",

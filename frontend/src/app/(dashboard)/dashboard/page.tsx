@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { ShieldCheck } from 'lucide-react'
 import {
   Bar,
   BarChart,
@@ -15,6 +16,7 @@ import { useAccounts } from '@/hooks/use-accounts'
 import { useMonthlyStats, useRecentTransactions } from '@/hooks/use-transactions'
 import { useCategoryBreakdown, useYearlyTrend } from '@/hooks/use-reports'
 import { usePortfolio } from '@/hooks/use-investments'
+import { useUserSettings } from '@/hooks/use-user-settings'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatCurrency, formatDate } from '@/lib/utils'
 
@@ -59,6 +61,7 @@ export default function DashboardPage() {
   const portfolioTotal = portfolio?.summary.totalCurrentValue ?? 0
   const netWorth = accountsTotal + portfolioTotal
 
+
   const incomeChartData = trend?.months.map((m) => ({
     name: MONTH_SHORT[m.month - 1],
     รายรับ: m.income,
@@ -70,6 +73,16 @@ export default function DashboardPage() {
     value: b.amount,
     color: PIE_COLORS[i % PIE_COLORS.length],
   }))
+
+  const { data: settings } = useUserSettings()
+
+  const emergencyAccount = accounts.find((a) => a.id === settings?.emergencyFundAccountId)
+  const savingsTotal = Number(emergencyAccount?.balance ?? 0)
+  const salary = Number(settings?.monthlySalary ?? 0)
+  const target = salary * 6
+  const monthsCovered = salary > 0 ? savingsTotal / salary : 0
+  const progressPct = target > 0 ? Math.min((savingsTotal / target) * 100, 100) : 0
+  const emergencyStatus = monthsCovered >= 6 ? 'safe' : monthsCovered >= 3 ? 'ok' : 'low'
 
   const [hoveredSlice, setHoveredSlice] = useState<{ name: string; value: number } | null>(null)
   const totalExpense = expensePieData.reduce((sum, d) => sum + d.value, 0)
@@ -96,6 +109,53 @@ export default function DashboardPage() {
           </p>
         </CardContent>
       </Card>
+
+      {/* Emergency Fund */}
+      <Card>
+        <CardContent className="py-6 px-6">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-medium flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-primary" />เงินสำรองฉุกเฉิน</p>
+            {settings?.emergencyFundAccountId && (
+              <span
+                className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                  emergencyStatus === 'safe'
+                    ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+                    : emergencyStatus === 'ok'
+                    ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
+                    : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
+                }`}
+              >
+                {emergencyStatus === 'safe' ? 'ปลอดภัย' : emergencyStatus === 'ok' ? 'พอใช้' : 'ยังไม่พอ'}
+              </span>
+            )}
+          </div>
+          {!settings?.emergencyFundAccountId ? (
+            <p className="text-sm text-muted-foreground">
+              ไปที่ ตั้งค่า เพื่อเลือกบัญชีและกรอกเงินเดือน
+            </p>
+          ) : (
+            <>
+              <p className="text-xl font-bold">{formatCurrency(savingsTotal)}</p>
+              <p className="text-xs text-muted-foreground mt-0.5 mb-3">
+                {emergencyAccount?.name} · ครอบคลุม {monthsCovered.toFixed(1)} เดือน · เป้าหมาย {formatCurrency(target)}
+              </p>
+              <div className="w-full bg-muted rounded-full h-2">
+                <div
+                  className={`h-2 rounded-full transition-all ${
+                    emergencyStatus === 'safe' ? 'bg-green-500' : emergencyStatus === 'ok' ? 'bg-yellow-500' : 'bg-red-500'
+                  }`}
+                  style={{ width: `${progressPct}%` }}
+                />
+              </div>
+              <div className="flex justify-between mt-1">
+                <span className="text-xs text-muted-foreground">0%</span>
+                <span className="text-xs text-muted-foreground">{progressPct.toFixed(1)}%</span>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
 
       {/* Income / Expense */}
       <div className="grid grid-cols-2 gap-2">

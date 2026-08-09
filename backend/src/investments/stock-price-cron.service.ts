@@ -26,6 +26,8 @@ export class StockPriceCronService {
   }
 
   async refreshAllPrices(): Promise<{ updated: number; failed: number }> {
+    this.stockPrice.clearCache();
+
     const holdings = await this.prisma.investmentHolding.findMany({
       select: { id: true, symbol: true },
     });

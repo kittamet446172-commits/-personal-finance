@@ -1,4 +1,4 @@
-export type AccountType = 'CASH' | 'BANK_ACCOUNT' | 'WALLET'
+export type AccountType = 'CASH' | 'BANK_ACCOUNT' | 'WALLET' | 'INVESTMENT'
 export type TransactionType = 'INCOME' | 'EXPENSE'
 export type InvestmentType = 'STOCK' | 'ETF' | 'MUTUAL_FUND' | 'REIT'
 export type LotType = 'BUY' | 'SELL'
@@ -137,6 +137,13 @@ export interface Transfer {
   createdAt: string
   fromAccount?: Pick<Account, 'id' | 'name'>
   toAccount?: Pick<Account, 'id' | 'name'>
+}
+
+export interface UserSettings {
+  id: string
+  userId: string
+  emergencyFundAccountId: string | null
+  monthlySalary: number | null
 }
 
 export interface Paginated<T> {
