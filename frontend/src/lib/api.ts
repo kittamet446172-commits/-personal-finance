@@ -1,6 +1,6 @@
 const BASE_URL = typeof window !== 'undefined'
   ? '/backend'
-  : (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000')
+  : (process.env.BACKEND_URL ?? 'http://localhost:4000')
 
 export class ApiError extends Error {
   constructor(

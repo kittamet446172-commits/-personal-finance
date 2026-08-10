@@ -41,7 +41,7 @@ export class InvestmentsService {
     return this.prisma.investmentHolding.create({
       data: {
         userId,
-        symbol: dto.symbol.toUpperCase(),
+        symbol: dto.symbol.trim().toUpperCase(),
         name: dto.name,
         type: dto.type,
         exchange: dto.exchange,
@@ -59,7 +59,7 @@ export class InvestmentsService {
       where: { id },
       data: {
         ...dto,
-        symbol: dto.symbol ? dto.symbol.toUpperCase() : undefined,
+        symbol: dto.symbol ? dto.symbol.trim().toUpperCase() : undefined,
       },
     });
   }

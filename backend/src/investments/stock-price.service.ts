@@ -7,7 +7,7 @@ export class StockPriceService {
   private readonly TTL = 15 * 60 * 1000;
 
   async getPrice(symbol: string): Promise<number | null> {
-    const key = symbol.toUpperCase();
+    const key = symbol.trim().toUpperCase();
     const cached = this.cache.get(key);
     if (cached && Date.now() < cached.expiresAt) return cached.price;
 
