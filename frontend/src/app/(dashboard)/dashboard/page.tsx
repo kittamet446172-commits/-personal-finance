@@ -101,10 +101,10 @@ export default function DashboardPage() {
 
       {/* Net Worth */}
       <Card>
-        <CardContent className="py-6 px-6">
-          <p className="text-sm text-muted-foreground mb-1">Net Worth</p>
-          <p className="text-2xl font-bold">{formatCurrency(netWorth)}</p>
-          <p className="text-xs text-muted-foreground mt-1">
+        <CardContent className="py-8 px-6">
+          <p className="text-sm text-muted-foreground mb-2">Net Worth</p>
+          <p className="text-4xl font-bold tracking-tight">{formatCurrency(netWorth)}</p>
+          <p className="text-xs text-muted-foreground mt-2">
             {accounts.length} บัญชี {portfolioTotal > 0 && `· ลงทุน ${formatCurrency(portfolioTotal)}`}
           </p>
         </CardContent>
@@ -135,7 +135,7 @@ export default function DashboardPage() {
             </p>
           ) : (
             <>
-              <p className="text-xl font-bold">{formatCurrency(savingsTotal)}</p>
+              <p className="text-2xl font-bold">{formatCurrency(savingsTotal)}</p>
               <p className="text-xs text-muted-foreground mt-0.5 mb-3">
                 {emergencyAccount?.name} · ครอบคลุม {monthsCovered.toFixed(1)} เดือน · เป้าหมาย {formatCurrency(target)}
               </p>
@@ -158,19 +158,19 @@ export default function DashboardPage() {
 
 
       {/* Income / Expense */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-3">
         <Card>
-          <CardContent className="py-3 px-3">
-            <p className="text-xs text-muted-foreground mb-1">รายรับ</p>
-            <p className="text-sm font-bold text-green-600">
+          <CardContent className="py-5 px-4">
+            <p className="text-sm text-muted-foreground mb-2">รายรับ</p>
+            <p className="text-xl font-bold text-green-600">
               {formatCurrency(stats?.income ?? 0)}
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="py-3 px-3">
-            <p className="text-xs text-muted-foreground mb-1">รายจ่าย</p>
-            <p className="text-sm font-bold text-red-600">
+          <CardContent className="py-5 px-4">
+            <p className="text-sm text-muted-foreground mb-2">รายจ่าย</p>
+            <p className="text-xl font-bold text-red-600">
               {formatCurrency(stats?.expense ?? 0)}
             </p>
           </CardContent>
