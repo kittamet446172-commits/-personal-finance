@@ -12,9 +12,9 @@ export class StockPriceService {
     if (cached && Date.now() < cached.expiresAt) return cached.price;
 
     try {
-      const { YahooFinance } = await import('yahoo-finance2');
-      const yahooFinance = new YahooFinance();
-      const quote = await yahooFinance.quote(key);
+      const { default: yahooFinance } = await import('yahoo-finance2');
+      type QuoteResult = { regularMarketPrice?: number };
+      const quote = await (yahooFinance.quote as (symbol: string) => Promise<QuoteResult>)(key);
       const price = quote.regularMarketPrice;
       if (!price) return null;
 
