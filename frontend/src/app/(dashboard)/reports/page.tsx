@@ -80,7 +80,7 @@ export default function ReportsPage() {
     name: MONTH_SHORT[m.month - 1],
     รายรับ: m.income,
     รายจ่าย: m.expense,
-    ออม: Math.max(0, m.savings),
+    เหลือ: Math.max(0, m.savings),
   })) ?? []
 
   const dailyChartData = dailyData.map((d) => ({ day: d.day, จำนวน: d.total }))
@@ -349,7 +349,7 @@ export default function ReportsPage() {
               <Legend />
               <Line type="monotone" dataKey="รายรับ" stroke="#16a34a" strokeWidth={2} dot={false} />
               <Line type="monotone" dataKey="รายจ่าย" stroke="#dc2626" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="ออม" stroke="#2563eb" strokeWidth={2} dot={false} strokeDasharray="4 2" />
+              <Line type="monotone" dataKey="เหลือ" stroke="#2563eb" strokeWidth={2} dot={false} strokeDasharray="4 2" />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>
