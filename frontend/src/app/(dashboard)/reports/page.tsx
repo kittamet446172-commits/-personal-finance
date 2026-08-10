@@ -133,8 +133,8 @@ export default function ReportsPage() {
         {[
           { label: 'รายรับ', value: summary?.income ?? 0, color: 'text-green-600' },
           { label: 'รายจ่าย', value: summary?.expense ?? 0, color: 'text-red-600' },
-          { label: 'เงินออม', value: summary?.savings ?? 0, color: (summary?.savings ?? 0) >= 0 ? 'text-blue-600' : 'text-red-600' },
-          { label: 'อัตราออม', value: null, savings: summary?.savingsRate ?? 0 },
+          { label: 'เงินเหลือ', value: Math.max(0, summary?.savings ?? 0), color: 'text-blue-600' },
+          { label: 'อัตราเหลือ', value: null, savings: Math.max(0, summary?.savingsRate ?? 0) },
         ].map(({ label, value, color, savings }) => (
           <Card key={label}>
             <CardHeader className="pb-2">
