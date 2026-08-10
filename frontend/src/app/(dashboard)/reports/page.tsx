@@ -80,7 +80,7 @@ export default function ReportsPage() {
     name: MONTH_SHORT[m.month - 1],
     รายรับ: m.income,
     รายจ่าย: m.expense,
-    ออม: m.savings,
+    ออม: Math.max(0, m.savings),
   })) ?? []
 
   const dailyChartData = dailyData.map((d) => ({ day: d.day, จำนวน: d.total }))
