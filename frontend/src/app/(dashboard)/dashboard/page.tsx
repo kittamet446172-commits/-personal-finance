@@ -195,8 +195,8 @@ export default function DashboardPage() {
               />
               <Tooltip contentStyle={{ padding: '4px 10px', fontSize: '12px', backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', color: 'hsl(var(--card-foreground))' }} formatter={(value: unknown) => formatCurrency(Number(value))} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Bar dataKey="รายรับ" fill="#16a34a" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="รายจ่าย" fill="#dc2626" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="รายรับ" fill="#16a34a" radius={[4, 4, 0, 0]} maxBarSize={32} />
+              <Bar dataKey="รายจ่าย" fill="#dc2626" radius={[4, 4, 0, 0]} maxBarSize={32} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>

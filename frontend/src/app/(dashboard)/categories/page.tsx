@@ -181,27 +181,35 @@ export default function CategoriesPage() {
                 required
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Emoji</Label>
-                <Input
-                  value={form.icon}
-                  onChange={(e) => {
-                    const segments = [...new Intl.Segmenter().segment(e.target.value)]
-                    setForm({ ...form, icon: segments[0]?.segment ?? '' })
-                  }}
-                  placeholder="เช่น 🍔"
-                  autoComplete="off"
-                />
+            <div className="flex items-center gap-4">
+              <div
+                className="w-12 h-12 rounded-full flex items-center justify-center text-xl shrink-0"
+                style={{ backgroundColor: form.color }}
+              >
+                {form.icon || '📦'}
               </div>
-              <div className="space-y-2">
-                <Label>สี</Label>
-                <input
-                  type="color"
-                  value={form.color}
-                  onChange={(e) => setForm({ ...form, color: e.target.value })}
-                  className="h-10 w-full rounded-md border border-input cursor-pointer"
-                />
+              <div className="grid grid-cols-2 gap-4 flex-1">
+                <div className="space-y-2">
+                  <Label>Emoji</Label>
+                  <Input
+                    value={form.icon}
+                    onChange={(e) => {
+                      const segments = [...new Intl.Segmenter().segment(e.target.value)]
+                      setForm({ ...form, icon: segments[0]?.segment ?? '' })
+                    }}
+                    placeholder="เช่น 🍔"
+                    autoComplete="off"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>สี</Label>
+                  <input
+                    type="color"
+                    value={form.color}
+                    onChange={(e) => setForm({ ...form, color: e.target.value })}
+                    className="h-10 w-full rounded-md border border-input cursor-pointer"
+                  />
+                </div>
               </div>
             </div>
             {!editing && (
