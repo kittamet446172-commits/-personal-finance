@@ -87,7 +87,7 @@ export function Sidebar() {
                 <img
                   src={icon}
                   alt={label}
-                  className={cn('h-5 w-5 shrink-0', isActive && 'brightness-0 invert')}
+                  className="h-5 w-5 shrink-0"
                 />
                 {sidebarOpen && <span>{label}</span>}
               </Link>
