@@ -202,20 +202,43 @@ export default function DashboardPage() {
           <CardTitle className="text-base">📈 รายรับ-รายจ่าย {year}</CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={incomeChartData} margin={{ left: 0, right: 8 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+          <ResponsiveContainer width="100%" height={240}>
+            <BarChart data={incomeChartData} margin={{ left: 0, right: 8 }} barGap={3} barCategoryGap="30%">
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+              <XAxis dataKey="name" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis
                 tick={{ fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
                 tickFormatter={(v: number) =>
                   v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)
                 }
               />
-              <Tooltip contentStyle={{ padding: '4px 10px', fontSize: '12px', backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', color: 'hsl(var(--card-foreground))' }} formatter={(value: unknown) => formatCurrency(Number(value))} />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Bar dataKey="รายรับ" fill="#16a34a" shape={<LiftBar />} maxBarSize={28} />
-              <Bar dataKey="รายจ่าย" fill="#dc2626" shape={<LiftBar />} maxBarSize={28} />
+              <Tooltip
+                cursor={false}
+                contentStyle={{
+                  padding: '8px 12px',
+                  fontSize: '13px',
+                  backgroundColor: 'hsl(var(--card))',
+                  borderColor: 'hsl(var(--border))',
+                  borderRadius: '8px',
+                  color: 'hsl(var(--card-foreground))',
+                }}
+                formatter={(value: unknown) => formatCurrency(Number(value))}
+              />
+              <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
+              <Bar
+                dataKey="รายรับ"
+                fill="#16a34a"
+                maxBarSize={36}
+                shape={(props: BarShapeProps) => <LiftBar {...props} />}
+              />
+              <Bar
+                dataKey="รายจ่าย"
+                fill="#dc2626"
+                maxBarSize={36}
+                shape={(props: BarShapeProps) => <LiftBar {...props} />}
+              />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
