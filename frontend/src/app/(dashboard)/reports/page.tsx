@@ -9,8 +9,6 @@ import {
   Legend,
   Line,
   LineChart,
-  Pie,
-  PieChart,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -40,6 +38,21 @@ const MONTHS_FULL = [
   'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม',
 ]
 
+function polarXY(cx: number, cy: number, r: number, angleDeg: number): [number, number] {
+  const rad = ((angleDeg - 90) * Math.PI) / 180
+  return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)]
+}
+
+function sectorPath(cx: number, cy: number, r1: number, r2: number, a1: number, a2: number): string {
+  const end = a2 - a1 >= 360 ? a1 + 359.999 : a2
+  const [ox1, oy1] = polarXY(cx, cy, r2, a1)
+  const [ox2, oy2] = polarXY(cx, cy, r2, end)
+  const [ix2, iy2] = polarXY(cx, cy, r1, end)
+  const [ix1, iy1] = polarXY(cx, cy, r1, a1)
+  const lg = end - a1 > 180 ? 1 : 0
+  return `M${ox1} ${oy1} A${r2} ${r2} 0 ${lg} 1 ${ox2} ${oy2} L${ix2} ${iy2} A${r1} ${r1} 0 ${lg} 0 ${ix1} ${iy1}Z`
+}
+
 interface BarShapeProps {
   x?: number
   y?: number
@@ -65,6 +78,8 @@ export default function ReportsPage() {
   const [month, setMonth] = useState(now.getMonth() + 1)
   const [year, setYear] = useState(now.getFullYear())
   const [breakdownType, setBreakdownType] = useState<TransactionType>('EXPENSE')
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+  const [hoveredSlice, setHoveredSlice] = useState<{ name: string; value: number } | null>(null)
   const [dailyType, setDailyType] = useState<TransactionType>('EXPENSE')
   const [selectedDay, setSelectedDay] = useState<number | null>(null)
 
@@ -119,6 +134,14 @@ export default function ReportsPage() {
     pct: Math.round(b.percentage),
     fill: b.category?.color ?? 'hsl(var(--primary))',
   }))
+
+  const totalBreakdown = breakdownData.reduce((s, d) => s + d.amount, 0)
+  let pieAngle = 0
+  const breakdownSectors = breakdownData.map((d) => {
+    const start = pieAngle
+    pieAngle += (d.amount / (totalBreakdown || 1)) * 360
+    return { ...d, start, end: pieAngle }
+  })
 
   return (
     <div className="space-y-6">
@@ -276,7 +299,7 @@ export default function ReportsPage() {
             {(['EXPENSE', 'INCOME'] as TransactionType[]).map((t) => (
               <button
                 key={t}
-                onClick={() => setBreakdownType(t)}
+                onClick={() => { setBreakdownType(t); setHoveredIndex(null); setHoveredSlice(null) }}
                 className={`text-xs px-3 py-1 rounded-full border transition-colors ${
                   breakdownType === t
                     ? 'bg-primary text-primary-foreground border-primary'
@@ -293,37 +316,76 @@ export default function ReportsPage() {
             <p className="text-sm text-center text-muted-foreground py-8">ไม่มีข้อมูล</p>
           ) : (
             <>
-              <ResponsiveContainer width="100%" height={240}>
-                <PieChart>
-                  <Pie
-                    data={breakdownData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={70}
-                    outerRadius={105}
-                    paddingAngle={2}
-                    dataKey="amount"
-                  >
-                    {breakdownData.map((entry, i) => (
-                      <Cell key={i} fill={entry.fill} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: unknown) => [formatCurrency(Number(value)), 'จำนวน']} />
-                </PieChart>
-              </ResponsiveContainer>
+              {/* Custom SVG donut — tap/click to highlight */}
+              <div className="relative select-none w-full max-w-xs mx-auto aspect-square">
+                <svg viewBox="0 0 200 200" className="w-full h-full" style={{ overflow: 'visible' }}>
+                  {breakdownSectors.map((s, i) => {
+                    const isActive = hoveredIndex === i
+                    return (
+                      <path
+                        key={i}
+                        d={sectorPath(100, 100, isActive ? 36 : 40, isActive ? 84 : 80, s.start, s.end)}
+                        fill={s.fill}
+                        stroke="white"
+                        strokeWidth="1.5"
+                        onMouseEnter={() => { setHoveredIndex(i); setHoveredSlice({ name: s.name, value: s.amount }) }}
+                        onMouseLeave={() => { setHoveredIndex(null); setHoveredSlice(null) }}
+                        onClick={() => {
+                          const next = hoveredIndex === i ? null : i
+                          setHoveredIndex(next)
+                          setHoveredSlice(next === null ? null : { name: s.name, value: s.amount })
+                        }}
+                        style={{
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                          opacity: hoveredIndex !== null && !isActive ? 0.55 : 1,
+                        }}
+                      />
+                    )
+                  })}
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="text-center px-6">
+                    {hoveredSlice ? (
+                      <>
+                        <p className="text-xs text-muted-foreground truncate">{hoveredSlice.name}</p>
+                        <p className="text-base font-bold">{formatCurrency(hoveredSlice.value)}</p>
+                        <p className="text-xs text-muted-foreground font-medium">
+                          {Math.round((hoveredSlice.value / totalBreakdown) * 100)}%
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-xs text-muted-foreground">รวม</p>
+                        <p className="text-base font-bold">{formatCurrency(totalBreakdown)}</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
 
-              {/* Ranked list */}
-              <div className="mt-1 divide-y">
-                {[...breakdownData]
-                  .sort((a, b) => b.amount - a.amount)
-                  .map((entry, i) => (
-                    <div key={i} className="flex items-center gap-3 py-2">
-                      <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: entry.fill }} />
-                      <span className="text-sm flex-1 truncate">{entry.name}</span>
-                      <span className="text-xs text-muted-foreground w-10 text-right">{entry.pct}%</span>
-                      <span className="text-sm font-medium w-24 text-right">{formatCurrency(entry.amount)}</span>
-                    </div>
-                  ))}
+              {/* Legend — tap to highlight, synced with donut */}
+              <div className="mt-3 divide-y">
+                {breakdownData.map((entry, i) => (
+                  <div
+                    key={i}
+                    className={`flex items-center gap-3 py-2.5 rounded cursor-pointer transition-colors ${
+                      hoveredIndex === i ? 'bg-muted/60' : ''
+                    }`}
+                    onMouseEnter={() => { setHoveredIndex(i); setHoveredSlice({ name: entry.name, value: entry.amount }) }}
+                    onMouseLeave={() => { setHoveredIndex(null); setHoveredSlice(null) }}
+                    onClick={() => {
+                      const next = hoveredIndex === i ? null : i
+                      setHoveredIndex(next)
+                      setHoveredSlice(next === null ? null : { name: entry.name, value: entry.amount })
+                    }}
+                  >
+                    <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: entry.fill }} />
+                    <span className="text-sm flex-1 truncate">{entry.name}</span>
+                    <span className="text-xs text-muted-foreground w-8 text-right">{entry.pct}%</span>
+                    <span className="text-sm font-medium w-24 text-right">{formatCurrency(entry.amount)}</span>
+                  </div>
+                ))}
               </div>
             </>
           )}
