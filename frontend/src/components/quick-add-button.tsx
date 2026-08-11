@@ -55,8 +55,12 @@ export function QuickAddButton() {
 
   function onPointerMove(e: React.PointerEvent<HTMLButtonElement>) {
     if (!drag.current.active) return
-    const x = e.clientX - drag.current.ox
-    const y = e.clientY - drag.current.oy
+    const BTN = 56
+    const EAR = 10
+    const raw_x = e.clientX - drag.current.ox
+    const raw_y = e.clientY - drag.current.oy
+    const x = Math.max(0, Math.min(raw_x, window.innerWidth - BTN))
+    const y = Math.max(EAR, Math.min(raw_y, window.innerHeight - BTN))
     if (Math.abs(x - drag.current.px) > 5 || Math.abs(y - drag.current.py) > 5) {
       drag.current.moved = true
     }
@@ -110,9 +114,12 @@ export function QuickAddButton() {
   return (
     <>
       <div style={wrapperStyle} className="touch-none select-none">
-        {/* Cat ears */}
+        {/* Cat ears outer */}
         <div style={{ ...earStyle, left: 4 }} />
         <div style={{ ...earStyle, right: 4 }} />
+        {/* Cat ears inner (pink) */}
+        <div style={{ ...earStyle, left: 8, top: -4, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderBottom: '9px solid #ffb3c6' }} />
+        <div style={{ ...earStyle, right: 8, top: -4, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderBottom: '9px solid #ffb3c6' }} />
 
         <button
           onPointerDown={onPointerDown}
@@ -121,7 +128,25 @@ export function QuickAddButton() {
           className="flex h-14 w-14 items-center justify-center rounded-full bg-orange-400 text-white shadow-lg active:scale-95"
           title="บันทึกรายการด่วน"
         >
-          <span style={{ fontSize: 28, lineHeight: 1 }}>🐱</span>
+          <svg width="32" height="30" viewBox="0 0 32 30" fill="none" aria-hidden>
+            {/* Eyes */}
+            <ellipse cx="11" cy="14" rx="2.8" ry="2.2" fill="white" />
+            <ellipse cx="21" cy="14" rx="2.8" ry="2.2" fill="white" />
+            <ellipse cx="11" cy="14.6" rx="1.4" ry="1.7" fill="#3d1c00" />
+            <ellipse cx="21" cy="14.6" rx="1.4" ry="1.7" fill="#3d1c00" />
+            <circle cx="11.8" cy="13.4" r="0.55" fill="white" />
+            <circle cx="21.8" cy="13.4" r="0.55" fill="white" />
+            {/* Nose */}
+            <path d="M14.5 19 L16 21 L17.5 19 Z" fill="#ff8fab" />
+            {/* Mouth */}
+            <path d="M13.5 21.5 Q16 23.5 18.5 21.5" stroke="white" strokeWidth="0.9" fill="none" strokeLinecap="round" />
+            {/* Whiskers left */}
+            <line x1="1" y1="18" x2="10" y2="19.5" stroke="white" strokeWidth="0.7" strokeLinecap="round" />
+            <line x1="1" y1="21" x2="10" y2="20.5" stroke="white" strokeWidth="0.7" strokeLinecap="round" />
+            {/* Whiskers right */}
+            <line x1="31" y1="18" x2="22" y2="19.5" stroke="white" strokeWidth="0.7" strokeLinecap="round" />
+            <line x1="31" y1="21" x2="22" y2="20.5" stroke="white" strokeWidth="0.7" strokeLinecap="round" />
+          </svg>
         </button>
       </div>
 
