@@ -100,26 +100,9 @@ export function QuickAddButton() {
     ? { position: 'fixed', left: pos.x, top: pos.y, zIndex: 50 }
     : { position: 'fixed', right: 24, bottom: 24, zIndex: 50 }
 
-  const earStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: -10,
-    width: 0,
-    height: 0,
-    borderLeft: '10px solid transparent',
-    borderRight: '10px solid transparent',
-    borderBottom: '14px solid rgb(251 146 60)', /* orange-400 */
-    pointerEvents: 'none',
-  }
-
   return (
     <>
       <div style={wrapperStyle} className="touch-none select-none">
-        {/* Cat ears outer */}
-        <div style={{ ...earStyle, left: 4 }} />
-        <div style={{ ...earStyle, right: 4 }} />
-        {/* Cat ears inner (pink) */}
-        <div style={{ ...earStyle, left: 8, top: -4, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderBottom: '9px solid #ffb3c6' }} />
-        <div style={{ ...earStyle, right: 8, top: -4, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderBottom: '9px solid #ffb3c6' }} />
 
         <button
           onPointerDown={onPointerDown}
