@@ -80,8 +80,8 @@ export function Sidebar() {
                 className={cn(
                   'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
                   isActive
-                    ? 'bg-[#E8F5E9] text-[#2E7D32] font-semibold'
-                    : 'text-muted-foreground hover:bg-[#E8F5E9] hover:text-[#2E7D32]',
+                    ? 'bg-[#E8F5E9] dark:bg-emerald-900/40 text-[#2E7D32] dark:text-emerald-400 font-semibold'
+                    : 'text-muted-foreground hover:bg-[#E8F5E9] dark:hover:bg-emerald-900/40 hover:text-[#2E7D32] dark:hover:text-emerald-400',
                 )}
               >
                 <img
