@@ -30,6 +30,25 @@ const PIE_COLORS = [
   '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6',
 ]
 
+interface BarShapeProps {
+  x?: number
+  y?: number
+  width?: number
+  height?: number
+  fill?: string
+}
+
+function LiftBar({ x = 0, y = 0, width = 0, height = 0, fill }: BarShapeProps) {
+  if (!width || !height) return null
+  return (
+    <rect
+      x={x} y={y} width={width} height={height} fill={fill} rx={4}
+      className="transition-transform duration-200 hover:scale-110"
+      style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
+    />
+  )
+}
+
 function polarXY(cx: number, cy: number, r: number, angleDeg: number): [number, number] {
   const rad = ((angleDeg - 90) * Math.PI) / 180
   return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)]
@@ -195,8 +214,8 @@ export default function DashboardPage() {
               />
               <Tooltip contentStyle={{ padding: '4px 10px', fontSize: '12px', backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', color: 'hsl(var(--card-foreground))' }} formatter={(value: unknown) => formatCurrency(Number(value))} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Bar dataKey="รายรับ" fill="#16a34a" radius={[4, 4, 0, 0]} maxBarSize={32} />
-              <Bar dataKey="รายจ่าย" fill="#dc2626" radius={[4, 4, 0, 0]} maxBarSize={32} />
+              <Bar dataKey="รายรับ" fill="#16a34a" shape={<LiftBar />} maxBarSize={28} />
+              <Bar dataKey="รายจ่าย" fill="#dc2626" shape={<LiftBar />} maxBarSize={28} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
