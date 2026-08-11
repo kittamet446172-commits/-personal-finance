@@ -103,7 +103,7 @@ export function QuickAddButton() {
     height: 0,
     borderLeft: '10px solid transparent',
     borderRight: '10px solid transparent',
-    borderBottom: '14px solid hsl(var(--primary))',
+    borderBottom: '14px solid rgb(251 146 60)', /* orange-400 */
     pointerEvents: 'none',
   }
 
@@ -118,7 +118,7 @@ export function QuickAddButton() {
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg active:scale-95"
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-orange-400 text-white shadow-lg active:scale-95"
           title="บันทึกรายการด่วน"
         >
           <span style={{ fontSize: 28, lineHeight: 1 }}>🐱</span>
