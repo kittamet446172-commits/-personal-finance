@@ -145,7 +145,7 @@ export default function SettingsPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {success && (
-              <p className="text-sm text-green-600 bg-green-50 px-3 py-2 rounded-md">
+              <p className="text-sm text-amber-700 bg-amber-50 px-3 py-2 rounded-md">
                 บันทึกเรียบร้อยแล้ว
               </p>
             )}
@@ -183,7 +183,7 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {efSuccess && (
-            <p className="text-sm text-green-600 bg-green-50 px-3 py-2 rounded-md">
+            <p className="text-sm text-amber-700 bg-amber-50 px-3 py-2 rounded-md">
               บันทึกเรียบร้อยแล้ว
             </p>
           )}

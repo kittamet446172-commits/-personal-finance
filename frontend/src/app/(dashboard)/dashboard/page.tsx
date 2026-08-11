@@ -119,7 +119,7 @@ export default function DashboardPage() {
               <span
                 className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                   emergencyStatus === 'safe'
-                    ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+                    ? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300'
                     : emergencyStatus === 'ok'
                     ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
                     : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
@@ -142,7 +142,7 @@ export default function DashboardPage() {
               <div className="w-full bg-muted rounded-full h-2">
                 <div
                   className={`h-2 rounded-full transition-all ${
-                    emergencyStatus === 'safe' ? 'bg-green-500' : emergencyStatus === 'ok' ? 'bg-yellow-500' : 'bg-red-500'
+                    emergencyStatus === 'safe' ? 'bg-amber-500' : emergencyStatus === 'ok' ? 'bg-yellow-500' : 'bg-red-500'
                   }`}
                   style={{ width: `${progressPct}%` }}
                 />
@@ -162,7 +162,7 @@ export default function DashboardPage() {
         <Card>
           <CardContent className="py-5 px-4">
             <p className="text-sm text-muted-foreground mb-2">รายรับ</p>
-            <p className="text-xl font-bold text-green-600">
+            <p className="text-xl font-bold text-amber-600">
               {formatCurrency(stats?.income ?? 0)}
             </p>
           </CardContent>
@@ -301,7 +301,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <span
-                    className={`text-sm font-semibold ${tx.type === 'INCOME' ? 'text-green-600' : 'text-red-600'}`}
+                    className={`text-sm font-semibold ${tx.type === 'INCOME' ? 'text-amber-600' : 'text-red-600'}`}
                   >
                     {tx.type === 'INCOME' ? '+' : '-'}
                     {formatCurrency(Number(tx.amount))}

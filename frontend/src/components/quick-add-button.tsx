@@ -95,7 +95,7 @@ export function QuickAddButton() {
                     type === t
                       ? t === 'EXPENSE'
                         ? 'bg-red-500 text-white'
-                        : 'bg-green-500 text-white'
+                        : 'bg-amber-500 text-white'
                       : 'text-muted-foreground hover:bg-muted'
                   }`}
                 >

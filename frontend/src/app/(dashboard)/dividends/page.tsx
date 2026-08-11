@@ -47,7 +47,7 @@ export default function DividendsPage() {
           <h1 className="text-2xl font-bold">เงินปันผล</h1>
           <p className="text-sm text-muted-foreground">
             รวมทั้งหมด{' '}
-            <span className="font-semibold text-green-600">
+            <span className="font-semibold text-amber-600">
               {formatCurrency(summary?.total ?? 0)}
             </span>
           </p>
@@ -64,7 +64,7 @@ export default function DividendsPage() {
             <Card key={year} className="flex-1 min-w-32">
               <CardContent className="pt-4">
                 <p className="text-xs text-muted-foreground">{year}</p>
-                <p className="text-lg font-bold text-green-600">{formatCurrency(Number(amount))}</p>
+                <p className="text-lg font-bold text-amber-600">{formatCurrency(Number(amount))}</p>
               </CardContent>
             </Card>
           ))}
@@ -110,7 +110,7 @@ export default function DividendsPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="font-semibold text-green-600">
+                  <span className="font-semibold text-amber-600">
                     +{formatCurrency(Number(d.amount))}
                   </span>
                   <Button

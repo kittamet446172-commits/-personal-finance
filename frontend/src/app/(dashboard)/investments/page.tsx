@@ -35,14 +35,14 @@ const TYPE_LABELS: Record<InvestmentType, string> = {
 const TYPE_COLORS: Record<InvestmentType, string> = {
   STOCK: 'bg-blue-100 text-blue-800',
   ETF: 'bg-purple-100 text-purple-800',
-  MUTUAL_FUND: 'bg-green-100 text-green-800',
+  MUTUAL_FUND: 'bg-amber-100 text-amber-800',
   REIT: 'bg-orange-100 text-orange-800',
 }
 
 function GainBadge({ value, pct }: { value: number; pct: number }) {
   const isPos = value >= 0
   return (
-    <span className={`flex items-center gap-1 text-sm font-medium ${isPos ? 'text-green-600' : 'text-red-600'}`}>
+    <span className={`flex items-center gap-1 text-sm font-medium ${isPos ? 'text-amber-600' : 'text-red-600'}`}>
       {isPos ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
       {isPos ? '+' : ''}{formatCurrency(value)} ({isPos ? '+' : ''}{pct.toFixed(2)}%)
     </span>
@@ -122,7 +122,7 @@ function HoldingCard({
         </div>
         {item.totalDividends > 0 && (
           <p className="text-xs text-muted-foreground">
-            ปันผลสะสม: <span className="font-medium text-green-600">{formatCurrency(item.totalDividends)}</span>
+            ปันผลสะสม: <span className="font-medium text-amber-600">{formatCurrency(item.totalDividends)}</span>
           </p>
         )}
       </CardContent>
@@ -240,7 +240,7 @@ export default function InvestmentsPage() {
           <Card>
             <CardContent className="pt-4">
               <p className="text-xs text-muted-foreground">ปันผลสะสม</p>
-              <p className="text-xl font-bold text-green-600">{formatCurrency(summary.totalDividends)}</p>
+              <p className="text-xl font-bold text-amber-600">{formatCurrency(summary.totalDividends)}</p>
             </CardContent>
           </Card>
         </div>
