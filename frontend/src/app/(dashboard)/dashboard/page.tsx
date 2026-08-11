@@ -216,57 +216,79 @@ export default function DashboardPage() {
             </p>
           ) : (
             <>
-              {/* Custom SVG donut — no Recharts, no tabIndex, no focus box */}
-              <div className="relative select-none mx-auto" style={{ width: 200, height: 200 }}>
-                <svg
-                  width="200"
-                  height="200"
-                  viewBox="0 0 200 200"
-                  style={{ display: 'block', overflow: 'visible' }}
-                >
+              {/* Responsive donut — tap/click to highlight on mobile */}
+              <div className="relative select-none w-full max-w-xs mx-auto aspect-square">
+                <svg viewBox="0 0 200 200" className="w-full h-full" style={{ overflow: 'visible' }}>
                   {pieSectors.map((s, i) => {
-                    const isHovered = hoveredIndex === i
+                    const isActive = hoveredIndex === i
                     return (
                       <path
                         key={i}
-                        d={sectorPath(100, 100, isHovered ? 36 : 40, isHovered ? 84 : 80, s.start, s.end)}
+                        d={sectorPath(100, 100, isActive ? 36 : 40, isActive ? 84 : 80, s.start, s.end)}
                         fill={s.color}
-                        stroke={isHovered ? 'white' : 'none'}
-                        strokeWidth={isHovered ? 2 : 0}
+                        stroke="white"
+                        strokeWidth="1.5"
                         onMouseEnter={() => { setHoveredIndex(i); setHoveredSlice({ name: s.name, value: s.value }) }}
                         onMouseLeave={() => { setHoveredIndex(null); setHoveredSlice(null) }}
-                        style={{ cursor: 'default', transition: 'all 0.15s ease' }}
+                        onClick={() => {
+                          const next = hoveredIndex === i ? null : i
+                          setHoveredIndex(next)
+                          setHoveredSlice(next === null ? null : { name: s.name, value: s.value })
+                        }}
+                        style={{
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                          opacity: hoveredIndex !== null && !isActive ? 0.55 : 1,
+                        }}
                       />
                     )
                   })}
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="text-center">
+                  <div className="text-center px-6">
                     {hoveredSlice ? (
                       <>
-                        <p className="text-xs text-muted-foreground leading-tight max-w-[64px] truncate">{hoveredSlice.name}</p>
-                        <p className="text-sm font-bold leading-tight">{formatCurrency(hoveredSlice.value)}</p>
+                        <p className="text-xs text-muted-foreground truncate">{hoveredSlice.name}</p>
+                        <p className="text-base font-bold">{formatCurrency(hoveredSlice.value)}</p>
+                        <p className="text-xs text-muted-foreground font-medium">
+                          {Math.round((hoveredSlice.value / totalExpense) * 100)}%
+                        </p>
                       </>
                     ) : (
                       <>
-                        <p className="text-xs text-muted-foreground leading-tight">รวม</p>
-                        <p className="text-sm font-bold leading-tight">{formatCurrency(totalExpense)}</p>
+                        <p className="text-xs text-muted-foreground">รวม</p>
+                        <p className="text-base font-bold">{formatCurrency(totalExpense)}</p>
                       </>
                     )}
                   </div>
                 </div>
               </div>
-              {/* Legend */}
-              <div className="mt-4 space-y-1.5">
-                {expensePieData.map((d, i) => (
-                  <div key={i} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: d.color }} />
-                      <span className="text-xs text-muted-foreground truncate">{d.name}</span>
+
+              {/* Legend — tap to highlight, shows % */}
+              <div className="mt-3 divide-y">
+                {expensePieData.map((d, i) => {
+                  const pct = Math.round((d.value / totalExpense) * 100)
+                  return (
+                    <div
+                      key={i}
+                      className={`flex items-center gap-3 py-2.5 rounded cursor-pointer transition-colors ${
+                        hoveredIndex === i ? 'bg-muted/60' : ''
+                      }`}
+                      onMouseEnter={() => { setHoveredIndex(i); setHoveredSlice({ name: d.name, value: d.value }) }}
+                      onMouseLeave={() => { setHoveredIndex(null); setHoveredSlice(null) }}
+                      onClick={() => {
+                        const next = hoveredIndex === i ? null : i
+                        setHoveredIndex(next)
+                        setHoveredSlice(next === null ? null : { name: d.name, value: d.value })
+                      }}
+                    >
+                      <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: d.color }} />
+                      <span className="text-sm flex-1 truncate">{d.name}</span>
+                      <span className="text-xs text-muted-foreground w-8 text-right">{pct}%</span>
+                      <span className="text-sm font-medium w-24 text-right">{formatCurrency(d.value)}</span>
                     </div>
-                    <span className="text-xs font-medium ml-2 flex-shrink-0">{formatCurrency(d.value)}</span>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </>
           )}
