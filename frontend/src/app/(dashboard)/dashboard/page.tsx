@@ -230,13 +230,13 @@ export default function DashboardPage() {
               <Bar
                 dataKey="รายรับ"
                 fill="#16a34a"
-                maxBarSize={36}
+                barSize={10}
                 shape={(props: BarShapeProps) => <LiftBar {...props} />}
               />
               <Bar
                 dataKey="รายจ่าย"
                 fill="#dc2626"
-                maxBarSize={36}
+                barSize={10}
                 shape={(props: BarShapeProps) => <LiftBar {...props} />}
               />
             </BarChart>
