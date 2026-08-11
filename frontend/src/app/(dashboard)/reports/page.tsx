@@ -59,34 +59,6 @@ function LiftBar({ x = 0, y = 0, width = 0, height = 0, fill }: BarShapeProps) {
   )
 }
 
-interface DonutLabelProps {
-  cx?: number
-  cy?: number
-  midAngle?: number
-  outerRadius?: number
-  name?: string
-  percent?: number
-}
-
-function DonutLabel({ cx = 0, cy = 0, midAngle = 0, outerRadius = 0, name = '', percent = 0 }: DonutLabelProps) {
-  const pct = Math.round(percent * 100)
-  if (pct < 5) return null
-  const RADIAN = Math.PI / 180
-  const radius = outerRadius + 30
-  const x = cx + radius * Math.cos(-midAngle * RADIAN)
-  const y = cy + radius * Math.sin(-midAngle * RADIAN)
-  return (
-    <text
-      x={x} y={y} fill="#888"
-      textAnchor={x > cx ? 'start' : 'end'}
-      dominantBaseline="central"
-      fontSize={10}
-    >
-      {name}
-      <tspan x={x} dy="1.3em" fontWeight="600" fill="#555">{pct}%</tspan>
-    </text>
-  )
-}
 
 export default function ReportsPage() {
   const now = new Date()
@@ -321,7 +293,7 @@ export default function ReportsPage() {
             <p className="text-sm text-center text-muted-foreground py-8">ไม่มีข้อมูล</p>
           ) : (
             <>
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={240}>
                 <PieChart>
                   <Pie
                     data={breakdownData}
@@ -331,8 +303,6 @@ export default function ReportsPage() {
                     outerRadius={105}
                     paddingAngle={2}
                     dataKey="amount"
-                    label={DonutLabel}
-                    labelLine={{ stroke: '#ccc', strokeWidth: 1 }}
                   >
                     {breakdownData.map((entry, i) => (
                       <Cell key={i} fill={entry.fill} />
