@@ -9,11 +9,15 @@ import {
   Legend,
   Line,
   LineChart,
+  Pie,
+  PieChart,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from 'recharts'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import {
   useCategoryBreakdown,
   useDailyBreakdown,
@@ -21,6 +25,7 @@ import {
   useYearlyTrend,
 } from '@/hooks/use-reports'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils'
 import type { TransactionType } from '@/types'
 
@@ -47,15 +52,39 @@ function LiftBar({ x = 0, y = 0, width = 0, height = 0, fill }: BarShapeProps) {
   if (!width || !height) return null
   return (
     <rect
-      x={x}
-      y={y}
-      width={width}
-      height={height}
-      fill={fill}
-      rx={4}
+      x={x} y={y} width={width} height={height} fill={fill} rx={4}
       className="transition-transform duration-200 hover:scale-110"
       style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
     />
+  )
+}
+
+interface DonutLabelProps {
+  cx?: number
+  cy?: number
+  midAngle?: number
+  outerRadius?: number
+  name?: string
+  percent?: number
+}
+
+function DonutLabel({ cx = 0, cy = 0, midAngle = 0, outerRadius = 0, name = '', percent = 0 }: DonutLabelProps) {
+  const pct = Math.round(percent * 100)
+  if (pct < 5) return null
+  const RADIAN = Math.PI / 180
+  const radius = outerRadius + 30
+  const x = cx + radius * Math.cos(-midAngle * RADIAN)
+  const y = cy + radius * Math.sin(-midAngle * RADIAN)
+  return (
+    <text
+      x={x} y={y} fill="#888"
+      textAnchor={x > cx ? 'start' : 'end'}
+      dominantBaseline="central"
+      fontSize={10}
+    >
+      {name}
+      <tspan x={x} dy="1.3em" fontWeight="600" fill="#555">{pct}%</tspan>
+    </text>
   )
 }
 
@@ -76,6 +105,20 @@ export default function ReportsPage() {
     setSelectedDay(null)
   }, [month, year])
 
+  function prevMonth() {
+    if (month === 1) { setMonth(12); setYear((y) => y - 1) }
+    else setMonth((m) => m - 1)
+  }
+
+  function nextMonth() {
+    const isCurrentMonth = year === now.getFullYear() && month === now.getMonth() + 1
+    if (isCurrentMonth) return
+    if (month === 12) { setMonth(1); setYear((y) => y + 1) }
+    else setMonth((m) => m + 1)
+  }
+
+  const isCurrentMonth = year === now.getFullYear() && month === now.getMonth() + 1
+
   const trendData = trend?.months.map((m) => ({
     name: MONTH_SHORT[m.month - 1],
     รายรับ: m.income,
@@ -84,6 +127,9 @@ export default function ReportsPage() {
   })) ?? []
 
   const dailyChartData = dailyData.map((d) => ({ day: d.day, จำนวน: d.total }))
+  const avgDaily = dailyChartData.length > 0
+    ? dailyChartData.reduce((s, d) => s + d.จำนวน, 0) / dailyChartData.length
+    : 0
 
   const selectedDayCats = selectedDay !== null
     ? (dailyData.find((d) => d.day === selectedDay)?.categories ?? [])
@@ -106,26 +152,17 @@ export default function ReportsPage() {
     <div className="space-y-6">
       <h1 className="text-xl font-bold">รายงาน</h1>
 
-      {/* Month/Year selector */}
-      <div className="flex gap-3">
-        <select
-          value={month}
-          onChange={(e) => setMonth(Number(e.target.value))}
-          className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-        >
-          {MONTHS_FULL.map((m, i) => (
-            <option key={i + 1} value={i + 1}>{m}</option>
-          ))}
-        </select>
-        <select
-          value={year}
-          onChange={(e) => setYear(Number(e.target.value))}
-          className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-        >
-          {Array.from({ length: 5 }, (_, i) => now.getFullYear() - 2 + i).map((y) => (
-            <option key={y} value={y}>{y}</option>
-          ))}
-        </select>
+      {/* Month navigation */}
+      <div className="flex items-center justify-between">
+        <Button variant="outline" size="icon" onClick={prevMonth}>
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <span className="text-base font-semibold">
+          {MONTHS_FULL[month - 1]} {year}
+        </span>
+        <Button variant="outline" size="icon" onClick={nextMonth} disabled={isCurrentMonth}>
+          <ChevronRight className="h-4 w-4" />
+        </Button>
       </div>
 
       {/* Monthly summary cards */}
@@ -138,81 +175,28 @@ export default function ReportsPage() {
         ].map(({ label, value, color, savings }) => (
           <Card key={label}>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {label}
-              </CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className={`text-base font-bold ${color ?? 'text-foreground'}`}>
-                {savings !== undefined
-                  ? `${savings.toFixed(1)}%`
-                  : formatCurrency(value ?? 0)}
+                {savings !== undefined ? `${savings.toFixed(1)}%` : formatCurrency(value ?? 0)}
               </p>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Category breakdown */}
+      {/* Daily bar chart with average line */}
       <Card>
         <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle className="text-base">สัดส่วนตามหมวดหมู่</CardTitle>
-          <div className="flex gap-2">
-            {(['EXPENSE', 'INCOME'] as TransactionType[]).map((t) => (
-              <button
-                key={t}
-                onClick={() => setBreakdownType(t)}
-                className={`text-xs px-3 py-1 rounded-full border transition-colors ${
-                  breakdownType === t
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'border-input text-muted-foreground hover:bg-accent'
-                }`}
-              >
-                {t === 'INCOME' ? 'รายรับ' : 'รายจ่าย'}
-              </button>
-            ))}
+          <div>
+            <CardTitle className="text-base">รายวัน</CardTitle>
+            {avgDaily > 0 && (
+              <p className="text-xs text-muted-foreground mt-0.5">
+                เฉลี่ย {formatCurrency(avgDaily)} / วัน
+              </p>
+            )}
           </div>
-        </CardHeader>
-        <CardContent>
-          {breakdownData.length === 0 ? (
-            <p className="text-sm text-center text-muted-foreground py-8">
-              ไม่มีข้อมูล
-            </p>
-          ) : (
-            <ResponsiveContainer width="100%" height={Math.max(120, breakdownData.length * 48)}>
-              <BarChart
-                data={breakdownData}
-                layout="vertical"
-                margin={{ left: 16, right: 32 }}
-                barSize={24}
-              >
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                <XAxis
-                  type="number"
-                  tickFormatter={(v: number) =>
-                    v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)
-                  }
-                />
-                <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 11 }} />
-                <Tooltip
-                  cursor={false}
-                  formatter={(value: unknown) => [formatCurrency(Number(value)), 'จำนวน']}
-                />
-                <Bar dataKey="amount" radius={[0, 4, 4, 0]}>
-                  {breakdownData.map((entry, i) => (
-                    <Cell key={i} fill={entry.fill} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Daily category breakdown */}
-      <Card>
-        <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle className="text-base">สัดส่วนตามหมวดหมู่ รายวัน</CardTitle>
           <div className="flex gap-2">
             {(['EXPENSE', 'INCOME'] as TransactionType[]).map((t) => (
               <button
@@ -240,13 +224,20 @@ export default function ReportsPage() {
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="day" tick={{ fontSize: 11 }} />
                   <YAxis
-                    tickFormatter={(v: number) =>
-                      v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)
-                    }
+                    tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)}
                     tick={{ fontSize: 11 }}
                     width={40}
                   />
-                  <Tooltip cursor={false} formatter={(value: unknown) => [formatCurrency(Number(value)), 'จำนวน']} />
+                  <Tooltip
+                    cursor={false}
+                    formatter={(value: unknown) => [formatCurrency(Number(value)), 'จำนวน']}
+                  />
+                  <ReferenceLine
+                    y={avgDaily}
+                    stroke="#2563eb"
+                    strokeDasharray="4 2"
+                    strokeWidth={1.5}
+                  />
                   <Bar
                     dataKey="จำนวน"
                     shape={<LiftBar />}
@@ -264,7 +255,7 @@ export default function ReportsPage() {
                         fill={
                           selectedDay === entry.day
                             ? 'hsl(var(--primary))'
-                            : 'hsl(var(--primary) / 0.4)'
+                            : 'hsl(var(--primary) / 0.45)'
                         }
                       />
                     ))}
@@ -280,10 +271,7 @@ export default function ReportsPage() {
                   {selectedDayCatsData.length === 0 ? (
                     <p className="text-sm text-center text-muted-foreground py-4">ไม่มีข้อมูล</p>
                   ) : (
-                    <ResponsiveContainer
-                      width="100%"
-                      height={Math.max(80, selectedDayCatsData.length * 48)}
-                    >
+                    <ResponsiveContainer width="100%" height={Math.max(80, selectedDayCatsData.length * 48)}>
                       <BarChart
                         data={selectedDayCatsData}
                         layout="vertical"
@@ -293,24 +281,11 @@ export default function ReportsPage() {
                         <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                         <XAxis
                           type="number"
-                          tickFormatter={(v: number) =>
-                            v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)
-                          }
+                          tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)}
                         />
-                        <YAxis
-                          type="category"
-                          dataKey="name"
-                          width={90}
-                          tick={{ fontSize: 11 }}
-                        />
-                        <Tooltip
-                          formatter={(value: unknown) => [formatCurrency(Number(value)), 'จำนวน']}
-                        />
-                        <Bar
-                          dataKey="amount"
-                          fill="hsl(var(--primary))"
-                          radius={[0, 4, 4, 0]}
-                        />
+                        <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 11 }} />
+                        <Tooltip formatter={(value: unknown) => [formatCurrency(Number(value)), 'จำนวน']} />
+                        <Bar dataKey="amount" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   )}
@@ -321,10 +296,74 @@ export default function ReportsPage() {
         </CardContent>
       </Card>
 
+      {/* Category donut chart */}
+      <Card>
+        <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <CardTitle className="text-base">สัดส่วนตามหมวดหมู่</CardTitle>
+          <div className="flex gap-2">
+            {(['EXPENSE', 'INCOME'] as TransactionType[]).map((t) => (
+              <button
+                key={t}
+                onClick={() => setBreakdownType(t)}
+                className={`text-xs px-3 py-1 rounded-full border transition-colors ${
+                  breakdownType === t
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'border-input text-muted-foreground hover:bg-accent'
+                }`}
+              >
+                {t === 'INCOME' ? 'รายรับ' : 'รายจ่าย'}
+              </button>
+            ))}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {breakdownData.length === 0 ? (
+            <p className="text-sm text-center text-muted-foreground py-8">ไม่มีข้อมูล</p>
+          ) : (
+            <>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={breakdownData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={70}
+                    outerRadius={105}
+                    paddingAngle={2}
+                    dataKey="amount"
+                    label={DonutLabel}
+                    labelLine={{ stroke: '#ccc', strokeWidth: 1 }}
+                  >
+                    {breakdownData.map((entry, i) => (
+                      <Cell key={i} fill={entry.fill} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value: unknown) => [formatCurrency(Number(value)), 'จำนวน']} />
+                </PieChart>
+              </ResponsiveContainer>
+
+              {/* Ranked list */}
+              <div className="mt-1 divide-y">
+                {[...breakdownData]
+                  .sort((a, b) => b.amount - a.amount)
+                  .map((entry, i) => (
+                    <div key={i} className="flex items-center gap-3 py-2">
+                      <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: entry.fill }} />
+                      <span className="text-sm flex-1 truncate">{entry.name}</span>
+                      <span className="text-xs text-muted-foreground w-10 text-right">{entry.pct}%</span>
+                      <span className="text-sm font-medium w-24 text-right">{formatCurrency(entry.amount)}</span>
+                    </div>
+                  ))}
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Yearly trend */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">แนวโน้มรายปี {year}</CardTitle>
+          <CardTitle className="text-base">แนวโน้มรายปี</CardTitle>
           <select
             value={year}
             onChange={(e) => setYear(Number(e.target.value))}
@@ -341,9 +380,7 @@ export default function ReportsPage() {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" tick={{ fontSize: 12 }} />
               <YAxis
-                tickFormatter={(v: number) =>
-                  v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)
-                }
+                tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)}
               />
               <Tooltip formatter={(value: unknown) => formatCurrency(Number(value))} />
               <Legend />
