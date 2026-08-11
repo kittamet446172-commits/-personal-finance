@@ -1,7 +1,6 @@
 'use client'
 
-import { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -36,6 +35,39 @@ export function QuickAddButton() {
   const { data: categories } = useCategories(type)
   const { mutate: createTransaction, isPending } = useCreateTransaction()
 
+  // Drag state: null = use CSS default position (bottom-right)
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null)
+  const drag = useRef({ active: false, ox: 0, oy: 0, px: 0, py: 0, moved: false })
+
+  function onPointerDown(e: React.PointerEvent<HTMLButtonElement>) {
+    const rect = e.currentTarget.getBoundingClientRect()
+    drag.current = {
+      active: true,
+      ox: e.clientX - rect.left,
+      oy: e.clientY - rect.top,
+      px: rect.left,
+      py: rect.top,
+      moved: false,
+    }
+    setPos({ x: rect.left, y: rect.top })
+    e.currentTarget.setPointerCapture(e.pointerId)
+  }
+
+  function onPointerMove(e: React.PointerEvent<HTMLButtonElement>) {
+    if (!drag.current.active) return
+    const x = e.clientX - drag.current.ox
+    const y = e.clientY - drag.current.oy
+    if (Math.abs(x - drag.current.px) > 5 || Math.abs(y - drag.current.py) > 5) {
+      drag.current.moved = true
+    }
+    setPos({ x, y })
+  }
+
+  function onPointerUp() {
+    drag.current.active = false
+    if (!drag.current.moved) handleOpen()
+  }
+
   function handleOpen() {
     setType('EXPENSE')
     setAmount('')
@@ -54,29 +86,44 @@ export function QuickAddButton() {
   function handleSubmit() {
     const amt = parseFloat(amount)
     if (!amt || amt <= 0 || !categoryId || !accountId) return
-
     createTransaction(
-      {
-        type,
-        amount: amt,
-        date,
-        categoryId,
-        accountId,
-        description: description || undefined,
-      },
+      { type, amount: amt, date, categoryId, accountId, description: description || undefined },
       { onSuccess: () => setOpen(false) },
     )
   }
 
+  const wrapperStyle: React.CSSProperties = pos
+    ? { position: 'fixed', left: pos.x, top: pos.y, zIndex: 50 }
+    : { position: 'fixed', right: 24, bottom: 24, zIndex: 50 }
+
+  const earStyle: React.CSSProperties = {
+    position: 'absolute',
+    top: -10,
+    width: 0,
+    height: 0,
+    borderLeft: '10px solid transparent',
+    borderRight: '10px solid transparent',
+    borderBottom: '14px solid hsl(var(--primary))',
+    pointerEvents: 'none',
+  }
+
   return (
     <>
-      <button
-        onClick={handleOpen}
-        className="fixed bottom-6 right-6 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-110 active:scale-95"
-        title="บันทึกรายการด่วน"
-      >
-        <Plus className="h-4 w-4" />
-      </button>
+      <div style={wrapperStyle} className="touch-none select-none">
+        {/* Cat ears */}
+        <div style={{ ...earStyle, left: 4 }} />
+        <div style={{ ...earStyle, right: 4 }} />
+
+        <button
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg active:scale-95"
+          title="บันทึกรายการด่วน"
+        >
+          <span style={{ fontSize: 28, lineHeight: 1 }}>🐱</span>
+        </button>
+      </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md">
@@ -85,7 +132,6 @@ export function QuickAddButton() {
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Type toggle */}
             <div className="flex rounded-lg border p-1 gap-1">
               {(['EXPENSE', 'INCOME'] as TransactionType[]).map((t) => (
                 <button
@@ -104,7 +150,6 @@ export function QuickAddButton() {
               ))}
             </div>
 
-            {/* Amount */}
             <div className="space-y-1">
               <Label>จำนวนเงิน</Label>
               <Input
@@ -117,7 +162,6 @@ export function QuickAddButton() {
               />
             </div>
 
-            {/* Category */}
             <div className="space-y-1">
               <Label>หมวดหมู่</Label>
               <Select value={categoryId} onValueChange={setCategoryId}>
@@ -134,7 +178,6 @@ export function QuickAddButton() {
               </Select>
             </div>
 
-            {/* Account */}
             <div className="space-y-1">
               <Label>บัญชี</Label>
               <Select value={accountId} onValueChange={setAccountId}>
@@ -151,7 +194,6 @@ export function QuickAddButton() {
               </Select>
             </div>
 
-            {/* Date */}
             <div className="space-y-1">
               <Label>วันที่</Label>
               <Input
@@ -161,7 +203,6 @@ export function QuickAddButton() {
               />
             </div>
 
-            {/* Description */}
             <div className="space-y-1">
               <Label>หมายเหตุ (ไม่บังคับ)</Label>
               <Input
