@@ -162,7 +162,7 @@ export default function DashboardPage() {
         <Card>
           <CardContent className="py-5 px-4">
             <p className="text-sm text-muted-foreground mb-2">รายรับ</p>
-            <p className="text-xl font-bold text-amber-600">
+            <p className="text-xl font-bold text-green-600">
               {formatCurrency(stats?.income ?? 0)}
             </p>
           </CardContent>
@@ -301,7 +301,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <span
-                    className={`text-sm font-semibold ${tx.type === 'INCOME' ? 'text-amber-600' : 'text-red-600'}`}
+                    className={`text-sm font-semibold ${tx.type === 'INCOME' ? 'text-green-600' : 'text-red-600'}`}
                   >
                     {tx.type === 'INCOME' ? '+' : '-'}
                     {formatCurrency(Number(tx.amount))}

@@ -131,7 +131,7 @@ export default function ReportsPage() {
       {/* Monthly summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'รายรับ', value: summary?.income ?? 0, color: 'text-amber-600' },
+          { label: 'รายรับ', value: summary?.income ?? 0, color: 'text-green-600' },
           { label: 'รายจ่าย', value: summary?.expense ?? 0, color: 'text-red-600' },
           { label: 'เงินเหลือ', value: Math.max(0, summary?.savings ?? 0), color: 'text-blue-600' },
           { label: 'อัตราเหลือ', value: null, savings: Math.max(0, summary?.savingsRate ?? 0) },

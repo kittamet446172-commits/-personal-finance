@@ -143,7 +143,7 @@ export default function IncomePage() {
                 </div>
                 <div className="flex items-start gap-1 flex-shrink-0">
                   <div className="text-right mr-1">
-                    <p className="text-sm font-semibold text-amber-600">
+                    <p className="text-sm font-semibold text-green-600">
                       +{formatCurrency(Number(tx.amount))}
                     </p>
                     {tx.account?.name && (
