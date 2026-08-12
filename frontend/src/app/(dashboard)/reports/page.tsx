@@ -360,12 +360,24 @@ export default function ReportsPage() {
                         strokeWidth="1.5"
                         onPointerEnter={(e) => { if (e.pointerType === 'mouse') { setHoveredIndex(i); setHoveredSlice({ name: s.name, value: s.amount }) } }}
                         onPointerLeave={(e) => { if (e.pointerType === 'mouse') { setHoveredIndex(null); setHoveredSlice(null) } }}
-                        onClick={() => {
-                          setHoveredIndex((prev) => {
-                            const next = prev === i ? null : i
-                            setHoveredSlice(next === null ? null : { name: s.name, value: s.amount })
-                            return next
-                          })
+                        onPointerDown={(e) => {
+                          if (e.pointerType !== 'mouse') {
+                            e.preventDefault()
+                            setHoveredIndex((prev) => {
+                              const next = prev === i ? null : i
+                              setHoveredSlice(next === null ? null : { name: s.name, value: s.amount })
+                              return next
+                            })
+                          }
+                        }}
+                        onClick={(e) => {
+                          if ((e as PointerEvent).pointerType === 'mouse') {
+                            setHoveredIndex((prev) => {
+                              const next = prev === i ? null : i
+                              setHoveredSlice(next === null ? null : { name: s.name, value: s.amount })
+                              return next
+                            })
+                          }
                         }}
                         style={{
                           cursor: 'pointer',
@@ -406,12 +418,24 @@ export default function ReportsPage() {
                     }`}
                     onPointerEnter={(e) => { if (e.pointerType === 'mouse') { setHoveredIndex(i); setHoveredSlice({ name: entry.name, value: entry.amount }) } }}
                     onPointerLeave={(e) => { if (e.pointerType === 'mouse') { setHoveredIndex(null); setHoveredSlice(null) } }}
-                    onClick={() => {
-                      setHoveredIndex((prev) => {
-                        const next = prev === i ? null : i
-                        setHoveredSlice(next === null ? null : { name: entry.name, value: entry.amount })
-                        return next
-                      })
+                    onPointerDown={(e) => {
+                      if (e.pointerType !== 'mouse') {
+                        e.preventDefault()
+                        setHoveredIndex((prev) => {
+                          const next = prev === i ? null : i
+                          setHoveredSlice(next === null ? null : { name: entry.name, value: entry.amount })
+                          return next
+                        })
+                      }
+                    }}
+                    onClick={(e) => {
+                      if ((e.nativeEvent as PointerEvent).pointerType === 'mouse') {
+                        setHoveredIndex((prev) => {
+                          const next = prev === i ? null : i
+                          setHoveredSlice(next === null ? null : { name: entry.name, value: entry.amount })
+                          return next
+                        })
+                      }
                     }}
                   >
                     <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: entry.fill }} />
