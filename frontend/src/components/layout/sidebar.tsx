@@ -4,10 +4,11 @@ import { useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu } from 'lucide-react'
+import { Download, Menu } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUiStore } from '@/store/ui.store'
 import { Button } from '@/components/ui/button'
+import { usePWAInstall } from '@/hooks/use-pwa-install'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: '/icons/dashboard.svg' },
@@ -26,6 +27,7 @@ const navItems = [
 export function Sidebar() {
   const pathname = usePathname()
   const { sidebarOpen, toggleSidebar, setSidebarOpen } = useUiStore()
+  const { canInstall, install } = usePWAInstall()
 
   useEffect(() => {
     if (window.innerWidth < 768) setSidebarOpen(false)
@@ -94,6 +96,21 @@ export function Sidebar() {
             )
           })}
         </nav>
+
+        {canInstall && (
+          <div className="p-2 border-t">
+            <button
+              onClick={install}
+              className={cn(
+                'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium w-full transition-colors',
+                'text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20',
+              )}
+            >
+              <Download className="h-5 w-5 shrink-0" />
+              {sidebarOpen && <span>ติดตั้งแอป</span>}
+            </button>
+          </div>
+        )}
       </aside>
     </>
   )
