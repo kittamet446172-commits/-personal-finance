@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { ShieldCheck } from 'lucide-react'
 import {
   Area,
@@ -107,6 +107,7 @@ export default function DashboardPage() {
   const totalExpense = expensePieData.reduce((sum, d) => sum + d.value, 0)
 
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+  const touchActiveRef = useRef(false)
 
   let pieAngle = 0
   const pieSectors = expensePieData.map((d) => {
@@ -269,12 +270,14 @@ export default function DashboardPage() {
                         fill={s.color}
                         stroke="white"
                         strokeWidth="1.5"
-                        onMouseEnter={() => { setHoveredIndex(i); setHoveredSlice({ name: s.name, value: s.value }) }}
-                        onMouseLeave={() => { setHoveredIndex(null); setHoveredSlice(null) }}
+                        onTouchStart={() => { touchActiveRef.current = true }}
+                        onMouseEnter={() => { if (touchActiveRef.current) return; setHoveredIndex(i); setHoveredSlice({ name: s.name, value: s.value }) }}
+                        onMouseLeave={() => { if (touchActiveRef.current) return; setHoveredIndex(null); setHoveredSlice(null) }}
                         onClick={() => {
                           const next = hoveredIndex === i ? null : i
                           setHoveredIndex(next)
                           setHoveredSlice(next === null ? null : { name: s.name, value: s.value })
+                          requestAnimationFrame(() => { touchActiveRef.current = false })
                         }}
                         style={{
                           cursor: 'pointer',
@@ -315,12 +318,14 @@ export default function DashboardPage() {
                       className={`flex items-center gap-3 py-2.5 rounded cursor-pointer transition-colors ${
                         hoveredIndex === i ? 'bg-muted/60' : ''
                       }`}
-                      onMouseEnter={() => { setHoveredIndex(i); setHoveredSlice({ name: d.name, value: d.value }) }}
-                      onMouseLeave={() => { setHoveredIndex(null); setHoveredSlice(null) }}
+                      onTouchStart={() => { touchActiveRef.current = true }}
+                      onMouseEnter={() => { if (touchActiveRef.current) return; setHoveredIndex(i); setHoveredSlice({ name: d.name, value: d.value }) }}
+                      onMouseLeave={() => { if (touchActiveRef.current) return; setHoveredIndex(null); setHoveredSlice(null) }}
                       onClick={() => {
                         const next = hoveredIndex === i ? null : i
                         setHoveredIndex(next)
                         setHoveredSlice(next === null ? null : { name: d.name, value: d.value })
+                        requestAnimationFrame(() => { touchActiveRef.current = false })
                       }}
                     >
                       <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: d.color }} />
