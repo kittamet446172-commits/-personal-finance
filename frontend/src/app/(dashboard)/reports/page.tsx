@@ -358,26 +358,22 @@ export default function ReportsPage() {
                         fill={s.fill}
                         stroke="white"
                         strokeWidth="1.5"
-                        onPointerEnter={(e) => { if (e.pointerType === 'mouse') { setHoveredIndex(i); setHoveredSlice({ name: s.name, value: s.amount }) } }}
-                        onPointerLeave={(e) => { if (e.pointerType === 'mouse') { setHoveredIndex(null); setHoveredSlice(null) } }}
-                        onPointerDown={(e) => {
-                          if (e.pointerType !== 'mouse') {
-                            e.preventDefault()
-                            setHoveredIndex((prev) => {
-                              const next = prev === i ? null : i
-                              setHoveredSlice(next === null ? null : { name: s.name, value: s.amount })
-                              return next
-                            })
-                          }
+                        onMouseEnter={() => { setHoveredIndex(i); setHoveredSlice({ name: s.name, value: s.amount }) }}
+                        onMouseLeave={() => { setHoveredIndex(null); setHoveredSlice(null) }}
+                        onTouchEnd={(e) => {
+                          e.preventDefault()
+                          setHoveredIndex((prev) => {
+                            const next = prev === i ? null : i
+                            setHoveredSlice(next === null ? null : { name: s.name, value: s.amount })
+                            return next
+                          })
                         }}
-                        onClick={(e) => {
-                          if ((e.nativeEvent as PointerEvent).pointerType === 'mouse') {
-                            setHoveredIndex((prev) => {
-                              const next = prev === i ? null : i
-                              setHoveredSlice(next === null ? null : { name: s.name, value: s.amount })
-                              return next
-                            })
-                          }
+                        onClick={() => {
+                          setHoveredIndex((prev) => {
+                            const next = prev === i ? null : i
+                            setHoveredSlice(next === null ? null : { name: s.name, value: s.amount })
+                            return next
+                          })
                         }}
                         style={{
                           cursor: 'pointer',
@@ -416,26 +412,22 @@ export default function ReportsPage() {
                     className={`flex items-center gap-3 py-2.5 rounded cursor-pointer transition-colors ${
                       hoveredIndex === i ? 'bg-muted/60' : ''
                     }`}
-                    onPointerEnter={(e) => { if (e.pointerType === 'mouse') { setHoveredIndex(i); setHoveredSlice({ name: entry.name, value: entry.amount }) } }}
-                    onPointerLeave={(e) => { if (e.pointerType === 'mouse') { setHoveredIndex(null); setHoveredSlice(null) } }}
-                    onPointerDown={(e) => {
-                      if (e.pointerType !== 'mouse') {
-                        e.preventDefault()
-                        setHoveredIndex((prev) => {
-                          const next = prev === i ? null : i
-                          setHoveredSlice(next === null ? null : { name: entry.name, value: entry.amount })
-                          return next
-                        })
-                      }
+                    onMouseEnter={() => { setHoveredIndex(i); setHoveredSlice({ name: entry.name, value: entry.amount }) }}
+                    onMouseLeave={() => { setHoveredIndex(null); setHoveredSlice(null) }}
+                    onTouchEnd={(e) => {
+                      e.preventDefault()
+                      setHoveredIndex((prev) => {
+                        const next = prev === i ? null : i
+                        setHoveredSlice(next === null ? null : { name: entry.name, value: entry.amount })
+                        return next
+                      })
                     }}
-                    onClick={(e) => {
-                      if ((e.nativeEvent as PointerEvent).pointerType === 'mouse') {
-                        setHoveredIndex((prev) => {
-                          const next = prev === i ? null : i
-                          setHoveredSlice(next === null ? null : { name: entry.name, value: entry.amount })
-                          return next
-                        })
-                      }
+                    onClick={() => {
+                      setHoveredIndex((prev) => {
+                        const next = prev === i ? null : i
+                        setHoveredSlice(next === null ? null : { name: entry.name, value: entry.amount })
+                        return next
+                      })
                     }}
                   >
                     <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: entry.fill }} />
