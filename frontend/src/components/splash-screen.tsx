@@ -51,7 +51,7 @@ export function SplashScreen() {
           fontSize: 14,
         }}
       >
-        การเงินส่วนตัว
+        Personal Finance
       </span>
     </div>
   )
