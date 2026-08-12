@@ -11,17 +11,17 @@ import { Button } from '@/components/ui/button'
 import { usePWAInstall } from '@/hooks/use-pwa-install'
 
 const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: '/icons/dashboard.svg' },
-  { href: '/accounts', label: 'บัญชี', icon: '/icons/wallet.svg' },
-  { href: '/income', label: 'รายรับ', icon: '/icons/income.svg' },
-  { href: '/expense', label: 'รายจ่าย', icon: '/icons/expense.svg' },
-  { href: '/transfers', label: 'โอนเงิน', icon: '/icons/transaction.svg' },
-  { href: '/categories', label: 'หมวดหมู่', icon: '/icons/receipt.svg' },
-  { href: '/investments', label: 'ลงทุน', icon: '/icons/investment.svg' },
-  { href: '/dividends', label: 'เงินปันผล', icon: '/icons/portfolio.svg' },
-  { href: '/budget', label: 'งบประมาณ', icon: '/icons/budget.svg' },
-  { href: '/reports', label: 'รายงาน', icon: '/icons/report.svg' },
-  { href: '/settings', label: 'ตั้งค่า', icon: '/icons/settings.svg' },
+  { href: '/dashboard', label: 'Dashboard', icon: '/icons/dashboard.svg', colored: false },
+  { href: '/accounts', label: 'บัญชี', icon: '/icons/wallet.svg', colored: false },
+  { href: '/income', label: 'รายรับ', icon: '/icons/income.svg', colored: true },
+  { href: '/expense', label: 'รายจ่าย', icon: '/icons/expense.svg', colored: true },
+  { href: '/transfers', label: 'โอนเงิน', icon: '/icons/transaction.svg', colored: false },
+  { href: '/categories', label: 'หมวดหมู่', icon: '/icons/receipt.svg', colored: false },
+  { href: '/investments', label: 'ลงทุน', icon: '/icons/investment.svg', colored: false },
+  { href: '/dividends', label: 'เงินปันผล', icon: '/icons/portfolio.svg', colored: false },
+  { href: '/budget', label: 'งบประมาณ', icon: '/icons/budget.svg', colored: false },
+  { href: '/reports', label: 'รายงาน', icon: '/icons/report.svg', colored: false },
+  { href: '/settings', label: 'ตั้งค่า', icon: '/icons/settings.svg', colored: false },
 ]
 
 export function Sidebar() {
@@ -73,7 +73,7 @@ export function Sidebar() {
         </div>
 
         <nav className="flex-1 space-y-1 p-2">
-          {navItems.map(({ href, label, icon }) => {
+          {navItems.map(({ href, label, icon, colored }) => {
             const isActive = pathname === href
             return (
               <Link
@@ -89,7 +89,7 @@ export function Sidebar() {
                 <img
                   src={icon}
                   alt={label}
-                  className="h-5 w-5 shrink-0 dark:brightness-0 dark:invert"
+                  className={cn('h-5 w-5 shrink-0', !colored && 'dark:brightness-0 dark:invert')}
                 />
                 {sidebarOpen && <span>{label}</span>}
               </Link>
