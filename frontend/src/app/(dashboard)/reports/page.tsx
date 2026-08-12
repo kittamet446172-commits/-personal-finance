@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import {
+  Area,
+  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
   Cell,
   Legend,
-  Line,
-  LineChart,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -408,18 +408,45 @@ export default function ReportsPage() {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={trendData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+            <AreaChart data={trendData} margin={{ left: 0, right: 8 }}>
+              <defs>
+                <linearGradient id="gradTrendIncome" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#16a34a" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#16a34a" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="gradTrendExpense" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#dc2626" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#dc2626" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="gradTrendNet" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#2563eb" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+              <XAxis dataKey="name" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis
+                tick={{ fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
                 tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)}
               />
-              <Tooltip formatter={(value: unknown) => formatCurrency(Number(value))} />
-              <Legend />
-              <Line type="monotone" dataKey="รายรับ" stroke="#16a34a" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="รายจ่าย" stroke="#dc2626" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="เหลือ" stroke="#2563eb" strokeWidth={2} dot={false} strokeDasharray="4 2" />
-            </LineChart>
+              <Tooltip
+                contentStyle={{
+                  padding: '8px 12px',
+                  fontSize: '13px',
+                  backgroundColor: 'hsl(var(--card))',
+                  borderColor: 'hsl(var(--border))',
+                  borderRadius: '8px',
+                  color: 'hsl(var(--card-foreground))',
+                }}
+                formatter={(value: unknown) => formatCurrency(Number(value))}
+              />
+              <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
+              <Area type="monotone" dataKey="รายรับ" stroke="#16a34a" strokeWidth={2} fill="url(#gradTrendIncome)" dot={false} activeDot={{ r: 4 }} />
+              <Area type="monotone" dataKey="รายจ่าย" stroke="#dc2626" strokeWidth={2} fill="url(#gradTrendExpense)" dot={false} activeDot={{ r: 4 }} />
+              <Area type="monotone" dataKey="เหลือ" stroke="#2563eb" strokeWidth={2} fill="url(#gradTrendNet)" dot={false} activeDot={{ r: 4 }} strokeDasharray="4 2" />
+            </AreaChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
