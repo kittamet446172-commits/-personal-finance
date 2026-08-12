@@ -34,11 +34,13 @@ export function SplashScreen() {
       }}
     >
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-        <img
-          src="/icons/icon.svg"
-          alt="Mone"
-          style={{ width: 96, height: 96, borderRadius: 24 }}
-        />
+        <div style={{ width: 96, height: 96, borderRadius: 24, overflow: 'hidden' }}>
+          <img
+            src="/icons/icon-192.png"
+            alt="Mone"
+            style={{ width: '116%', height: '116%', marginLeft: '-8%', marginTop: '-8%' }}
+          />
+        </div>
         <span style={{ color: '#111827', fontSize: 24, fontWeight: 600, letterSpacing: 1 }}>
           Mone
         </span>
