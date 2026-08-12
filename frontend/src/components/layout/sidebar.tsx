@@ -58,7 +58,7 @@ export function Sidebar() {
         <div className="flex h-14 items-center justify-between border-b px-4">
           {sidebarOpen && (
             <div className="flex items-center gap-2">
-              <img src="/icons/cat.png" alt="logo" className="w-8 h-8 shrink-0 rounded-lg" />
+              <img src="/icons/cat.png" alt="logo" className="w-8 h-8 shrink-0 rounded-lg dark:brightness-0 dark:invert" />
               <span className="font-bold text-lg">Mone</span>
             </div>
           )}
@@ -89,7 +89,7 @@ export function Sidebar() {
                 <img
                   src={icon}
                   alt={label}
-                  className="h-5 w-5 shrink-0"
+                  className="h-5 w-5 shrink-0 dark:brightness-0 dark:invert"
                 />
                 {sidebarOpen && <span>{label}</span>}
               </Link>
