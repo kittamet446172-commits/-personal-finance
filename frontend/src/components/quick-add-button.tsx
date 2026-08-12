@@ -37,6 +37,7 @@ export function QuickAddButton() {
 
   // Drag state: null = use CSS default position (bottom-right)
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null)
+  const [springing, setSpringing] = useState(false)
   const drag = useRef({ active: false, ox: 0, oy: 0, px: 0, py: 0, moved: false })
 
   function onPointerDown(e: React.PointerEvent<HTMLButtonElement>) {
@@ -69,7 +70,16 @@ export function QuickAddButton() {
 
   function onPointerUp() {
     drag.current.active = false
-    if (!drag.current.moved) handleOpen()
+    if (!drag.current.moved) { handleOpen(); return }
+    if (!pos) return
+    const BTN = 56
+    const PAD = 16
+    const targetX = pos.x + BTN / 2 < window.innerWidth / 2
+      ? PAD
+      : window.innerWidth - BTN - PAD
+    setSpringing(true)
+    setPos({ x: targetX, y: pos.y })
+    setTimeout(() => setSpringing(false), 600)
   }
 
   function handleOpen() {
@@ -97,7 +107,15 @@ export function QuickAddButton() {
   }
 
   const wrapperStyle: React.CSSProperties = pos
-    ? { position: 'fixed', left: pos.x, top: pos.y, zIndex: 50 }
+    ? {
+        position: 'fixed',
+        left: pos.x,
+        top: pos.y,
+        zIndex: 50,
+        transition: springing
+          ? 'left 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)'
+          : 'none',
+      }
     : { position: 'fixed', right: 24, bottom: 24, zIndex: 50 }
 
   return (
