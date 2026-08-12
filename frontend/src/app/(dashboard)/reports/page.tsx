@@ -72,6 +72,18 @@ function LiftBar({ x = 0, y = 0, width = 0, height = 0, fill }: BarShapeProps) {
   )
 }
 
+function DotBar({ x = 0, y = 0, width = 0, height = 0, fill, isSelected }: BarShapeProps & { isSelected?: boolean }) {
+  if (!width) return null
+  const cx = x + width / 2
+  const color = isSelected ? (fill ?? 'hsl(var(--primary))') : 'hsl(var(--primary) / 0.3)'
+  return (
+    <g>
+      {height > 0 && <rect x={x + width * 0.2} y={y} width={width * 0.6} height={height} fill={color} rx={3} />}
+      {isSelected && <circle cx={cx} cy={y - 7} r={4} fill={fill ?? 'hsl(var(--primary))'} />}
+    </g>
+  )
+}
+
 
 export default function ReportsPage() {
   const now = new Date()
@@ -82,6 +94,7 @@ export default function ReportsPage() {
   const [hoveredSlice, setHoveredSlice] = useState<{ name: string; value: number } | null>(null)
   const [dailyType, setDailyType] = useState<TransactionType>('EXPENSE')
   const [selectedDay, setSelectedDay] = useState<number | null>(null)
+  const [weekPage, setWeekPage] = useState(0)
 
   const { data: summary } = useMonthlySummary(month, year)
   const { data: breakdown = [] } = useCategoryBreakdown(month, year, breakdownType)
@@ -90,6 +103,7 @@ export default function ReportsPage() {
 
   useEffect(() => {
     setSelectedDay(null)
+    setWeekPage(0)
   }, [month, year])
 
   function prevMonth() {
@@ -117,6 +131,8 @@ export default function ReportsPage() {
   const avgDaily = dailyChartData.length > 0
     ? dailyChartData.reduce((s, d) => s + d.จำนวน, 0) / dailyChartData.length
     : 0
+  const totalWeekPages = Math.ceil(dailyChartData.length / 7)
+  const pagedDailyData = dailyChartData.slice(weekPage * 7, weekPage * 7 + 7)
 
   const selectedDayCats = selectedDay !== null
     ? (dailyData.find((d) => d.day === selectedDay)?.categories ?? [])
@@ -213,29 +229,54 @@ export default function ReportsPage() {
             <p className="text-sm text-center text-muted-foreground py-8">ไม่มีข้อมูล</p>
           ) : (
             <>
-              <p className="text-xs text-muted-foreground mb-2">คลิกวันเพื่อดูรายละเอียด</p>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs text-muted-foreground">แตะวันเพื่อดูรายละเอียด</p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setWeekPage(p => Math.max(0, p - 1))}
+                    disabled={weekPage === 0}
+                    className="h-6 w-6 rounded-full border flex items-center justify-center disabled:opacity-30 hover:bg-muted transition-colors"
+                  >
+                    <ChevronLeft className="h-3 w-3" />
+                  </button>
+                  <span className="text-xs text-muted-foreground">{weekPage + 1}/{totalWeekPages}</span>
+                  <button
+                    onClick={() => setWeekPage(p => Math.min(totalWeekPages - 1, p + 1))}
+                    disabled={weekPage >= totalWeekPages - 1}
+                    className="h-6 w-6 rounded-full border flex items-center justify-center disabled:opacity-30 hover:bg-muted transition-colors"
+                  >
+                    <ChevronRight className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
               <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={dailyChartData} margin={{ left: 8, right: 16 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="day" tick={{ fontSize: 11 }} />
+                <BarChart data={pagedDailyData} margin={{ left: 8, right: 16 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                  <XAxis dataKey="day" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
                   <YAxis
                     tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)}
                     tick={{ fontSize: 11 }}
+                    axisLine={false}
+                    tickLine={false}
                     width={40}
                   />
                   <Tooltip
                     cursor={false}
+                    contentStyle={{
+                      padding: '8px 12px',
+                      fontSize: '13px',
+                      backgroundColor: 'hsl(var(--card))',
+                      borderColor: 'hsl(var(--border))',
+                      borderRadius: '8px',
+                    }}
                     formatter={(value: unknown) => [formatCurrency(Number(value)), 'จำนวน']}
                   />
-                  <ReferenceLine
-                    y={avgDaily}
-                    stroke="#2563eb"
-                    strokeDasharray="4 2"
-                    strokeWidth={1.5}
-                  />
+                  <ReferenceLine y={avgDaily} stroke="#2563eb" strokeDasharray="4 2" strokeWidth={1.5} />
                   <Bar
                     dataKey="จำนวน"
-                    shape={<LiftBar />}
+                    shape={(props: BarShapeProps & { day?: number }) => (
+                      <DotBar {...props} isSelected={props.day === selectedDay} fill="hsl(var(--primary))" />
+                    )}
                     onClick={(data: unknown) =>
                       setSelectedDay((prev) => {
                         const d = data as { day: number }
@@ -243,18 +284,7 @@ export default function ReportsPage() {
                       })
                     }
                     style={{ cursor: 'pointer' }}
-                  >
-                    {dailyChartData.map((entry) => (
-                      <Cell
-                        key={entry.day}
-                        fill={
-                          selectedDay === entry.day
-                            ? 'hsl(var(--primary))'
-                            : 'hsl(var(--primary) / 0.45)'
-                        }
-                      />
-                    ))}
-                  </Bar>
+                  />
                 </BarChart>
               </ResponsiveContainer>
 
