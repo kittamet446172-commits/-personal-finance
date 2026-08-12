@@ -35,7 +35,7 @@ export function SplashScreen() {
     >
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
         <img
-          src="/logo.png"
+          src="/icons/icon-192.png"
           alt="Mone"
           style={{ width: 96, height: 96, borderRadius: 24 }}
         />
