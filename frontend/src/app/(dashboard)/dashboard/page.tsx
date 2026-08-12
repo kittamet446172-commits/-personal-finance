@@ -1,12 +1,12 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { ShieldCheck } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ShieldCheck } from 'lucide-react'
 import {
-  Area,
-  AreaChart,
+  Bar,
+  BarChart,
   CartesianGrid,
-  Legend,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -14,15 +14,22 @@ import {
 } from 'recharts'
 import { useAccounts } from '@/hooks/use-accounts'
 import { useMonthlyStats, useRecentTransactions } from '@/hooks/use-transactions'
-import { useCategoryBreakdown, useYearlyTrend } from '@/hooks/use-reports'
+import { useCategoryBreakdown, useDailyBreakdown } from '@/hooks/use-reports'
 import { usePortfolio } from '@/hooks/use-investments'
 import { useUserSettings } from '@/hooks/use-user-settings'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatCurrency, formatDate } from '@/lib/utils'
+import type { TransactionType } from '@/types'
 
 const MONTH_SHORT = [
   'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
   'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.',
+]
+
+const MONTHS_FULL = [
+  'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน',
+  'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม',
+  'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม',
 ]
 
 const PIE_COLORS = [
@@ -64,15 +71,31 @@ function sectorPath(cx: number, cy: number, r1: number, r2: number, a1: number, 
   return `M${ox1} ${oy1} A${r2} ${r2} 0 ${lg} 1 ${ox2} ${oy2} L${ix2} ${iy2} A${r1} ${r1} 0 ${lg} 0 ${ix1} ${iy1}Z`
 }
 
+function DotBar({ x = 0, y = 0, width = 0, height = 0, fill, isSelected }: BarShapeProps & { isSelected?: boolean }) {
+  if (!width) return null
+  const cx = x + width / 2
+  const color = isSelected ? (fill ?? 'hsl(var(--primary))') : 'hsl(var(--primary) / 0.3)'
+  return (
+    <g>
+      {height > 0 && <rect x={x + width * 0.2} y={y} width={width * 0.6} height={height} fill={color} rx={3} />}
+      {isSelected && <circle cx={cx} cy={y - 7} r={4} fill={fill ?? 'hsl(var(--primary))'} />}
+    </g>
+  )
+}
+
 export default function DashboardPage() {
   const now = new Date()
   const month = now.getMonth() + 1
   const year = now.getFullYear()
 
+  const [dailyType, setDailyType] = useState<TransactionType>('EXPENSE')
+  const [weekPage, setWeekPage] = useState(0)
+  const [selectedDay, setSelectedDay] = useState<number | null>(null)
+
   const { data: accounts = [] } = useAccounts()
   const { data: stats } = useMonthlyStats(month, year)
   const { data: recent = [] } = useRecentTransactions()
-  const { data: trend } = useYearlyTrend(year)
+  const { data: dailyData = [] } = useDailyBreakdown(month, year, dailyType)
   const { data: expenseBreakdown = [] } = useCategoryBreakdown(month, year, 'EXPENSE')
   const { data: portfolio } = usePortfolio()
 
@@ -81,11 +104,19 @@ export default function DashboardPage() {
   const netWorth = accountsTotal + portfolioTotal
 
 
-  const incomeChartData = trend?.months.map((m) => ({
-    name: MONTH_SHORT[m.month - 1],
-    รายรับ: m.income,
-    รายจ่าย: m.expense,
-  })) ?? []
+  const dailyChartData = dailyData.map((d) => ({ day: d.day, จำนวน: d.total }))
+  const avgDaily = dailyChartData.length > 0
+    ? dailyChartData.reduce((s, d) => s + d.จำนวน, 0) / dailyChartData.length
+    : 0
+  const totalWeekPages = Math.ceil(dailyChartData.length / 7)
+  const pagedDailyData = dailyChartData.slice(weekPage * 7, weekPage * 7 + 7)
+  const selectedDayCats = selectedDay !== null
+    ? (dailyData.find((d) => d.day === selectedDay)?.categories ?? [])
+    : []
+  const selectedDayCatsData = selectedDayCats.map((b) => ({
+    name: `${b.category?.icon ?? ''} ${b.category?.name ?? ''}`.trim(),
+    amount: b.amount,
+  }))
 
   const expensePieData = expenseBreakdown.map((b, i) => ({
     name: `${b.category?.icon ?? ''} ${b.category?.name ?? ''}`.trim(),
@@ -197,50 +228,126 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* Income Chart */}
+      {/* Daily Chart */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">📈 รายรับ-รายจ่าย {year}</CardTitle>
+        <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <CardTitle className="text-base">รายวัน</CardTitle>
+            {avgDaily > 0 && (
+              <p className="text-xs text-muted-foreground mt-0.5">
+                เฉลี่ย {formatCurrency(avgDaily)} / วัน
+              </p>
+            )}
+          </div>
+          <div className="flex gap-2">
+            {(['EXPENSE', 'INCOME'] as TransactionType[]).map((t) => (
+              <button
+                key={t}
+                onClick={() => setDailyType(t)}
+                className={`text-xs px-3 py-1 rounded-full border transition-colors ${
+                  dailyType === t
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'border-input text-muted-foreground hover:bg-accent'
+                }`}
+              >
+                {t === 'INCOME' ? 'รายรับ' : 'รายจ่าย'}
+              </button>
+            ))}
+          </div>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={240}>
-            <AreaChart data={incomeChartData} margin={{ left: 0, right: 8 }}>
-              <defs>
-                <linearGradient id="gradIncome" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#16a34a" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#16a34a" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="gradExpense" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#dc2626" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#dc2626" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-              <XAxis dataKey="name" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis
-                tick={{ fontSize: 11 }}
-                axisLine={false}
-                tickLine={false}
-                tickFormatter={(v: number) =>
-                  v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)
-                }
-              />
-              <Tooltip
-                contentStyle={{
-                  padding: '8px 12px',
-                  fontSize: '13px',
-                  backgroundColor: 'hsl(var(--card))',
-                  borderColor: 'hsl(var(--border))',
-                  borderRadius: '8px',
-                  color: 'hsl(var(--card-foreground))',
-                }}
-                formatter={(value: unknown) => formatCurrency(Number(value))}
-              />
-              <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
-              <Area type="monotone" dataKey="รายรับ" stroke="#16a34a" strokeWidth={2} fill="url(#gradIncome)" dot={false} activeDot={{ r: 4 }} />
-              <Area type="monotone" dataKey="รายจ่าย" stroke="#dc2626" strokeWidth={2} fill="url(#gradExpense)" dot={false} activeDot={{ r: 4 }} />
-            </AreaChart>
-          </ResponsiveContainer>
+          {dailyChartData.length === 0 ? (
+            <p className="text-sm text-center text-muted-foreground py-8">ไม่มีข้อมูล</p>
+          ) : (
+            <>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs text-muted-foreground">แตะวันเพื่อดูรายละเอียด</p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setWeekPage(p => Math.max(0, p - 1))}
+                    disabled={weekPage === 0}
+                    className="h-6 w-6 rounded-full border flex items-center justify-center disabled:opacity-30 hover:bg-muted transition-colors"
+                  >
+                    <ChevronLeft className="h-3 w-3" />
+                  </button>
+                  <span className="text-xs text-muted-foreground">{weekPage + 1}/{totalWeekPages}</span>
+                  <button
+                    onClick={() => setWeekPage(p => Math.min(totalWeekPages - 1, p + 1))}
+                    disabled={weekPage >= totalWeekPages - 1}
+                    className="h-6 w-6 rounded-full border flex items-center justify-center disabled:opacity-30 hover:bg-muted transition-colors"
+                  >
+                    <ChevronRight className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={pagedDailyData} margin={{ left: 8, right: 16 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                  <XAxis dataKey="day" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <YAxis
+                    tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)}
+                    tick={{ fontSize: 11 }}
+                    axisLine={false}
+                    tickLine={false}
+                    width={40}
+                  />
+                  <Tooltip
+                    cursor={false}
+                    contentStyle={{
+                      padding: '8px 12px',
+                      fontSize: '13px',
+                      backgroundColor: 'hsl(var(--card))',
+                      borderColor: 'hsl(var(--border))',
+                      borderRadius: '8px',
+                    }}
+                    formatter={(value: unknown) => [formatCurrency(Number(value)), 'จำนวน']}
+                  />
+                  <ReferenceLine y={avgDaily} stroke="#2563eb" strokeDasharray="4 2" strokeWidth={1.5} />
+                  <Bar
+                    dataKey="จำนวน"
+                    shape={(props: BarShapeProps & { day?: number }) => (
+                      <DotBar {...props} isSelected={props.day === selectedDay} fill="hsl(var(--primary))" />
+                    )}
+                    onClick={(data: unknown) =>
+                      setSelectedDay((prev) => {
+                        const d = data as { day: number }
+                        return prev === d.day ? null : d.day
+                      })
+                    }
+                    style={{ cursor: 'pointer' }}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+              {selectedDay !== null && (
+                <div className="mt-4 border-t pt-4">
+                  <p className="text-sm font-medium mb-3">
+                    วันที่ {selectedDay} {MONTHS_FULL[month - 1]} {year}
+                  </p>
+                  {selectedDayCatsData.length === 0 ? (
+                    <p className="text-sm text-center text-muted-foreground py-4">ไม่มีข้อมูล</p>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={Math.max(80, selectedDayCatsData.length * 48)}>
+                      <BarChart
+                        data={selectedDayCatsData}
+                        layout="vertical"
+                        margin={{ left: 16, right: 32 }}
+                        barSize={20}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                        <XAxis
+                          type="number"
+                          tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)}
+                        />
+                        <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 11 }} />
+                        <Tooltip formatter={(value: unknown) => [formatCurrency(Number(value)), 'จำนวน']} />
+                        <Bar dataKey="amount" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              )}
+            </>
+          )}
         </CardContent>
       </Card>
 
