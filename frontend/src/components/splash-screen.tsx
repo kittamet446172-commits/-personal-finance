@@ -39,7 +39,7 @@ export function SplashScreen() {
           alt="Mone"
           style={{ width: 96, height: 96, borderRadius: 24 }}
         />
-        <span style={{ color: '#111827', fontSize: 36, fontWeight: 700, letterSpacing: 2 }}>
+        <span style={{ color: '#111827', fontSize: 24, fontWeight: 600, letterSpacing: 1 }}>
           Mone
         </span>
       </div>
