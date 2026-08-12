@@ -6,7 +6,7 @@ import { Providers } from './providers'
 const inter = Inter({ subsets: ['latin'] })
 
 export const viewport: Viewport = {
-  themeColor: '#F9A825',
+  themeColor: '#16a34a',
   width: 'device-width',
   initialScale: 1,
 }
