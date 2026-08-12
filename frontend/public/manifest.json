@@ -4,8 +4,8 @@
   "description": "Mone — personal finance app",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#16a34a",
-  "theme_color": "#16a34a",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
   "orientation": "portrait",
   "icons": [
     {
