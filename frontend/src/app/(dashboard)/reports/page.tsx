@@ -371,7 +371,7 @@ export default function ReportsPage() {
                           }
                         }}
                         onClick={(e) => {
-                          if ((e as PointerEvent).pointerType === 'mouse') {
+                          if ((e.nativeEvent as PointerEvent).pointerType === 'mouse') {
                             setHoveredIndex((prev) => {
                               const next = prev === i ? null : i
                               setHoveredSlice(next === null ? null : { name: s.name, value: s.amount })
