@@ -61,7 +61,7 @@ export function QuickAddButton() {
     const raw_y = e.clientY - drag.current.oy
     const x = Math.max(0, Math.min(raw_x, window.innerWidth - BTN))
     const y = Math.max(EAR, Math.min(raw_y, window.innerHeight - BTN))
-    if (Math.abs(x - drag.current.px) > 5 || Math.abs(y - drag.current.py) > 5) {
+    if (Math.abs(x - drag.current.px) > 12 || Math.abs(y - drag.current.py) > 12) {
       drag.current.moved = true
     }
     setPos({ x, y })
