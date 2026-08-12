@@ -38,7 +38,7 @@ export function SplashScreen() {
           <img
             src="/icons/icon-192.png"
             alt="Mone"
-            style={{ width: '116%', height: '116%', marginLeft: '-8%', marginTop: '-8%' }}
+            style={{ width: '135%', height: '135%', marginLeft: '-17%', marginTop: '-17%' }}
           />
         </div>
         <span style={{ color: '#111827', fontSize: 24, fontWeight: 600, letterSpacing: 1 }}>
