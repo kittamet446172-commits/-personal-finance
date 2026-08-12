@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import { ShieldCheck } from 'lucide-react'
 import {
-  Bar,
-  BarChart,
+  Area,
+  AreaChart,
   CartesianGrid,
   Legend,
   ResponsiveContainer,
@@ -203,7 +203,17 @@ export default function DashboardPage() {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={incomeChartData} margin={{ left: 0, right: 8 }} barGap={3} barCategoryGap="30%">
+            <AreaChart data={incomeChartData} margin={{ left: 0, right: 8 }}>
+              <defs>
+                <linearGradient id="gradIncome" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#16a34a" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#16a34a" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="gradExpense" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#dc2626" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#dc2626" stopOpacity={0} />
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
               <XAxis dataKey="name" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis
@@ -215,7 +225,6 @@ export default function DashboardPage() {
                 }
               />
               <Tooltip
-                cursor={false}
                 contentStyle={{
                   padding: '8px 12px',
                   fontSize: '13px',
@@ -227,19 +236,9 @@ export default function DashboardPage() {
                 formatter={(value: unknown) => formatCurrency(Number(value))}
               />
               <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
-              <Bar
-                dataKey="รายรับ"
-                fill="#16a34a"
-                barSize={10}
-                shape={(props: BarShapeProps) => <LiftBar {...props} />}
-              />
-              <Bar
-                dataKey="รายจ่าย"
-                fill="#dc2626"
-                barSize={10}
-                shape={(props: BarShapeProps) => <LiftBar {...props} />}
-              />
-            </BarChart>
+              <Area type="monotone" dataKey="รายรับ" stroke="#16a34a" strokeWidth={2} fill="url(#gradIncome)" dot={false} activeDot={{ r: 4 }} />
+              <Area type="monotone" dataKey="รายจ่าย" stroke="#dc2626" strokeWidth={2} fill="url(#gradExpense)" dot={false} activeDot={{ r: 4 }} />
+            </AreaChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
