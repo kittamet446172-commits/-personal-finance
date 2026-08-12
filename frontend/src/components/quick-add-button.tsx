@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -31,6 +31,11 @@ export function QuickAddButton() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [description, setDescription] = useState('')
 
+  useEffect(() => {
+    resetIdleTimer()
+    return () => { if (idleTimer.current) clearTimeout(idleTimer.current) }
+  }, [])
+
   const { data: accounts } = useAccounts()
   const { data: categories } = useCategories(type)
   const { mutate: createTransaction, isPending } = useCreateTransaction()
@@ -38,9 +43,18 @@ export function QuickAddButton() {
   // Drag state: null = use CSS default position (bottom-right)
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null)
   const [springing, setSpringing] = useState(false)
+  const [idle, setIdle] = useState(false)
+  const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const drag = useRef({ active: false, ox: 0, oy: 0, px: 0, py: 0, moved: false })
 
+  function resetIdleTimer() {
+    setIdle(false)
+    if (idleTimer.current) clearTimeout(idleTimer.current)
+    idleTimer.current = setTimeout(() => setIdle(true), 3000)
+  }
+
   function onPointerDown(e: React.PointerEvent<HTMLButtonElement>) {
+    resetIdleTimer()
     const rect = e.currentTarget.getBoundingClientRect()
     drag.current = {
       active: true,
@@ -80,6 +94,7 @@ export function QuickAddButton() {
     setSpringing(true)
     setPos({ x: targetX, y: pos.y })
     setTimeout(() => setSpringing(false), 600)
+    resetIdleTimer()
   }
 
   function handleOpen() {
@@ -112,11 +127,19 @@ export function QuickAddButton() {
         left: pos.x,
         top: pos.y,
         zIndex: 50,
+        opacity: idle ? 0.3 : 1,
         transition: springing
-          ? 'left 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)'
-          : 'none',
+          ? 'left 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease'
+          : 'opacity 0.5s ease',
       }
-    : { position: 'fixed', right: 24, bottom: 24, zIndex: 50 }
+    : {
+        position: 'fixed',
+        right: 24,
+        bottom: 24,
+        zIndex: 50,
+        opacity: idle ? 0.3 : 1,
+        transition: 'opacity 0.5s ease',
+      }
 
   return (
     <>
