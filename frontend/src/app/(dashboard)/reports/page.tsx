@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Area,
   AreaChart,
@@ -92,6 +92,7 @@ export default function ReportsPage() {
   const [breakdownType, setBreakdownType] = useState<TransactionType>('EXPENSE')
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const [hoveredSlice, setHoveredSlice] = useState<{ name: string; value: number } | null>(null)
+  const isTouchRef = useRef(false)
   const [dailyType, setDailyType] = useState<TransactionType>('EXPENSE')
   const [selectedDay, setSelectedDay] = useState<number | null>(null)
   const [weekPage, setWeekPage] = useState(0)
@@ -358,10 +359,12 @@ export default function ReportsPage() {
                         fill={s.fill}
                         stroke="white"
                         strokeWidth="1.5"
-                        onMouseEnter={() => { setHoveredIndex(i); setHoveredSlice({ name: s.name, value: s.amount }) }}
-                        onMouseLeave={() => { setHoveredIndex(null); setHoveredSlice(null) }}
+                        onMouseEnter={() => { if (!isTouchRef.current) { setHoveredIndex(i); setHoveredSlice({ name: s.name, value: s.amount }) } }}
+                        onMouseLeave={() => { if (!isTouchRef.current) { setHoveredIndex(null); setHoveredSlice(null) } }}
                         onTouchEnd={(e) => {
                           e.preventDefault()
+                          isTouchRef.current = true
+                          setTimeout(() => { isTouchRef.current = false }, 500)
                           setHoveredIndex((prev) => {
                             const next = prev === i ? null : i
                             setHoveredSlice(next === null ? null : { name: s.name, value: s.amount })
@@ -412,10 +415,12 @@ export default function ReportsPage() {
                     className={`flex items-center gap-3 py-2.5 rounded cursor-pointer transition-colors ${
                       hoveredIndex === i ? 'bg-muted/60' : ''
                     }`}
-                    onMouseEnter={() => { setHoveredIndex(i); setHoveredSlice({ name: entry.name, value: entry.amount }) }}
-                    onMouseLeave={() => { setHoveredIndex(null); setHoveredSlice(null) }}
+                    onMouseEnter={() => { if (!isTouchRef.current) { setHoveredIndex(i); setHoveredSlice({ name: entry.name, value: entry.amount }) } }}
+                    onMouseLeave={() => { if (!isTouchRef.current) { setHoveredIndex(null); setHoveredSlice(null) } }}
                     onTouchEnd={(e) => {
                       e.preventDefault()
+                      isTouchRef.current = true
+                      setTimeout(() => { isTouchRef.current = false }, 500)
                       setHoveredIndex((prev) => {
                         const next = prev === i ? null : i
                         setHoveredSlice(next === null ? null : { name: entry.name, value: entry.amount })
