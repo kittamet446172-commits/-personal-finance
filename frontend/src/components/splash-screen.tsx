@@ -27,7 +27,7 @@ export function SplashScreen() {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'linear-gradient(160deg, #15803d 0%, #16a34a 50%, #4ade80 100%)',
+        background: '#ffffff',
         transition: 'opacity 0.5s ease',
         opacity: fading ? 0 : 1,
         pointerEvents: fading ? 'none' : 'auto',
@@ -39,7 +39,7 @@ export function SplashScreen() {
           alt="Mone"
           style={{ width: 96, height: 96, borderRadius: 24 }}
         />
-        <span style={{ color: '#fff', fontSize: 36, fontWeight: 700, letterSpacing: 2 }}>
+        <span style={{ color: '#111827', fontSize: 36, fontWeight: 700, letterSpacing: 2 }}>
           Mone
         </span>
       </div>
@@ -47,7 +47,7 @@ export function SplashScreen() {
         style={{
           position: 'absolute',
           bottom: 48,
-          color: 'rgba(255,255,255,0.7)',
+          color: '#9ca3af',
           fontSize: 14,
         }}
       >
