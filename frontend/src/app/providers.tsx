@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { useEffect, useState } from 'react'
+import { SplashScreen } from '@/components/splash-screen'
 
 function ThemeSync() {
   useEffect(() => {
@@ -33,6 +34,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeSync />
+      <SplashScreen />
       {children}
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
