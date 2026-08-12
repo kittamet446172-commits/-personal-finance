@@ -3,10 +3,13 @@
 import { useEffect, useState } from 'react'
 
 export function SplashScreen() {
-  const [visible, setVisible] = useState(true)
+  const [visible, setVisible] = useState(false)
   const [fading, setFading] = useState(false)
 
   useEffect(() => {
+    if (sessionStorage.getItem('splashShown')) return
+    sessionStorage.setItem('splashShown', '1')
+    setVisible(true)
     const fadeTimer = setTimeout(() => setFading(true), 1500)
     const hideTimer = setTimeout(() => setVisible(false), 2000)
     return () => {
