@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Wallet, Plus, TrendingDown, LayoutGrid } from 'lucide-react'
+import { Home, Wallet, Plus, TrendingUp, LayoutGrid } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -22,6 +22,7 @@ import { useCreateTransaction } from '@/hooks/use-transactions'
 import type { TransactionType } from '@/types'
 
 const moreTabs = [
+  { href: '/expense', label: 'รายจ่าย', icon: '/icons/expense.svg', colored: true },
   { href: '/income', label: 'รายรับ', icon: '/icons/income.svg', colored: true },
   { href: '/transfers', label: 'โอนเงิน', icon: '/icons/transaction.svg', colored: false },
   { href: '/budget', label: 'งบประมาณ', icon: '/icons/budget.svg', colored: false },
@@ -88,11 +89,11 @@ export function BottomNav() {
         </Link>
 
         <Link
-          href="/expense"
-          className={cn('flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-xs font-medium', isActive('/expense') ? activeClass : inactiveClass)}
+          href="/investments"
+          className={cn('flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-xs font-medium', isActive('/investments') ? activeClass : inactiveClass)}
         >
-          <TrendingDown className="h-5 w-5" />
-          <span>รายจ่าย</span>
+          <TrendingUp className="h-5 w-5" />
+          <span>หุ้น</span>
         </Link>
 
         <div className="flex flex-1 items-center justify-center">
