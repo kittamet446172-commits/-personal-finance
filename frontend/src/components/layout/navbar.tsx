@@ -32,8 +32,8 @@ export function Navbar() {
 
   return (
     <header className="flex h-14 items-center justify-between border-b bg-card px-4">
-      {/* Mobile hamburger */}
-      <Button variant="ghost" size="icon" onClick={toggleSidebar} className="md:hidden">
+      {/* Desktop-only hamburger — bottom nav handles mobile navigation */}
+      <Button variant="ghost" size="icon" onClick={toggleSidebar} className="hidden md:flex">
         <Menu className="h-5 w-5" />
       </Button>
       <div className="flex items-center gap-2 ml-auto">
