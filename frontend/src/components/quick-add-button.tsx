@@ -143,7 +143,7 @@ export function QuickAddButton() {
 
   return (
     <>
-      <div style={wrapperStyle} className="touch-none select-none">
+      <div style={wrapperStyle} className="hidden md:block touch-none select-none">
 
         <button
           onPointerDown={onPointerDown}
