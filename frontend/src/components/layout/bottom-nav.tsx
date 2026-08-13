@@ -79,7 +79,7 @@ export function BottomNav() {
 
   return (
     <>
-      <nav className="fixed bottom-0 inset-x-0 z-50 md:hidden bg-card border-t flex items-center h-16" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <nav className="fixed bottom-0 inset-x-0 z-50 md:hidden bg-card border-t flex items-center h-20" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <Link
           href="/dashboard"
           className={cn('flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-xs font-medium', isActive('/dashboard') ? activeClass : inactiveClass)}

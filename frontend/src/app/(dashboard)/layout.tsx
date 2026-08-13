@@ -37,7 +37,7 @@ export default function DashboardLayout({
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Navbar />
-        <main className="flex-1 overflow-y-auto p-6 pb-24 md:pb-6 bg-[#FFFBF0] dark:bg-muted/20">
+        <main className="flex-1 overflow-y-auto p-6 pb-28 md:pb-6 bg-[#FFFBF0] dark:bg-muted/20">
           {children}
           <QuickAddButton />
         </main>
