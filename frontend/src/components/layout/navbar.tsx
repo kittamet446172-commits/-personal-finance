@@ -36,38 +36,37 @@ export function Navbar() {
       <Button variant="ghost" size="icon" onClick={toggleSidebar} className="hidden md:flex">
         <Menu className="h-5 w-5" />
       </Button>
-      <div className="flex items-center gap-2 ml-auto">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleTheme}
-          title="เปลี่ยน theme"
-        >
-          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-        </Button>
 
+      {/* Profile — left on mobile, hidden on desktop (sidebar shows it) */}
+      <div className="flex items-center gap-2 md:hidden">
         {userImage ? (
-          <img
-            src={userImage}
-            alt="avatar"
-            className="h-7 w-7 rounded-full object-cover"
-          />
+          <img src={userImage} alt="avatar" className="h-7 w-7 rounded-full object-cover" />
         ) : (
           <div className="h-7 w-7 rounded-full bg-primary flex items-center justify-center text-xs font-medium text-primary-foreground">
             {session?.user.name?.[0]?.toUpperCase() ?? 'U'}
           </div>
         )}
+        <span className="text-sm font-medium">{session?.user.name}</span>
+      </div>
 
-        <span className="text-sm text-muted-foreground">
-          {session?.user.name}
-        </span>
+      <div className="flex items-center gap-2 ml-auto">
+        <Button variant="ghost" size="icon" onClick={toggleTheme} title="เปลี่ยน theme">
+          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </Button>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleSignOut}
-          title="ออกจากระบบ"
-        >
+        {/* Profile — right on desktop */}
+        <div className="hidden md:flex items-center gap-2">
+          {userImage ? (
+            <img src={userImage} alt="avatar" className="h-7 w-7 rounded-full object-cover" />
+          ) : (
+            <div className="h-7 w-7 rounded-full bg-primary flex items-center justify-center text-xs font-medium text-primary-foreground">
+              {session?.user.name?.[0]?.toUpperCase() ?? 'U'}
+            </div>
+          )}
+          <span className="text-sm text-muted-foreground">{session?.user.name}</span>
+        </div>
+
+        <Button variant="ghost" size="icon" onClick={handleSignOut} title="ออกจากระบบ">
           <LogOut className="h-4 w-4" />
         </Button>
       </div>
