@@ -20,6 +20,7 @@ import { useCategoryBreakdown, useDailyBreakdown } from '@/hooks/use-reports'
 import { usePortfolio } from '@/hooks/use-investments'
 import { useUserSettings } from '@/hooks/use-user-settings'
 import { useNetWorthHistory, useTakeSnapshot } from '@/hooks/use-net-worth'
+import { useUpcomingBills } from '@/hooks/use-bills'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import type { TransactionType } from '@/types'
@@ -129,6 +130,7 @@ export default function DashboardPage() {
 
   const { data: settings } = useUserSettings()
   const { data: netWorthHistory = [] } = useNetWorthHistory(6)
+  const { data: upcomingBills = [] } = useUpcomingBills(7)
   const takeSnapshot = useTakeSnapshot()
 
   useEffect(() => {
@@ -215,6 +217,30 @@ export default function DashboardPage() {
                 />
               </LineChart>
             </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Upcoming Bills */}
+      {upcomingBills.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">📋 บิลใกล้ครบกำหนด</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {upcomingBills.map((bill) => (
+              <div key={bill.id} className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">{bill.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {bill.daysLeft === 0 ? 'วันนี้' : `อีก ${bill.daysLeft} วัน`} · วันที่ {bill.dueDay}
+                  </p>
+                </div>
+                <p className={`text-sm font-semibold ${bill.daysLeft <= 2 ? 'text-destructive' : ''}`}>
+                  {formatCurrency(Number(bill.amount))}
+                </p>
+              </div>
+            ))}
           </CardContent>
         </Card>
       )}

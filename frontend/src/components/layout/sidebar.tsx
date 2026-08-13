@@ -19,6 +19,7 @@ const navItems = [
   { href: '/categories', label: 'หมวดหมู่', icon: '/icons/receipt.svg', colored: false },
   { href: '/investments', label: 'ลงทุน', icon: '/icons/investment.svg', colored: false },
   { href: '/dividends', label: 'เงินปันผล', icon: '/icons/portfolio.svg', colored: false },
+  { href: '/bills', label: 'บิล', icon: '/icons/budget.svg', colored: false },
   { href: '/budget', label: 'งบประมาณ', icon: '/icons/budget.svg', colored: false },
   { href: '/reports', label: 'รายงาน', icon: '/icons/report.svg', colored: false },
   { href: '/settings', label: 'ตั้งค่า', icon: '/icons/settings.svg', colored: false },

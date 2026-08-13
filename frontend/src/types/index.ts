@@ -127,6 +127,21 @@ export interface Budget {
   remaining: number
 }
 
+export interface Bill {
+  id: string
+  name: string
+  amount: number
+  dueDay: number
+  isActive: boolean
+  note?: string
+  createdAt: string
+}
+
+export interface UpcomingBill extends Bill {
+  nextDue: string
+  daysLeft: number
+}
+
 export interface Transfer {
   id: string
   fromAccountId: string
