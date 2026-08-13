@@ -1,6 +1,8 @@
 import {
+  IsBoolean,
   IsInt,
   IsNumber,
+  IsOptional,
   IsPositive,
   IsString,
   Max,
@@ -24,4 +26,8 @@ export class CreateBudgetDto {
   @Min(2000)
   @Max(2100)
   year!: number;
+
+  @IsBoolean()
+  @IsOptional()
+  rollover?: boolean;
 }

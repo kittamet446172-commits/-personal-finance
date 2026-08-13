@@ -44,6 +44,7 @@ export default function BudgetPage() {
   const [editing, setEditing] = useState<Budget | null>(null)
   const [categoryId, setCategoryId] = useState('')
   const [amount, setAmount] = useState('')
+  const [rollover, setRollover] = useState(false)
 
   const { data: budgets = [], isLoading } = useBudgets(month, year)
   const { data: categories = [] } = useCategories('EXPENSE')
@@ -55,6 +56,7 @@ export default function BudgetPage() {
     setEditing(null)
     setCategoryId('')
     setAmount('')
+    setRollover(false)
     setOpen(true)
   }
 
@@ -62,19 +64,25 @@ export default function BudgetPage() {
     setEditing(budget)
     setCategoryId(budget.categoryId)
     setAmount(String(budget.amount))
+    setRollover(budget.rollover)
     setOpen(true)
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (editing) {
-      await updateMutation.mutateAsync({ id: editing.id, amount: Number(amount) })
+      await updateMutation.mutateAsync({
+        id: editing.id,
+        amount: Number(amount),
+        rollover,
+      })
     } else {
       await createMutation.mutateAsync({
         categoryId,
         amount: Number(amount),
         month,
         year,
+        rollover,
       })
     }
     setOpen(false)
@@ -129,11 +137,12 @@ export default function BudgetPage() {
       ) : (
         <div className="space-y-3">
           {budgets.map((budget) => {
+            const effectiveAmount = Number(budget.amount) + (budget.rolledAmount ?? 0)
             const pct = Math.min(
-              (budget.spent / Number(budget.amount)) * 100,
+              (budget.spent / effectiveAmount) * 100,
               100,
             )
-            const isOver = budget.spent > Number(budget.amount)
+            const isOver = budget.spent > effectiveAmount
 
             return (
               <Card key={budget.id}>
@@ -143,18 +152,30 @@ export default function BudgetPage() {
                       <span className="text-base">
                         {budget.category?.icon ?? '📦'}
                       </span>
-                      <span className="text-sm font-medium">
-                        {budget.category?.name}
-                      </span>
+                      <div>
+                        <span className="text-sm font-medium">
+                          {budget.category?.name}
+                        </span>
+                        {budget.rollover && (
+                          <span className="ml-2 text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                            rollover
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="text-right">
                         <p className="text-sm font-semibold">
                           {formatCurrency(budget.spent)}{' '}
                           <span className="text-muted-foreground font-normal">
-                            / {formatCurrency(Number(budget.amount))}
+                            / {formatCurrency(effectiveAmount)}
                           </span>
                         </p>
+                        {budget.rolledAmount > 0 && (
+                          <p className="text-xs text-blue-500">
+                            +{formatCurrency(budget.rolledAmount)} จากเดือนก่อน
+                          </p>
+                        )}
                         <p
                           className={`text-xs ${isOver ? 'text-destructive' : 'text-muted-foreground'}`}
                         >
@@ -232,6 +253,18 @@ export default function BudgetPage() {
                 onChange={(e) => setAmount(e.target.value)}
                 required
               />
+            </div>
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="rollover"
+                checked={rollover}
+                onChange={(e) => setRollover(e.target.checked)}
+                className="h-4 w-4 rounded border-input"
+              />
+              <Label htmlFor="rollover" className="cursor-pointer">
+                Rollover — ยอดเหลือจากเดือนก่อนบวกเพิ่มอัตโนมัติ
+              </Label>
             </div>
             <DialogFooter>
               <Button

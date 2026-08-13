@@ -1,7 +1,12 @@
-import { IsNumber, IsPositive } from 'class-validator';
+import { IsBoolean, IsNumber, IsOptional, IsPositive } from 'class-validator';
 
 export class UpdateBudgetDto {
   @IsNumber()
   @IsPositive()
-  amount!: number;
+  @IsOptional()
+  amount?: number;
+
+  @IsBoolean()
+  @IsOptional()
+  rollover?: boolean;
 }
