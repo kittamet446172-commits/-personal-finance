@@ -172,7 +172,7 @@ export default function DashboardPage() {
       </Card>
 
       {/* Net Worth History */}
-      {netWorthHistory.length > 1 && (
+      {netWorthHistory.length >= 1 && (
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Net Worth ย้อนหลัง</CardTitle>
