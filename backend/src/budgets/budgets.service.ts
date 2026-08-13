@@ -37,62 +37,11 @@ export class BudgetsService {
       spending.map((s) => [s.categoryId, Number(s._sum.amount ?? 0)]),
     );
 
-    // Compute rollover amounts for budgets that have rollover enabled
-    const rolloverBudgets = budgets.filter((b) => b.rollover);
-    const rolledAmountMap = new Map<string, number>();
-
-    if (rolloverBudgets.length > 0) {
-      const prevMonth = month === 1 ? 12 : month - 1;
-      const prevYear = month === 1 ? year - 1 : year;
-      const prevStart = new Date(prevYear, prevMonth - 1, 1);
-      const prevEnd = new Date(prevYear, prevMonth, 1);
-
-      const prevBudgets = await this.prisma.budget.findMany({
-        where: {
-          userId,
-          month: prevMonth,
-          year: prevYear,
-          categoryId: { in: rolloverBudgets.map((b) => b.categoryId) },
-        },
-      });
-
-      if (prevBudgets.length > 0) {
-        const prevSpending = await this.prisma.transaction.groupBy({
-          by: ['categoryId'],
-          where: {
-            userId,
-            type: TransactionType.EXPENSE,
-            date: { gte: prevStart, lt: prevEnd },
-            categoryId: { in: prevBudgets.map((b) => b.categoryId) },
-          },
-          _sum: { amount: true },
-        });
-
-        const prevSpentMap = new Map(
-          prevSpending.map((s) => [s.categoryId, Number(s._sum.amount ?? 0)]),
-        );
-
-        for (const pb of prevBudgets) {
-          const prevRemaining =
-            Number(pb.amount) - (prevSpentMap.get(pb.categoryId) ?? 0);
-          if (prevRemaining > 0) {
-            rolledAmountMap.set(pb.categoryId, prevRemaining);
-          }
-        }
-      }
-    }
-
-    return budgets.map((b) => {
-      const spent = spentMap.get(b.categoryId) ?? 0;
-      const rolledAmount = rolledAmountMap.get(b.categoryId) ?? 0;
-      const effectiveAmount = Number(b.amount) + rolledAmount;
-      return {
-        ...b,
-        spent,
-        rolledAmount,
-        remaining: effectiveAmount - spent,
-      };
-    });
+    return budgets.map((b) => ({
+      ...b,
+      spent: spentMap.get(b.categoryId) ?? 0,
+      remaining: Number(b.amount) - (spentMap.get(b.categoryId) ?? 0),
+    }));
   }
 
   async findOne(id: string, userId: string) {
@@ -119,7 +68,6 @@ export class BudgetsService {
         amount: dto.amount,
         month: dto.month,
         year: dto.year,
-        rollover: dto.rollover ?? false,
       },
       include: { category: true },
     });
@@ -129,10 +77,7 @@ export class BudgetsService {
     await this.findOne(id, userId);
     return this.prisma.budget.update({
       where: { id },
-      data: {
-        ...(dto.amount !== undefined && { amount: dto.amount }),
-        ...(dto.rollover !== undefined && { rollover: dto.rollover }),
-      },
+      data: { amount: dto.amount },
       include: { category: true },
     });
   }

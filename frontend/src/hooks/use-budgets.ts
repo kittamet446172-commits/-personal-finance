@@ -19,7 +19,7 @@ export function useBudgets(month: number, year: number) {
 export function useCreateBudget() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: Omit<Budget, 'id' | 'category' | 'spent' | 'remaining' | 'rolledAmount'>) =>
+    mutationFn: (data: Omit<Budget, 'id' | 'category' | 'spent' | 'remaining'>) =>
       api.post<Budget>('/budgets', data),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: budgetKeys.all }),
@@ -29,8 +29,8 @@ export function useCreateBudget() {
 export function useUpdateBudget() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, amount, rollover }: { id: string; amount?: number; rollover?: boolean }) =>
-      api.patch<Budget>(`/budgets/${id}`, { amount, rollover }),
+    mutationFn: ({ id, amount }: { id: string; amount: number }) =>
+      api.patch<Budget>(`/budgets/${id}`, { amount }),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: budgetKeys.all }),
   })

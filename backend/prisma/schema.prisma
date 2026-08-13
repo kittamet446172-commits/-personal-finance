@@ -147,7 +147,6 @@ model Budget {
   amount     Decimal  @db.Decimal(15, 2)
   month      Int
   year       Int
-  rollover   Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 

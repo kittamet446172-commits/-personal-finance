@@ -122,8 +122,6 @@ export interface Budget {
   amount: number
   month: number
   year: number
-  rollover: boolean
-  rolledAmount: number
   category?: Category
   spent: number
   remaining: number
