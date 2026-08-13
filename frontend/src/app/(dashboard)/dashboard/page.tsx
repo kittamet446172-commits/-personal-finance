@@ -1,11 +1,13 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight, ShieldCheck } from 'lucide-react'
 import {
   Bar,
   BarChart,
   CartesianGrid,
+  Line,
+  LineChart,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -17,6 +19,7 @@ import { useMonthlyStats, useRecentTransactions } from '@/hooks/use-transactions
 import { useCategoryBreakdown, useDailyBreakdown } from '@/hooks/use-reports'
 import { usePortfolio } from '@/hooks/use-investments'
 import { useUserSettings } from '@/hooks/use-user-settings'
+import { useNetWorthHistory, useTakeSnapshot } from '@/hooks/use-net-worth'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import type { TransactionType } from '@/types'
@@ -125,6 +128,13 @@ export default function DashboardPage() {
   }))
 
   const { data: settings } = useUserSettings()
+  const { data: netWorthHistory = [] } = useNetWorthHistory(6)
+  const takeSnapshot = useTakeSnapshot()
+
+  useEffect(() => {
+    takeSnapshot.mutate()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const emergencyAccount = accounts.find((a) => a.id === settings?.emergencyFundAccountId)
   const savingsTotal = Number(emergencyAccount?.balance ?? 0)
@@ -160,6 +170,54 @@ export default function DashboardPage() {
           </p>
         </CardContent>
       </Card>
+
+      {/* Net Worth History */}
+      {netWorthHistory.length > 1 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Net Worth ย้อนหลัง</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={180}>
+              <LineChart
+                data={netWorthHistory.map((s) => ({
+                  date: new Date(s.date).toLocaleDateString('th-TH', { month: 'short', day: 'numeric' }),
+                  netWorth: Number(s.netWorth),
+                }))}
+                margin={{ left: 8, right: 16, top: 8 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                <XAxis dataKey="date" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis
+                  tickFormatter={(v: number) => v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)}
+                  tick={{ fontSize: 11 }}
+                  axisLine={false}
+                  tickLine={false}
+                  width={48}
+                />
+                <Tooltip
+                  contentStyle={{
+                    padding: '8px 12px',
+                    fontSize: '13px',
+                    backgroundColor: 'hsl(var(--card))',
+                    borderColor: 'hsl(var(--border))',
+                    borderRadius: '8px',
+                  }}
+                  formatter={(value: unknown) => [formatCurrency(Number(value)), 'Net Worth']}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="netWorth"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={2}
+                  dot={{ r: 3, fill: 'hsl(var(--primary))' }}
+                  activeDot={{ r: 5 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Emergency Fund */}
       <Card>

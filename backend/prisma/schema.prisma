@@ -30,6 +30,7 @@ model User {
   InvestmentHolding   InvestmentHolding[]
   InvestmentTransaction InvestmentTransaction[]
   Dividend  Dividend[]
+  NetWorthSnapshot NetWorthSnapshot[]
 
   @@map("users")
 }
@@ -236,6 +237,21 @@ model Dividend {
   holding InvestmentHolding @relation(fields: [holdingId], references: [id], onDelete: Cascade)
 
   @@map("dividends")
+}
+
+model NetWorthSnapshot {
+  id               String   @id @default(cuid())
+  userId           String
+  totalAccounts    Decimal  @db.Decimal(15, 2)
+  totalInvestments Decimal  @db.Decimal(15, 2)
+  netWorth         Decimal  @db.Decimal(15, 2)
+  date             DateTime @db.Date
+  createdAt        DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@map("net_worth_snapshots")
 }
 
 model UserSettings {

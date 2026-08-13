@@ -13,6 +13,7 @@ import { InvestmentsModule } from './investments/investments.module';
 import { DividendsModule } from './dividends/dividends.module';
 import { HealthModule } from './health/health.module';
 import { UserSettingsModule } from './user-settings/user-settings.module';
+import { NetWorthModule } from './net-worth/net-worth.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { UserSettingsModule } from './user-settings/user-settings.module';
     DividendsModule,
     HealthModule,
     UserSettingsModule,
+    NetWorthModule,
   ],
 })
 export class AppModule {}

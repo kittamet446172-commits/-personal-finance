@@ -8,6 +8,6 @@ import { StockPriceCronService } from './stock-price-cron.service';
 @Module({
   controllers: [InvestmentsController],
   providers: [InvestmentsService, ExchangeRateService, StockPriceService, StockPriceCronService],
-  exports: [StockPriceService, StockPriceCronService],
+  exports: [InvestmentsService, StockPriceService, StockPriceCronService],
 })
 export class InvestmentsModule {}
