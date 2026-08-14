@@ -1,8 +1,9 @@
 'use client'
 
 import { useRef, useState, useEffect } from 'react'
-import { Camera, ShieldCheck } from 'lucide-react'
+import { Camera, KeyRound, ShieldCheck } from 'lucide-react'
 import { useSession } from '@/lib/auth-client'
+import { authClient } from '@/lib/auth-client'
 import { api } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -29,6 +30,43 @@ export default function SettingsPage() {
   const [selectedAccountId, setSelectedAccountId] = useState('')
   const [salaryInput, setSalaryInput] = useState('')
   const [efSuccess, setEfSuccess] = useState(false)
+
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [pwLoading, setPwLoading] = useState(false)
+  const [pwSuccess, setPwSuccess] = useState(false)
+  const [pwError, setPwError] = useState('')
+
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault()
+    setPwSuccess(false)
+    setPwError('')
+    if (newPassword !== confirmPassword) {
+      setPwError('รหัสผ่านใหม่ไม่ตรงกัน')
+      return
+    }
+    if (newPassword.length < 8) {
+      setPwError('รหัสผ่านใหม่ต้องมีอย่างน้อย 8 ตัวอักษร')
+      return
+    }
+    setPwLoading(true)
+    try {
+      const result = await authClient.changePassword({ currentPassword, newPassword, revokeOtherSessions: false })
+      if (result.error) {
+        setPwError('รหัสผ่านเดิมไม่ถูกต้อง')
+      } else {
+        setPwSuccess(true)
+        setCurrentPassword('')
+        setNewPassword('')
+        setConfirmPassword('')
+      }
+    } catch {
+      setPwError('เปลี่ยนรหัสผ่านไม่สำเร็จ กรุณาลองใหม่')
+    } finally {
+      setPwLoading(false)
+    }
+  }
 
   useEffect(() => {
     if (settings) {
@@ -214,6 +252,60 @@ export default function SettingsPage() {
           <Button onClick={saveEfSettings} disabled={upsertSettings.isPending}>
             {upsertSettings.isPending ? 'กำลังบันทึก...' : 'บันทึก'}
           </Button>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-1.5"><KeyRound className="h-5 w-5 text-primary" />เปลี่ยนรหัสผ่าน</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleChangePassword} className="space-y-4">
+            {pwSuccess && (
+              <p className="text-sm text-amber-700 bg-amber-50 px-3 py-2 rounded-md">
+                เปลี่ยนรหัสผ่านเรียบร้อยแล้ว
+              </p>
+            )}
+            {pwError && (
+              <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md">
+                {pwError}
+              </p>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="currentPassword">รหัสผ่านเดิม</Label>
+              <Input
+                id="currentPassword"
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="newPassword">รหัสผ่านใหม่</Label>
+              <Input
+                id="newPassword"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+                minLength={8}
+                placeholder="อย่างน้อย 8 ตัวอักษร"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">ยืนยันรหัสผ่านใหม่</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
+            </div>
+            <Button type="submit" disabled={pwLoading || !currentPassword || !newPassword || !confirmPassword}>
+              {pwLoading ? 'กำลังเปลี่ยน...' : 'เปลี่ยนรหัสผ่าน'}
+            </Button>
+          </form>
         </CardContent>
       </Card>
     </div>
