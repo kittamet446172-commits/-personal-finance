@@ -28,8 +28,7 @@ export default function BillsPage() {
   const [editing, setEditing] = useState<Bill | null>(null)
   const [name, setName] = useState('')
   const [amount, setAmount] = useState('')
-  const [dueDay, setDueDay] = useState('')
-  const [dueMonth, setDueMonth] = useState('')
+  const [dueDate, setDueDate] = useState('')
   const [frequency, setFrequency] = useState<'MONTHLY' | 'YEARLY'>('MONTHLY')
   const [note, setNote] = useState('')
 
@@ -40,7 +39,7 @@ export default function BillsPage() {
 
   function openCreate() {
     setEditing(null)
-    setName(''); setAmount(''); setDueDay(''); setDueMonth(''); setNote('')
+    setName(''); setAmount(''); setDueDate(''); setNote('')
     setFrequency('MONTHLY')
     setOpen(true)
   }
@@ -49,8 +48,10 @@ export default function BillsPage() {
     setEditing(bill)
     setName(bill.name)
     setAmount(String(bill.amount))
-    setDueDay(String(bill.dueDay))
-    setDueMonth(bill.dueMonth ? String(bill.dueMonth) : '')
+    const now = new Date()
+    const m = bill.dueMonth ?? (now.getMonth() + 1)
+    const y = now.getFullYear()
+    setDueDate(`${y}-${String(m).padStart(2, '0')}-${String(bill.dueDay).padStart(2, '0')}`)
     setFrequency(bill.frequency ?? 'MONTHLY')
     setNote(bill.note ?? '')
     setOpen(true)
@@ -58,11 +59,14 @@ export default function BillsPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    const parsed = new Date(dueDate)
+    const dueDay = parsed.getDate()
+    const dueMonth = parsed.getMonth() + 1
     const data = {
       name,
       amount: Number(amount),
-      dueDay: Number(dueDay),
-      dueMonth: frequency === 'YEARLY' ? Number(dueMonth) : null,
+      dueDay,
+      dueMonth: frequency === 'YEARLY' ? dueMonth : null,
       frequency,
       note: note || undefined,
       isActive: true,
@@ -175,24 +179,19 @@ export default function BillsPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className={`grid gap-3 ${frequency === 'YEARLY' ? 'grid-cols-2' : ''}`}>
-              {frequency === 'YEARLY' && (
-                <div className="space-y-2">
-                  <Label>เดือน</Label>
-                  <Select value={dueMonth} onValueChange={setDueMonth}>
-                    <SelectTrigger><SelectValue placeholder="เลือกเดือน" /></SelectTrigger>
-                    <SelectContent>
-                      {MONTHS.map((m, i) => (
-                        <SelectItem key={i + 1} value={String(i + 1)}>{m}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+            <div className="space-y-2">
+              <Label>{frequency === 'YEARLY' ? 'วันและเดือนครบกำหนด' : 'วันที่ครบกำหนด'}</Label>
+              <Input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                required
+              />
+              {frequency === 'MONTHLY' && dueDate && (
+                <p className="text-xs text-muted-foreground">
+                  จะใช้เฉพาะวันที่ {new Date(dueDate).getDate()} ของทุกเดือน
+                </p>
               )}
-              <div className="space-y-2">
-                <Label>วันที่ครบกำหนด</Label>
-                <Input type="number" min="1" max="31" value={dueDay} onChange={(e) => setDueDay(e.target.value)} placeholder="1-31" required />
-              </div>
             </div>
             <div className="space-y-2">
               <Label>หมายเหตุ</Label>
