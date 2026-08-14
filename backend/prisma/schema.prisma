@@ -241,15 +241,17 @@ model Dividend {
 }
 
 model Bill {
-  id        String   @id @default(cuid())
+  id        String        @id @default(cuid())
   userId    String
   name      String
-  amount    Decimal  @db.Decimal(15, 2)
+  amount    Decimal       @db.Decimal(15, 2)
   dueDay    Int
-  isActive  Boolean  @default(true)
+  dueMonth  Int?
+  frequency BillFrequency @default(MONTHLY)
+  isActive  Boolean       @default(true)
   note      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -307,4 +309,9 @@ enum InvestmentType {
 enum LotType {
   BUY
   SELL
+}
+
+enum BillFrequency {
+  MONTHLY
+  YEARLY
 }

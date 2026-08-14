@@ -132,6 +132,8 @@ export interface Bill {
   name: string
   amount: number
   dueDay: number
+  dueMonth?: number | null
+  frequency: 'MONTHLY' | 'YEARLY'
   isActive: boolean
   note?: string
   createdAt: string

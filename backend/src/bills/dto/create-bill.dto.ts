@@ -1,4 +1,9 @@
-import { IsBoolean, IsInt, IsNumber, IsOptional, IsPositive, IsString, Max, Min } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsPositive, IsString, Max, Min } from 'class-validator';
+
+export enum BillFrequency {
+  MONTHLY = 'MONTHLY',
+  YEARLY = 'YEARLY',
+}
 
 export class CreateBillDto {
   @IsString()
@@ -12,6 +17,16 @@ export class CreateBillDto {
   @Min(1)
   @Max(31)
   dueDay!: number;
+
+  @IsInt()
+  @Min(1)
+  @Max(12)
+  @IsOptional()
+  dueMonth?: number;
+
+  @IsEnum(BillFrequency)
+  @IsOptional()
+  frequency?: BillFrequency;
 
   @IsBoolean()
   @IsOptional()

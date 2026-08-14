@@ -10,8 +10,18 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { formatCurrency } from '@/lib/utils'
 import type { Bill } from '@/types'
+
+const MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม']
+
+function billDueLabel(bill: Bill) {
+  if (bill.frequency === 'YEARLY' && bill.dueMonth) {
+    return `ทุกวันที่ ${bill.dueDay} ${MONTHS[bill.dueMonth - 1]} (รายปี)`
+  }
+  return `ทุกวันที่ ${bill.dueDay} ของเดือน`
+}
 
 export default function BillsPage() {
   const [open, setOpen] = useState(false)
@@ -19,6 +29,8 @@ export default function BillsPage() {
   const [name, setName] = useState('')
   const [amount, setAmount] = useState('')
   const [dueDay, setDueDay] = useState('')
+  const [dueMonth, setDueMonth] = useState('')
+  const [frequency, setFrequency] = useState<'MONTHLY' | 'YEARLY'>('MONTHLY')
   const [note, setNote] = useState('')
 
   const { data: bills = [], isLoading } = useBills()
@@ -28,7 +40,8 @@ export default function BillsPage() {
 
   function openCreate() {
     setEditing(null)
-    setName(''); setAmount(''); setDueDay(''); setNote('')
+    setName(''); setAmount(''); setDueDay(''); setDueMonth(''); setNote('')
+    setFrequency('MONTHLY')
     setOpen(true)
   }
 
@@ -37,13 +50,23 @@ export default function BillsPage() {
     setName(bill.name)
     setAmount(String(bill.amount))
     setDueDay(String(bill.dueDay))
+    setDueMonth(bill.dueMonth ? String(bill.dueMonth) : '')
+    setFrequency(bill.frequency ?? 'MONTHLY')
     setNote(bill.note ?? '')
     setOpen(true)
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const data = { name, amount: Number(amount), dueDay: Number(dueDay), note: note || undefined, isActive: true }
+    const data = {
+      name,
+      amount: Number(amount),
+      dueDay: Number(dueDay),
+      dueMonth: frequency === 'YEARLY' ? Number(dueMonth) : null,
+      frequency,
+      note: note || undefined,
+      isActive: true,
+    }
     if (editing) {
       await updateMutation.mutateAsync({ id: editing.id, ...data })
     } else {
@@ -62,7 +85,8 @@ export default function BillsPage() {
   }
 
   const isPending = createMutation.isPending || updateMutation.isPending
-  const totalMonthly = bills.filter((b) => b.isActive).reduce((s, b) => s + Number(b.amount), 0)
+  const monthlyTotal = bills.filter((b) => b.isActive && b.frequency !== 'YEARLY').reduce((s, b) => s + Number(b.amount), 0)
+  const yearlyTotal = bills.filter((b) => b.isActive && b.frequency === 'YEARLY').reduce((s, b) => s + Number(b.amount), 0)
 
   return (
     <div className="space-y-6">
@@ -70,9 +94,10 @@ export default function BillsPage() {
         <div>
           <h1 className="text-2xl font-bold">บิล / Subscription</h1>
           {bills.length > 0 && (
-            <p className="text-sm text-muted-foreground mt-0.5">
-              รวม {formatCurrency(totalMonthly)} / เดือน
-            </p>
+            <div className="text-sm text-muted-foreground mt-0.5 space-x-2">
+              {monthlyTotal > 0 && <span>รายเดือน {formatCurrency(monthlyTotal)}</span>}
+              {yearlyTotal > 0 && <span>· รายปี {formatCurrency(yearlyTotal)}</span>}
+            </div>
           )}
         </div>
         <Button onClick={openCreate}>
@@ -103,7 +128,7 @@ export default function BillsPage() {
                   />
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">{bill.name}</p>
-                    <p className="text-xs text-muted-foreground">ทุกวันที่ {bill.dueDay}</p>
+                    <p className="text-xs text-muted-foreground">{billDueLabel(bill)}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -134,15 +159,38 @@ export default function BillsPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label>ชื่อ</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="เช่น Netflix, iCloud" required />
+              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="เช่น Netflix, ประกันรถ" required />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>จำนวน (บาท)</Label>
+              <Input type="number" step="0.01" min="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} required />
+            </div>
+            <div className="space-y-2">
+              <Label>ความถี่</Label>
+              <Select value={frequency} onValueChange={(v) => setFrequency(v as 'MONTHLY' | 'YEARLY')}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="MONTHLY">รายเดือน</SelectItem>
+                  <SelectItem value="YEARLY">รายปี</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className={`grid gap-3 ${frequency === 'YEARLY' ? 'grid-cols-2' : ''}`}>
+              {frequency === 'YEARLY' && (
+                <div className="space-y-2">
+                  <Label>เดือน</Label>
+                  <Select value={dueMonth} onValueChange={setDueMonth}>
+                    <SelectTrigger><SelectValue placeholder="เลือกเดือน" /></SelectTrigger>
+                    <SelectContent>
+                      {MONTHS.map((m, i) => (
+                        <SelectItem key={i + 1} value={String(i + 1)}>{m}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="space-y-2">
-                <Label>จำนวน (บาท)</Label>
-                <Input type="number" step="0.01" min="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} required />
-              </div>
-              <div className="space-y-2">
-                <Label>ครบกำหนดวันที่</Label>
+                <Label>วันที่ครบกำหนด</Label>
                 <Input type="number" min="1" max="31" value={dueDay} onChange={(e) => setDueDay(e.target.value)} placeholder="1-31" required />
               </div>
             </div>
@@ -152,7 +200,9 @@ export default function BillsPage() {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>ยกเลิก</Button>
-              <Button type="submit" disabled={isPending}>{isPending ? 'กำลังบันทึก...' : 'บันทึก'}</Button>
+              <Button type="submit" disabled={isPending || (frequency === 'YEARLY' && !dueMonth)}>
+                {isPending ? 'กำลังบันทึก...' : 'บันทึก'}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>

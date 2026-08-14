@@ -16,16 +16,22 @@ export class BillsService {
 
   async findUpcoming(userId: string, days = 7) {
     const today = new Date();
-    const todayDay = today.getDate();
+    today.setHours(0, 0, 0, 0);
     const bills = await this.prisma.bill.findMany({
       where: { userId, isActive: true },
-      orderBy: { dueDay: 'asc' },
     });
 
     return bills.map((b) => {
-      const thisMonth = new Date(today.getFullYear(), today.getMonth(), b.dueDay);
-      const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, b.dueDay);
-      const nextDue = thisMonth >= today ? thisMonth : nextMonth;
+      let nextDue: Date;
+      if (b.frequency === 'YEARLY' && b.dueMonth) {
+        const thisYear = new Date(today.getFullYear(), b.dueMonth - 1, b.dueDay);
+        const nextYear = new Date(today.getFullYear() + 1, b.dueMonth - 1, b.dueDay);
+        nextDue = thisYear >= today ? thisYear : nextYear;
+      } else {
+        const thisMonth = new Date(today.getFullYear(), today.getMonth(), b.dueDay);
+        const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, b.dueDay);
+        nextDue = thisMonth >= today ? thisMonth : nextMonth;
+      }
       const daysLeft = Math.ceil((nextDue.getTime() - today.getTime()) / 86400000);
       return { ...b, nextDue, daysLeft };
     }).filter((b) => b.daysLeft <= days).sort((a, b) => a.daysLeft - b.daysLeft);
