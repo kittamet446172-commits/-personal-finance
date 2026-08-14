@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Wallet, Plus, TrendingUp, LayoutGrid } from 'lucide-react'
+import { Home, Wallet, Plus, TrendingUp, Bell } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -19,26 +19,14 @@ import {
 import { useAccounts } from '@/hooks/use-accounts'
 import { useCategories } from '@/hooks/use-categories'
 import { useCreateTransaction } from '@/hooks/use-transactions'
+import { useUpcomingBills } from '@/hooks/use-bills'
 import type { TransactionType } from '@/types'
-
-const moreTabs = [
-  { href: '/expense', label: 'รายจ่าย', icon: '/icons/expense.svg', colored: true },
-  { href: '/income', label: 'รายรับ', icon: '/icons/income.svg', colored: true },
-  { href: '/transfers', label: 'โอนเงิน', icon: '/icons/transaction.svg', colored: false },
-  { href: '/budget', label: 'งบประมาณ', icon: '/icons/budget.svg', colored: false },
-  { href: '/investments', label: 'ลงทุน', icon: '/icons/investment.svg', colored: false },
-  { href: '/dividends', label: 'เงินปันผล', icon: '/icons/portfolio.svg', colored: false },
-  { href: '/bills', label: 'บิล', icon: '/icons/budget.svg', colored: false },
-  { href: '/categories', label: 'หมวดหมู่', icon: '/icons/receipt.svg', colored: false },
-  { href: '/reports', label: 'รายงาน', icon: '/icons/report.svg', colored: false },
-  { href: '/settings', label: 'ตั้งค่า', icon: '/icons/settings.svg', colored: false },
-]
 
 export function BottomNav() {
   const pathname = usePathname()
   const [addOpen, setAddOpen] = useState(false)
-  const [moreOpen, setMoreOpen] = useState(false)
   const [type, setType] = useState<TransactionType>('EXPENSE')
+  const { data: upcomingBills = [] } = useUpcomingBills(7)
   const [amount, setAmount] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [accountId, setAccountId] = useState('')
@@ -73,9 +61,10 @@ export function BottomNav() {
     )
   }
 
-  const isActive = (href: string) => pathname === href
+  const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
   const activeClass = 'text-[#B45309] dark:text-amber-400'
   const inactiveClass = 'text-muted-foreground'
+  const urgentBills = upcomingBills.filter((b) => b.daysLeft <= 3).length
 
   return (
     <>
@@ -113,13 +102,20 @@ export function BottomNav() {
           <span>บัญชี</span>
         </Link>
 
-        <button
-          onClick={() => setMoreOpen(true)}
-          className={cn('flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-xs font-medium', moreOpen ? activeClass : inactiveClass)}
+        <Link
+          href="/notifications"
+          className={cn('flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-xs font-medium relative', isActive('/notifications') ? activeClass : inactiveClass)}
         >
-          <LayoutGrid className="h-5 w-5" />
-          <span>เพิ่มเติม</span>
-        </button>
+          <div className="relative">
+            <Bell className="h-5 w-5" />
+            {urgentBills > 0 && (
+              <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                {urgentBills}
+              </span>
+            )}
+          </div>
+          <span>แจ้งเตือน</span>
+        </Link>
       </nav>
 
       {/* Quick Add Dialog */}
@@ -185,36 +181,6 @@ export function BottomNav() {
         </DialogContent>
       </Dialog>
 
-      {/* More Menu Dialog */}
-      <Dialog open={moreOpen} onOpenChange={setMoreOpen}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>เมนูทั้งหมด</DialogTitle>
-          </DialogHeader>
-          <div className="grid grid-cols-3 gap-2">
-            {moreTabs.map(({ href, label, icon, colored }) => (
-              <Link
-                key={href}
-                href={href}
-                onClick={() => setMoreOpen(false)}
-                className={cn(
-                  'flex flex-col items-center gap-1.5 rounded-xl p-3 text-xs font-medium transition-colors',
-                  pathname === href
-                    ? 'bg-[#FFF3CD] dark:bg-amber-900/40 text-[#B45309] dark:text-amber-400'
-                    : 'bg-muted/50 text-muted-foreground hover:bg-muted',
-                )}
-              >
-                <img
-                  src={icon}
-                  alt={label}
-                  className={cn('h-6 w-6', !colored && 'dark:brightness-0 dark:invert')}
-                />
-                <span className="text-center leading-tight">{label}</span>
-              </Link>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
     </>
   )
 }

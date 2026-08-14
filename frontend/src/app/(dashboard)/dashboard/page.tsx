@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
 import { ChevronLeft, ChevronRight, ShieldCheck } from 'lucide-react'
 import {
   Bar,
@@ -159,6 +160,19 @@ export default function DashboardPage() {
     return { ...d, start, end: pieAngle }
   })
 
+  const quickActions = [
+    { href: '/expense', label: 'รายจ่าย', icon: '/icons/expense.svg', colored: true },
+    { href: '/income', label: 'รายรับ', icon: '/icons/income.svg', colored: true },
+    { href: '/transfers', label: 'โอนเงิน', icon: '/icons/transaction.svg', colored: false },
+    { href: '/budget', label: 'งบประมาณ', icon: '/icons/budget.svg', colored: false },
+    { href: '/investments', label: 'ลงทุน', icon: '/icons/investment.svg', colored: false },
+    { href: '/dividends', label: 'เงินปันผล', icon: '/icons/portfolio.svg', colored: false },
+    { href: '/bills', label: 'บิล', icon: '/icons/budget.svg', colored: false },
+    { href: '/categories', label: 'หมวดหมู่', icon: '/icons/receipt.svg', colored: false },
+    { href: '/reports', label: 'รายงาน', icon: '/icons/report.svg', colored: false },
+    { href: '/settings', label: 'ตั้งค่า', icon: '/icons/settings.svg', colored: false },
+  ]
+
   return (
     <div className="space-y-6">
 
@@ -172,6 +186,20 @@ export default function DashboardPage() {
           </p>
         </CardContent>
       </Card>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-5 gap-2">
+        {quickActions.map(({ href, label, icon, colored }) => (
+          <Link
+            key={href}
+            href={href}
+            className="flex flex-col items-center gap-1.5 rounded-xl p-2 text-xs font-medium bg-muted/50 hover:bg-muted transition-colors text-muted-foreground"
+          >
+            <img src={icon} alt={label} className={`h-6 w-6 ${!colored ? 'dark:brightness-0 dark:invert' : ''}`} />
+            <span className="text-center leading-tight text-[10px]">{label}</span>
+          </Link>
+        ))}
+      </div>
 
       {/* Net Worth History */}
       {netWorthHistory.length >= 1 && (
