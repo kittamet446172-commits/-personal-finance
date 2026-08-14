@@ -199,7 +199,7 @@ export default function BillsPage() {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>ยกเลิก</Button>
-              <Button type="submit" disabled={isPending || (frequency === 'YEARLY' && !dueMonth)}>
+              <Button type="submit" disabled={isPending || !dueDate}>
                 {isPending ? 'กำลังบันทึก...' : 'บันทึก'}
               </Button>
             </DialogFooter>
