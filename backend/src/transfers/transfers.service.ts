@@ -1,20 +1,56 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTransferDto } from './dto/create-transfer.dto';
+import { QueryTransferDto } from './dto/query-transfer.dto';
 
 @Injectable()
 export class TransfersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(userId: string) {
-    return this.prisma.transfer.findMany({
-      where: { userId },
-      include: {
-        fromAccount: { select: { id: true, name: true } },
-        toAccount: { select: { id: true, name: true } },
-      },
-      orderBy: { date: 'desc' },
-    });
+  async findAll(userId: string, query: QueryTransferDto) {
+    const page = Number(query.page ?? 1);
+    const limit = Math.min(Number(query.limit ?? 20), 100);
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.TransferWhereInput = {
+      userId,
+      ...(query.month || query.year
+        ? {
+            date: {
+              gte: new Date(
+                Number(query.year ?? new Date().getFullYear()),
+                Number(query.month ?? 1) - 1,
+                1,
+              ),
+              lt: new Date(
+                Number(query.year ?? new Date().getFullYear()),
+                Number(query.month ?? 12),
+                1,
+              ),
+            },
+          }
+        : {}),
+      ...(query.search && {
+        description: { contains: query.search, mode: 'insensitive' },
+      }),
+    };
+
+    const [total, data] = await Promise.all([
+      this.prisma.transfer.count({ where }),
+      this.prisma.transfer.findMany({
+        where,
+        include: {
+          fromAccount: { select: { id: true, name: true } },
+          toAccount: { select: { id: true, name: true } },
+        },
+        orderBy: { date: 'desc' },
+        skip,
+        take: limit,
+      }),
+    ]);
+
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
   async create(userId: string, dto: CreateTransferDto) {

@@ -1,9 +1,10 @@
-import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { TransfersService } from './transfers.service';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../common/types/request.type';
 import { CreateTransferDto } from './dto/create-transfer.dto';
+import { QueryTransferDto } from './dto/query-transfer.dto';
 
 @Controller('transfers')
 @UseGuards(AuthGuard)
@@ -11,8 +12,8 @@ export class TransfersController {
   constructor(private readonly transfersService: TransfersService) {}
 
   @Get()
-  findAll(@CurrentUser() user: AuthenticatedUser) {
-    return this.transfersService.findAll(user.id);
+  findAll(@CurrentUser() user: AuthenticatedUser, @Query() query: QueryTransferDto) {
+    return this.transfersService.findAll(user.id, query);
   }
 
   @Post()

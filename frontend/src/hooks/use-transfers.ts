@@ -4,7 +4,23 @@ import type { Transfer } from '@/types'
 
 export const transferKeys = {
   all: ['transfers'] as const,
-  lists: () => [...transferKeys.all, 'list'] as const,
+  lists: (params?: TransferQuery) => [...transferKeys.all, 'list', params] as const,
+}
+
+interface TransferQuery {
+  month?: number
+  year?: number
+  search?: string
+  page?: number
+  limit?: number
+}
+
+interface PaginatedTransfers {
+  data: Transfer[]
+  total: number
+  page: number
+  limit: number
+  totalPages: number
 }
 
 interface CreateTransferDto {
@@ -15,10 +31,19 @@ interface CreateTransferDto {
   description?: string
 }
 
-export function useTransfers() {
+export function useTransfers(params?: TransferQuery) {
+  const searchParams = new URLSearchParams()
+  if (params?.month) searchParams.set('month', String(params.month))
+  if (params?.year) searchParams.set('year', String(params.year))
+  if (params?.search) searchParams.set('search', params.search)
+  if (params?.page) searchParams.set('page', String(params.page))
+  if (params?.limit) searchParams.set('limit', String(params.limit))
+
+  const qs = searchParams.toString()
+
   return useQuery({
-    queryKey: transferKeys.lists(),
-    queryFn: () => api.get<Transfer[]>('/transfers'),
+    queryKey: transferKeys.lists(params),
+    queryFn: () => api.get<PaginatedTransfers>(`/transfers${qs ? `?${qs}` : ''}`),
   })
 }
 
