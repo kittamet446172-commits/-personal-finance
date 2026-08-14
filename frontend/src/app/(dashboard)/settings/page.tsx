@@ -47,8 +47,8 @@ export default function SettingsPage() {
     e.preventDefault()
     setPinError('')
     setPinSuccess('')
-    if (newPin.length !== 4 || !/^\d{4}$/.test(newPin)) {
-      setPinError('PIN ต้องเป็นตัวเลข 4 หลัก')
+    if (newPin.length !== 6 || !/^\d{6}$/.test(newPin)) {
+      setPinError('PIN ต้องเป็นตัวเลข 6 หลัก')
       return
     }
     if (newPin !== confirmPin) {
@@ -312,14 +312,14 @@ export default function SettingsPage() {
           </p>
           <form onSubmit={handleSetPin} className="space-y-3">
             <div className="space-y-2">
-              <Label htmlFor="newPin">{pinExists ? 'PIN ใหม่' : 'PIN'} (4 หลัก)</Label>
+              <Label htmlFor="newPin">{pinExists ? 'PIN ใหม่' : 'PIN'} (6 หลัก)</Label>
               <Input
                 id="newPin"
                 type="password"
                 inputMode="numeric"
-                maxLength={4}
+                maxLength={6}
                 value={newPin}
-                onChange={(e) => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                onChange={(e) => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 placeholder="••••"
                 required
               />
@@ -332,7 +332,7 @@ export default function SettingsPage() {
                 inputMode="numeric"
                 maxLength={4}
                 value={confirmPin}
-                onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 placeholder="••••"
                 required
               />

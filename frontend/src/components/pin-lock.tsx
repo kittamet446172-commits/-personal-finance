@@ -17,10 +17,10 @@ export function PinLock({ onUnlock }: PinLockProps) {
 
   const handleDigit = useCallback(async (d: string) => {
     setDigits((prev) => {
-      if (prev.length >= 4) return prev
+      if (prev.length >= 6) return prev
       const next = [...prev, d]
 
-      if (next.length === 4) {
+      if (next.length === 6) {
         const pin = next.join('')
         verifyPin(pin).then((ok) => {
           if (ok) {
@@ -52,7 +52,7 @@ export function PinLock({ onUnlock }: PinLockProps) {
       <p className="text-sm text-muted-foreground mb-10">กรอกรหัส PIN เพื่อเข้าใช้งาน</p>
 
       <div className={`flex gap-5 mb-12 ${shaking ? 'animate-shake' : ''}`}>
-        {[0, 1, 2, 3].map((i) => (
+        {[0, 1, 2, 3, 4, 5].map((i) => (
           <div
             key={i}
             className={`w-4 h-4 rounded-full border-2 transition-colors duration-150 ${
