@@ -1,12 +1,14 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from '@/lib/auth-client'
+import { isPinSet, isSessionUnlocked } from '@/lib/pin'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Navbar } from '@/components/layout/navbar'
 import { BottomNav } from '@/components/layout/bottom-nav'
 import { QuickAddButton } from '@/components/quick-add-button'
+import { PinLock } from '@/components/pin-lock'
 
 export default function DashboardLayout({
   children,
@@ -15,12 +17,19 @@ export default function DashboardLayout({
 }) {
   const { data: session, isPending } = useSession()
   const router = useRouter()
+  const [pinLocked, setPinLocked] = useState(false)
 
   useEffect(() => {
     if (!isPending && !session) {
       router.push('/login')
     }
   }, [session, isPending, router])
+
+  useEffect(() => {
+    if (session && isPinSet() && !isSessionUnlocked()) {
+      setPinLocked(true)
+    }
+  }, [session])
 
   if (isPending) {
     return (
@@ -34,6 +43,7 @@ export default function DashboardLayout({
 
   return (
     <div className="flex h-screen overflow-hidden">
+      {pinLocked && <PinLock onUnlock={() => setPinLocked(false)} />}
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Navbar />

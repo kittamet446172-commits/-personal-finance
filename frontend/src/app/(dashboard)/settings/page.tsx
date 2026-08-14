@@ -1,9 +1,10 @@
 'use client'
 
 import { useRef, useState, useEffect } from 'react'
-import { Camera, KeyRound, ShieldCheck } from 'lucide-react'
+import { Camera, KeyRound, Lock, ShieldCheck } from 'lucide-react'
 import { useSession } from '@/lib/auth-client'
 import { authClient } from '@/lib/auth-client'
+import { isPinSet, setPin, removePin, setSessionUnlocked } from '@/lib/pin'
 import { api } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -30,6 +31,47 @@ export default function SettingsPage() {
   const [selectedAccountId, setSelectedAccountId] = useState('')
   const [salaryInput, setSalaryInput] = useState('')
   const [efSuccess, setEfSuccess] = useState(false)
+
+  const [pinExists, setPinExists] = useState(false)
+  const [newPin, setNewPin] = useState('')
+  const [confirmPin, setConfirmPin] = useState('')
+  const [pinLoading, setPinLoading] = useState(false)
+  const [pinSuccess, setPinSuccess] = useState('')
+  const [pinError, setPinError] = useState('')
+
+  useEffect(() => {
+    setPinExists(isPinSet())
+  }, [])
+
+  async function handleSetPin(e: React.FormEvent) {
+    e.preventDefault()
+    setPinError('')
+    setPinSuccess('')
+    if (newPin.length !== 4 || !/^\d{4}$/.test(newPin)) {
+      setPinError('PIN ต้องเป็นตัวเลข 4 หลัก')
+      return
+    }
+    if (newPin !== confirmPin) {
+      setPinError('PIN ไม่ตรงกัน')
+      return
+    }
+    setPinLoading(true)
+    await setPin(newPin)
+    setSessionUnlocked()
+    setPinExists(true)
+    setNewPin('')
+    setConfirmPin('')
+    setPinSuccess(pinExists ? 'เปลี่ยน PIN เรียบร้อยแล้ว' : 'ตั้ง PIN เรียบร้อยแล้ว')
+    setPinLoading(false)
+  }
+
+  function handleRemovePin() {
+    removePin()
+    setPinExists(false)
+    setPinSuccess('ลบ PIN เรียบร้อยแล้ว')
+    setNewPin('')
+    setConfirmPin('')
+  }
 
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -254,6 +296,61 @@ export default function SettingsPage() {
           </Button>
         </CardContent>
       </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-1.5"><Lock className="h-5 w-5 text-primary" />รหัส PIN</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {pinSuccess && (
+            <p className="text-sm text-amber-700 bg-amber-50 px-3 py-2 rounded-md">{pinSuccess}</p>
+          )}
+          {pinError && (
+            <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md">{pinError}</p>
+          )}
+          <p className="text-sm text-muted-foreground">
+            {pinExists ? 'ตั้ง PIN ไว้แล้ว — เปิดแอปครั้งใหม่จะต้องกรอก PIN' : 'ตั้ง PIN เพื่อล็อกแอปทุกครั้งที่เปิด'}
+          </p>
+          <form onSubmit={handleSetPin} className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="newPin">{pinExists ? 'PIN ใหม่' : 'PIN'} (4 หลัก)</Label>
+              <Input
+                id="newPin"
+                type="password"
+                inputMode="numeric"
+                maxLength={4}
+                value={newPin}
+                onChange={(e) => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                placeholder="••••"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPin">ยืนยัน PIN</Label>
+              <Input
+                id="confirmPin"
+                type="password"
+                inputMode="numeric"
+                maxLength={4}
+                value={confirmPin}
+                onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                placeholder="••••"
+                required
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button type="submit" disabled={pinLoading}>
+                {pinLoading ? 'กำลังบันทึก...' : pinExists ? 'เปลี่ยน PIN' : 'ตั้ง PIN'}
+              </Button>
+              {pinExists && (
+                <Button type="button" variant="outline" onClick={handleRemovePin}>
+                  ลบ PIN
+                </Button>
+              )}
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-1.5"><KeyRound className="h-5 w-5 text-primary" />เปลี่ยนรหัสผ่าน</CardTitle>
