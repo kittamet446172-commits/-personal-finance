@@ -320,7 +320,7 @@ export default function SettingsPage() {
                 maxLength={6}
                 value={newPin}
                 onChange={(e) => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                placeholder="••••"
+                placeholder="••••••"
                 required
               />
             </div>
