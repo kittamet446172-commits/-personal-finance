@@ -330,10 +330,10 @@ export default function SettingsPage() {
                 id="confirmPin"
                 type="password"
                 inputMode="numeric"
-                maxLength={4}
+                maxLength={6}
                 value={confirmPin}
                 onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                placeholder="••••"
+                placeholder="••••••"
                 required
               />
             </div>
