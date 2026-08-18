@@ -14,6 +14,7 @@ export function usePushNotification() {
   const [isSupported, setIsSupported] = useState(false)
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     if ('serviceWorker' in navigator && 'PushManager' in window) {
@@ -27,9 +28,11 @@ export function usePushNotification() {
 
   async function subscribe() {
     setLoading(true)
+    setError('')
     try {
       const permission = await Notification.requestPermission()
       if (permission !== 'granted') {
+        setError('ไม่ได้รับ permission')
         setLoading(false)
         return
       }
@@ -45,6 +48,8 @@ export function usePushNotification() {
         keys: json.keys,
       })
       setIsSubscribed(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาด')
     } finally {
       setLoading(false)
     }
@@ -63,5 +68,5 @@ export function usePushNotification() {
     }
   }
 
-  return { isSupported, isSubscribed, loading, subscribe, unsubscribe }
+  return { isSupported, isSubscribed, loading, error, subscribe, unsubscribe }
 }

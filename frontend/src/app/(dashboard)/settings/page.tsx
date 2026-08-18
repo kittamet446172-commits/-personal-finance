@@ -17,7 +17,7 @@ import { useUserSettings, useUpsertUserSettings } from '@/hooks/use-user-setting
 import { formatCurrency } from '@/lib/utils'
 
 export default function SettingsPage() {
-  const { isSupported, isSubscribed, loading: pushLoading, subscribe, unsubscribe } = usePushNotification()
+  const { isSupported, isSubscribed, loading: pushLoading, error: pushError, subscribe, unsubscribe } = usePushNotification()
   const { data: session, refetch } = useSession()
   const [name, setName] = useState(session?.user.name ?? '')
   const [loading, setLoading] = useState(false)
@@ -364,6 +364,9 @@ export default function SettingsPage() {
                 ? 'เปิดแจ้งเตือนอยู่ — ระบบจะส่ง notification เวลา 20:00 ถ้าวันนั้นยังไม่ได้บันทึกรายการ'
                 : 'เปิดเพื่อรับแจ้งเตือนทุกวัน 20:00 ถ้ายังไม่ได้บันทึกรายรับ-รายจ่าย'}
             </p>
+            {pushError && (
+              <p className="text-xs text-destructive bg-destructive/10 px-3 py-2 rounded-md">{pushError}</p>
+            )}
             <Button
               onClick={isSubscribed ? unsubscribe : subscribe}
               disabled={pushLoading}
