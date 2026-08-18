@@ -28,6 +28,11 @@ export function usePushNotification() {
   async function subscribe() {
     setLoading(true)
     try {
+      const permission = await Notification.requestPermission()
+      if (permission !== 'granted') {
+        setLoading(false)
+        return
+      }
       const { publicKey } = await api.get<{ publicKey: string }>('/notifications/vapid-public-key')
       const reg = await navigator.serviceWorker.ready
       const sub = await reg.pushManager.subscribe({
