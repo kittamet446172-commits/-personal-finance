@@ -15,6 +15,7 @@ import { HealthModule } from './health/health.module';
 import { UserSettingsModule } from './user-settings/user-settings.module';
 import { NetWorthModule } from './net-worth/net-worth.module';
 import { BillsModule } from './bills/bills.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { BillsModule } from './bills/bills.module';
     UserSettingsModule,
     NetWorthModule,
     BillsModule,
+    NotificationsModule,
   ],
 })
 export class AppModule {}

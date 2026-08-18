@@ -1,0 +1,89 @@
+import { Injectable, Logger } from '@nestjs/common'
+import { Cron } from '@nestjs/schedule'
+import * as webPush from 'web-push'
+import { PrismaService } from '../prisma/prisma.service'
+
+webPush.setVapidDetails(
+  `mailto:${process.env.VAPID_EMAIL}`,
+  process.env.VAPID_PUBLIC_KEY!,
+  process.env.VAPID_PRIVATE_KEY!,
+)
+
+@Injectable()
+export class NotificationsService {
+  private readonly logger = new Logger(NotificationsService.name)
+
+  constructor(private readonly prisma: PrismaService) {}
+
+  getVapidPublicKey() {
+    return { publicKey: process.env.VAPID_PUBLIC_KEY }
+  }
+
+  async subscribe(
+    userId: string,
+    subscription: { endpoint: string; keys: { p256dh: string; auth: string } },
+  ) {
+    await this.prisma.pushSubscription.upsert({
+      where: { endpoint: subscription.endpoint },
+      update: { p256dh: subscription.keys.p256dh, auth: subscription.keys.auth },
+      create: {
+        userId,
+        endpoint: subscription.endpoint,
+        p256dh: subscription.keys.p256dh,
+        auth: subscription.keys.auth,
+      },
+    })
+    return { ok: true }
+  }
+
+  async unsubscribe(userId: string) {
+    await this.prisma.pushSubscription.deleteMany({ where: { userId } })
+    return { ok: true }
+  }
+
+  // 20:00 Thailand (UTC+7) = 13:00 UTC
+  @Cron('0 13 * * *')
+  async sendDailyReminder() {
+    const subscriptions = await this.prisma.pushSubscription.findMany({
+      include: { user: true },
+    })
+    if (subscriptions.length === 0) return
+
+    const now = new Date()
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000)
+
+    for (const sub of subscriptions) {
+      const count = await this.prisma.transaction.count({
+        where: {
+          userId: sub.userId,
+          date: { gte: startOfDay, lt: endOfDay },
+        },
+      })
+
+      if (count === 0) {
+        await this.sendPush(sub, {
+          title: 'Finance Reminder',
+          body: 'วันนี้ยังไม่ได้บันทึกรายรับ-รายจ่ายเลยนะ',
+        })
+      }
+    }
+  }
+
+  private async sendPush(
+    sub: { endpoint: string; p256dh: string; auth: string },
+    payload: { title: string; body: string },
+  ) {
+    try {
+      await webPush.sendNotification(
+        { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+        JSON.stringify(payload),
+      )
+    } catch (err) {
+      this.logger.error(`Push failed for ${sub.endpoint}`, err)
+      if ((err as { statusCode?: number }).statusCode === 410) {
+        await this.prisma.pushSubscription.delete({ where: { endpoint: sub.endpoint } })
+      }
+    }
+  }
+}

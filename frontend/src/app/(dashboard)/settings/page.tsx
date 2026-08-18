@@ -1,7 +1,8 @@
 'use client'
 
 import { useRef, useState, useEffect } from 'react'
-import { Camera, KeyRound, Lock, ShieldCheck } from 'lucide-react'
+import { Bell, Camera, KeyRound, Lock, ShieldCheck } from 'lucide-react'
+import { usePushNotification } from '@/hooks/use-push-notification'
 import { useSession } from '@/lib/auth-client'
 import { authClient } from '@/lib/auth-client'
 import { isPinSet, setPin, removePin, setSessionUnlocked } from '@/lib/pin'
@@ -16,6 +17,7 @@ import { useUserSettings, useUpsertUserSettings } from '@/hooks/use-user-setting
 import { formatCurrency } from '@/lib/utils'
 
 export default function SettingsPage() {
+  const { isSupported, isSubscribed, loading: pushLoading, subscribe, unsubscribe } = usePushNotification()
   const { data: session, refetch } = useSession()
   const [name, setName] = useState(session?.user.name ?? '')
   const [loading, setLoading] = useState(false)
@@ -350,6 +352,28 @@ export default function SettingsPage() {
           </form>
         </CardContent>
       </Card>
+
+      {isSupported && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-1.5"><Bell className="h-5 w-5 text-primary" />แจ้งเตือนรายวัน</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              {isSubscribed
+                ? 'เปิดแจ้งเตือนอยู่ — ระบบจะส่ง notification เวลา 20:00 ถ้าวันนั้นยังไม่ได้บันทึกรายการ'
+                : 'เปิดเพื่อรับแจ้งเตือนทุกวัน 20:00 ถ้ายังไม่ได้บันทึกรายรับ-รายจ่าย'}
+            </p>
+            <Button
+              onClick={isSubscribed ? unsubscribe : subscribe}
+              disabled={pushLoading}
+              variant={isSubscribed ? 'outline' : 'default'}
+            >
+              {pushLoading ? 'กำลังดำเนินการ...' : isSubscribed ? 'ปิดแจ้งเตือน' : 'เปิดแจ้งเตือน'}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
