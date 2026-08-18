@@ -36,7 +36,7 @@ export function usePushNotification() {
         setLoading(false)
         return
       }
-      const { publicKey } = await api.get<{ publicKey: string }>('/notifications/vapid-public-key')
+      const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
       const reg = await navigator.serviceWorker.ready
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
