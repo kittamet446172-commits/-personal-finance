@@ -79,12 +79,13 @@ export class NotificationsService {
         { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
         JSON.stringify(payload),
         {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           vapidDetails: {
             subject: `mailto:${process.env.VAPID_EMAIL}`,
             publicKey: process.env.VAPID_PUBLIC_KEY!,
             privateKey: process.env.VAPID_PRIVATE_KEY!,
             expiration: Math.floor(Date.now() / 1000) + 3600,
-          },
+          } as any,
           TTL: 3600,
         },
       )
