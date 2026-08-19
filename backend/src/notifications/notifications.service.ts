@@ -148,6 +148,7 @@ export class NotificationsService {
         'content-type': 'application/octet-stream',
         'content-encoding': 'aes128gcm',
         'ttl': '3600',
+        'content-length': String(encrypted.cipherText.length),
         'authorization': `vapid t=${jwt},k=${process.env.VAPID_PUBLIC_KEY}`,
       })
 
