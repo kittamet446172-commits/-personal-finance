@@ -361,8 +361,8 @@ export default function SettingsPage() {
           <CardContent className="space-y-3">
             <p className="text-sm text-muted-foreground">
               {isSubscribed
-                ? 'เปิดแจ้งเตือนอยู่ — ระบบจะส่ง notification เวลา 20:00 ถ้าวันนั้นยังไม่ได้บันทึกรายการ'
-                : 'เปิดเพื่อรับแจ้งเตือนทุกวัน 20:00 ถ้ายังไม่ได้บันทึกรายรับ-รายจ่าย'}
+                ? 'เปิดแจ้งเตือนอยู่ — ระบบจะส่ง notification เวลา 09:00 และ 20:00 ถ้าวันนั้นยังไม่ได้บันทึกรายการ'
+                : 'เปิดเพื่อรับแจ้งเตือนทุกวัน 09:00 และ 20:00 ถ้ายังไม่ได้บันทึกรายรับ-รายจ่าย'}
             </p>
             {pushError && (
               <p className="text-xs text-destructive bg-destructive/10 px-3 py-2 rounded-md">{pushError}</p>
