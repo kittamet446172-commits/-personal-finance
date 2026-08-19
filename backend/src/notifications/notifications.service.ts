@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { Cron } from '@nestjs/schedule'
 import * as crypto from 'crypto'
-import * as https from 'https'
+import * as http2 from 'http2'
 import * as webPush from 'web-push'
 import { PrismaService } from '../prisma/prisma.service'
 
@@ -139,31 +139,33 @@ export class NotificationsService {
     }
 
     return new Promise((resolve, reject) => {
-      const req = https.request(
-        {
-          hostname: url.hostname,
-          path: url.pathname,
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/octet-stream',
-            'Content-Encoding': 'aes128gcm',
-            'Content-Length': encrypted.cipherText.length,
-            TTL: '3600',
-            Authorization: `vapid t=${jwt},k=${process.env.VAPID_PUBLIC_KEY}`,
-          },
-        },
-        (res) => {
-          let body = ''
-          res.on('data', (d) => { body += d })
-          res.on('end', () => {
-            if (res.statusCode && res.statusCode < 300) resolve()
-            else reject({ statusCode: res.statusCode, body })
-          })
-        },
-      )
-      req.on('error', reject)
+      const client = http2.connect(`${url.protocol}//${url.host}`)
+      client.on('error', reject)
+
+      const req = client.request({
+        ':method': 'POST',
+        ':path': url.pathname,
+        'content-type': 'application/octet-stream',
+        'content-encoding': 'aes128gcm',
+        'ttl': '3600',
+        'authorization': `vapid t=${jwt},k=${process.env.VAPID_PUBLIC_KEY}`,
+      })
+
       req.write(encrypted.cipherText)
       req.end()
+
+      req.on('response', (headers) => {
+        const status = headers[':status'] as number
+        let body = ''
+        req.on('data', (d) => { body += d })
+        req.on('end', () => {
+          client.close()
+          if (status < 300) resolve()
+          else reject({ statusCode: status, body })
+        })
+      })
+
+      req.on('error', (err) => { client.close(); reject(err) })
     })
   }
 
