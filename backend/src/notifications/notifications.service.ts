@@ -3,17 +3,18 @@ import { Cron } from '@nestjs/schedule'
 import * as webPush from 'web-push'
 import { PrismaService } from '../prisma/prisma.service'
 
-webPush.setVapidDetails(
-  `mailto:${process.env.VAPID_EMAIL}`,
-  process.env.VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!,
-)
-
 @Injectable()
 export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name)
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {
+    webPush.setVapidDetails(
+      `mailto:${process.env.VAPID_EMAIL}`,
+      process.env.VAPID_PUBLIC_KEY!,
+      process.env.VAPID_PRIVATE_KEY!,
+    )
+    this.logger.log(`VAPID public key: ${process.env.VAPID_PUBLIC_KEY?.slice(0, 20)}...`)
+  }
 
   getVapidPublicKey() {
     return { publicKey: process.env.VAPID_PUBLIC_KEY }
