@@ -131,22 +131,19 @@ export class NotificationsService {
   ) {
     const isApple = sub.endpoint.includes('web.push.apple.com')
     try {
-      if (isApple) {
-        await this.sendApplePush(sub.endpoint, sub.p256dh, sub.auth, payload)
-      } else {
-        await webPush.sendNotification(
-          { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-          JSON.stringify(payload),
-          {
-            vapidDetails: {
-              subject: `mailto:${process.env.VAPID_EMAIL}`,
-              publicKey: process.env.VAPID_PUBLIC_KEY!,
-              privateKey: process.env.VAPID_PRIVATE_KEY!,
-            },
-            TTL: 3600,
+      await webPush.sendNotification(
+        { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+        JSON.stringify(payload),
+        {
+          vapidDetails: {
+            subject: `mailto:${process.env.VAPID_EMAIL?.trim()}`,
+            publicKey: process.env.VAPID_PUBLIC_KEY!,
+            privateKey: process.env.VAPID_PRIVATE_KEY!,
           },
-        )
-      }
+          TTL: 3600,
+        },
+      )
+      if (isApple) { /* noop, just for reference */ }
       this.logger.log(`Push sent [${isApple ? 'apple' : 'fcm'}] to ${sub.endpoint.slice(0, 40)}...`)
     } catch (err) {
       const e = err as { statusCode?: number; body?: string }
