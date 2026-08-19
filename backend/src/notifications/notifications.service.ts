@@ -68,7 +68,6 @@ export class NotificationsService {
           title: 'Finance Reminder',
           body: 'วันนี้ยังไม่ได้บันทึกรายรับ-รายจ่ายเลยนะ',
         })
-        this.logger.log(`Push sent to ${sub.userId}`)
       }
     }
   }
@@ -82,9 +81,11 @@ export class NotificationsService {
         { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
         JSON.stringify(payload),
       )
+      this.logger.log(`Push sent to ${sub.endpoint.slice(0, 40)}...`)
     } catch (err) {
-      this.logger.error(`Push failed for ${sub.endpoint}`, err)
-      if ((err as { statusCode?: number }).statusCode === 410) {
+      const status = (err as { statusCode?: number }).statusCode
+      this.logger.error(`Push failed [${status}] for ${sub.endpoint.slice(0, 40)}...`)
+      if (status === 410 || status === 404) {
         await this.prisma.pushSubscription.delete({ where: { endpoint: sub.endpoint } })
       }
     }
