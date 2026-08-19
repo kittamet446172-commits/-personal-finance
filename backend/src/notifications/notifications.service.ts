@@ -79,7 +79,7 @@ export class NotificationsService {
       aud: audience,
       iat: now,
       exp: now + 3600,
-      sub: `mailto:${process.env.VAPID_EMAIL}`,
+      sub: `mailto:${process.env.VAPID_EMAIL?.trim()}`,
     })).toString('base64url')
 
     const sigInput = `${header}.${claims}`
