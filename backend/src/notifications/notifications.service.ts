@@ -77,31 +77,27 @@ export class NotificationsService {
     const now = Math.floor(Date.now() / 1000)
     const claims = Buffer.from(JSON.stringify({
       aud: audience,
+      iat: now,
       exp: now + 3600,
       sub: `mailto:${process.env.VAPID_EMAIL}`,
     })).toString('base64url')
 
     const sigInput = `${header}.${claims}`
+
+    const pubBytes = Buffer.from(process.env.VAPID_PUBLIC_KEY!.trim(), 'base64url')
     const privBytes = Buffer.from(process.env.VAPID_PRIVATE_KEY!.trim(), 'base64url')
+    const key = crypto.createPrivateKey({
+      key: {
+        kty: 'EC',
+        crv: 'P-256',
+        x: pubBytes.slice(1, 33).toString('base64url'),
+        y: pubBytes.slice(33, 65).toString('base64url'),
+        d: privBytes.toString('base64url'),
+      },
+      format: 'jwk',
+    })
 
-    // Wrap raw P-256 private key into PKCS8 DER (short-form length encoding)
-    const pkcs8 = Buffer.concat([
-      Buffer.from('3041020100301306072a8648ce3d020106082a8648ce3d030107042730250201010420', 'hex'),
-      privBytes,
-    ])
-
-    const key = crypto.createPrivateKey({ key: pkcs8, format: 'der', type: 'pkcs8' })
-    // Verify derived public key matches VAPID_PUBLIC_KEY
-    const pubJwk = crypto.createPublicKey(key).export({ format: 'jwk' }) as { x: string; y: string }
-    const xBuf = Buffer.from(pubJwk.x, 'base64url')
-    const yBuf = Buffer.from(pubJwk.y, 'base64url')
-    const derivedPub = Buffer.concat([Buffer.from([0x04]), xBuf, yBuf]).toString('base64url')
-    const expectedPub = process.env.VAPID_PUBLIC_KEY!.trim()
-    this.logger.log(`Key match: ${derivedPub === expectedPub} derived=${derivedPub.slice(0, 20)} expected=${expectedPub.slice(0, 20)}`)
-
-    const sign = crypto.createSign('SHA256')
-    sign.update(sigInput)
-    const der = sign.sign(key)
+    const der = crypto.sign('SHA256', Buffer.from(sigInput), key)
 
     // Convert DER signature → raw R||S (IEEE P1363 / ES256 format)
     let pos = 0
