@@ -36,7 +36,7 @@ export function usePushNotification() {
         setLoading(false)
         return
       }
-      const { data } = await api.get<{ publicKey: string }>('/notifications/vapid-key')
+      const data = await api.get<{ publicKey: string }>('/notifications/vapid-key')
       const reg = await navigator.serviceWorker.ready
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
