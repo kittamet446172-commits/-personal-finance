@@ -37,6 +37,11 @@ export function usePushNotification() {
         return
       }
       const data = await api.get<{ publicKey: string }>('/notifications/vapid-public-key')
+      if (!data.publicKey) {
+        setError('VAPID key ไม่พร้อม — ลอง refresh แล้วลองใหม่')
+        setLoading(false)
+        return
+      }
       const reg = await navigator.serviceWorker.ready
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
