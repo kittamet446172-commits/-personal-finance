@@ -8,12 +8,9 @@ export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name)
 
   constructor(private readonly prisma: PrismaService) {
-    webPush.setVapidDetails(
-      `mailto:${process.env.VAPID_EMAIL}`,
-      process.env.VAPID_PUBLIC_KEY!,
-      process.env.VAPID_PRIVATE_KEY!,
-    )
-    this.logger.log(`VAPID public key: ${process.env.VAPID_PUBLIC_KEY?.slice(0, 20)}...`)
+    const pub = process.env.VAPID_PUBLIC_KEY ?? ''
+    const priv = process.env.VAPID_PRIVATE_KEY ?? ''
+    this.logger.log(`VAPID pub len=${pub.length} priv len=${priv.length}`)
   }
 
   getVapidPublicKey() {
@@ -81,6 +78,14 @@ export class NotificationsService {
       await webPush.sendNotification(
         { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
         JSON.stringify(payload),
+        {
+          vapidDetails: {
+            subject: `mailto:${process.env.VAPID_EMAIL}`,
+            publicKey: process.env.VAPID_PUBLIC_KEY!,
+            privateKey: process.env.VAPID_PRIVATE_KEY!,
+          },
+          TTL: 3600,
+        },
       )
       this.logger.log(`Push sent to ${sub.endpoint.slice(0, 40)}...`)
     } catch (err) {
