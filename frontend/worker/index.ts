@@ -1,3 +1,4 @@
+/// <reference lib="webworker" />
 self.addEventListener('push', (event: PushEvent) => {
   const data = event.data?.json() ?? {}
   event.waitUntil(
