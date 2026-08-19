@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { Cron } from '@nestjs/schedule'
-import * as crypto from 'crypto'
 import * as http2 from 'http2'
 import * as webPush from 'web-push'
 import { PrismaService } from '../prisma/prisma.service'
@@ -72,77 +71,53 @@ export class NotificationsService {
     }
   }
 
-  private createVapidJwt(audience: string): string {
-    const header = Buffer.from(JSON.stringify({ typ: 'JWT', alg: 'ES256' })).toString('base64url')
-    const now = Math.floor(Date.now() / 1000)
-    const claims = Buffer.from(JSON.stringify({
-      aud: audience,
-      iat: now,
-      exp: now + 3600,
-      sub: `mailto:${process.env.VAPID_EMAIL?.trim()}`,
-    })).toString('base64url')
-
-    const sigInput = `${header}.${claims}`
-
-    const pubBytes = Buffer.from(process.env.VAPID_PUBLIC_KEY!.trim(), 'base64url')
-    const privBytes = Buffer.from(process.env.VAPID_PRIVATE_KEY!.trim(), 'base64url')
-    const key = crypto.createPrivateKey({
-      key: {
-        kty: 'EC',
-        crv: 'P-256',
-        x: pubBytes.slice(1, 33).toString('base64url'),
-        y: pubBytes.slice(33, 65).toString('base64url'),
-        d: privBytes.toString('base64url'),
-      },
-      format: 'jwk',
-    })
-
-    const sig = crypto.sign('SHA256', Buffer.from(sigInput), { key, dsaEncoding: 'ieee-p1363' })
-    const jwt = `${sigInput}.${sig.toString('base64url')}`
-    this.logger.log(`JWT claims: ${Buffer.from(claims, 'base64url').toString()}`)
-    this.logger.log(`JWT sig len: ${sig.length}`)
-    return jwt
-  }
-
   private async sendApplePush(
     endpoint: string,
     p256dh: string,
     auth: string,
     payload: { title: string; body: string },
   ): Promise<void> {
+    const details = await webPush.generateRequestDetails(
+      { endpoint, keys: { p256dh, auth } },
+      JSON.stringify(payload),
+      {
+        vapidDetails: {
+          subject: `mailto:${process.env.VAPID_EMAIL?.trim()}`,
+          publicKey: process.env.VAPID_PUBLIC_KEY!,
+          privateKey: process.env.VAPID_PRIVATE_KEY!,
+        },
+        TTL: 3600,
+      },
+    )
+
     const url = new URL(endpoint)
-    const audience = `${url.protocol}//${url.host}`
-    const jwt = this.createVapidJwt(audience)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const encrypted = (webPush as any).encrypt(p256dh, auth, JSON.stringify(payload), 'aes128gcm') as {
-      cipherText: Buffer
-    }
+    const body = details.body as Buffer
 
     return new Promise((resolve, reject) => {
       const client = http2.connect(`${url.protocol}//${url.host}`)
       client.on('error', reject)
 
-      const req = client.request({
+      const h2Headers: Record<string, string | number> = {
         ':method': 'POST',
         ':path': url.pathname,
-        'content-type': 'application/octet-stream',
-        'content-encoding': 'aes128gcm',
-        'ttl': '3600',
-        'content-length': String(encrypted.cipherText.length),
-        'authorization': `vapid t=${jwt},k=${process.env.VAPID_PUBLIC_KEY}`,
-      })
+        'content-length': body.length,
+      }
+      for (const [key, value] of Object.entries(details.headers)) {
+        h2Headers[key.toLowerCase()] = value
+      }
 
-      req.write(encrypted.cipherText)
+      const req = client.request(h2Headers)
+      req.write(body)
       req.end()
 
-      req.on('response', (headers) => {
-        const status = headers[':status'] as number
-        let body = ''
-        req.on('data', (d) => { body += d })
+      req.on('response', (respHeaders) => {
+        const status = respHeaders[':status'] as number
+        let respBody = ''
+        req.on('data', (d) => { respBody += d })
         req.on('end', () => {
           client.close()
           if (status < 300) resolve()
-          else reject({ statusCode: status, body })
+          else reject({ statusCode: status, body: respBody })
         })
       })
 
