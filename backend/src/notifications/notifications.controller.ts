@@ -10,7 +10,7 @@ export class NotificationsController {
 
   @Get('vapid-public-key')
   getVapidPublicKey() {
-    return { data: this.notificationsService.getVapidPublicKey() }
+    return this.notificationsService.getVapidPublicKey()
   }
 
   @Post('subscribe')
