@@ -98,7 +98,10 @@ export class NotificationsService {
     })
 
     const sig = crypto.sign('SHA256', Buffer.from(sigInput), { key, dsaEncoding: 'ieee-p1363' })
-    return `${sigInput}.${sig.toString('base64url')}`
+    const jwt = `${sigInput}.${sig.toString('base64url')}`
+    this.logger.log(`JWT claims: ${Buffer.from(claims, 'base64url').toString()}`)
+    this.logger.log(`JWT sig len: ${sig.length}`)
+    return jwt
   }
 
   private async sendApplePush(
