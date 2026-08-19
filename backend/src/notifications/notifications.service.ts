@@ -40,9 +40,19 @@ export class NotificationsService {
     return { ok: true }
   }
 
+  // 09:00 Thailand (UTC+7) = 02:00 UTC
+  @Cron('0 2 * * *')
+  async sendMorningReminder() {
+    await this.sendDailyReminder('อย่าลืมบันทึกรายรับ-รายจ่ายวันนี้นะ')
+  }
+
   // 20:00 Thailand (UTC+7) = 13:00 UTC
   @Cron('0 13 * * *')
-  async sendDailyReminder() {
+  async sendEveningReminder() {
+    await this.sendDailyReminder('วันนี้ยังไม่ได้บันทึกรายรับ-รายจ่ายเลยนะ')
+  }
+
+  async sendDailyReminder(body = 'วันนี้ยังไม่ได้บันทึกรายรับ-รายจ่ายเลยนะ') {
     const subscriptions = await this.prisma.pushSubscription.findMany({
       include: { user: true },
     })
@@ -65,7 +75,7 @@ export class NotificationsService {
       if (count === 0) {
         await this.sendPush(sub, {
           title: 'Finance Reminder',
-          body: 'วันนี้ยังไม่ได้บันทึกรายรับ-รายจ่ายเลยนะ',
+          body,
         })
       }
     }
