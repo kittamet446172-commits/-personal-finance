@@ -38,7 +38,7 @@ export function usePushNotification() {
       }
       const data = await api.get<{ publicKey: string }>('/notifications/vapid-public-key')
       if (!data.publicKey) {
-        setError('VAPID key ไม่พร้อม — ลอง refresh แล้วลองใหม่')
+        setError(`VAPID key ไม่พร้อม: ${JSON.stringify(data)}`)
         setLoading(false)
         return
       }
