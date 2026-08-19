@@ -1,5 +1,7 @@
 /// <reference lib="webworker" />
-self.addEventListener('push', (event: PushEvent) => {
+declare const self: ServiceWorkerGlobalScope
+
+self.addEventListener('push', (event) => {
   const data = event.data?.json() ?? {}
   event.waitUntil(
     self.registration.showNotification(data.title ?? 'Finance Reminder', {
@@ -10,7 +12,9 @@ self.addEventListener('push', (event: PushEvent) => {
   )
 })
 
-self.addEventListener('notificationclick', (event: NotificationEvent) => {
+self.addEventListener('notificationclick', (event) => {
   event.notification.close()
   event.waitUntil(clients.openWindow('/'))
 })
+
+export {}
