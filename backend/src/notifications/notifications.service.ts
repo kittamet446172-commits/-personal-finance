@@ -83,8 +83,9 @@ export class NotificationsService {
       )
       this.logger.log(`Push sent to ${sub.endpoint.slice(0, 40)}...`)
     } catch (err) {
-      const status = (err as { statusCode?: number }).statusCode
-      this.logger.error(`Push failed [${status}] for ${sub.endpoint.slice(0, 40)}...`)
+      const e = err as { statusCode?: number; body?: string }
+      const status = e.statusCode
+      this.logger.error(`Push failed [${status}] body=${e.body} for ${sub.endpoint.slice(0, 40)}...`)
       if (status === 410 || status === 404) {
         await this.prisma.pushSubscription.delete({ where: { endpoint: sub.endpoint } })
       }
