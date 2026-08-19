@@ -27,4 +27,10 @@ export class NotificationsController {
   unsubscribe(@CurrentUser() user: AuthenticatedUser) {
     return this.notificationsService.unsubscribe(user.id)
   }
+
+  @Post('test-send')
+  @UseGuards(AuthGuard)
+  testSend() {
+    return this.notificationsService.sendDailyReminder()
+  }
 }

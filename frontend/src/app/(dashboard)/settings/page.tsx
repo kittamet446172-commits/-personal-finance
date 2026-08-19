@@ -367,13 +367,20 @@ export default function SettingsPage() {
             {pushError && (
               <p className="text-xs text-destructive bg-destructive/10 px-3 py-2 rounded-md">{pushError}</p>
             )}
-            <Button
-              onClick={isSubscribed ? unsubscribe : subscribe}
-              disabled={pushLoading}
-              variant={isSubscribed ? 'outline' : 'default'}
-            >
-              {pushLoading ? 'กำลังดำเนินการ...' : isSubscribed ? 'ปิดแจ้งเตือน' : 'เปิดแจ้งเตือน'}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={isSubscribed ? unsubscribe : subscribe}
+                disabled={pushLoading}
+                variant={isSubscribed ? 'outline' : 'default'}
+              >
+                {pushLoading ? 'กำลังดำเนินการ...' : isSubscribed ? 'ปิดแจ้งเตือน' : 'เปิดแจ้งเตือน'}
+              </Button>
+              {isSubscribed && (
+                <Button variant="outline" onClick={() => api.post('/notifications/test-send', {})}>
+                  ทดสอบ
+                </Button>
+              )}
+            </div>
           </CardContent>
         </Card>
       )}

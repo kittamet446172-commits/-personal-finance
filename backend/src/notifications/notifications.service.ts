@@ -47,6 +47,7 @@ export class NotificationsService {
     const subscriptions = await this.prisma.pushSubscription.findMany({
       include: { user: true },
     })
+    this.logger.log(`Daily reminder: ${subscriptions.length} subscription(s)`)
     if (subscriptions.length === 0) return
 
     const now = new Date()
@@ -60,12 +61,14 @@ export class NotificationsService {
           date: { gte: startOfDay, lt: endOfDay },
         },
       })
+      this.logger.log(`User ${sub.userId}: ${count} transaction(s) today`)
 
       if (count === 0) {
         await this.sendPush(sub, {
           title: 'Finance Reminder',
           body: 'วันนี้ยังไม่ได้บันทึกรายรับ-รายจ่ายเลยนะ',
         })
+        this.logger.log(`Push sent to ${sub.userId}`)
       }
     }
   }
