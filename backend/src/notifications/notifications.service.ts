@@ -83,6 +83,7 @@ export class NotificationsService {
             subject: `mailto:${process.env.VAPID_EMAIL}`,
             publicKey: process.env.VAPID_PUBLIC_KEY!,
             privateKey: process.env.VAPID_PRIVATE_KEY!,
+            expiration: Math.floor(Date.now() / 1000) + 3600,
           },
           TTL: 3600,
         },
