@@ -36,11 +36,11 @@ export function usePushNotification() {
         setLoading(false)
         return
       }
-      const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
+      const { data } = await api.get<{ publicKey: string }>('/notifications/vapid-key')
       const reg = await navigator.serviceWorker.ready
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(publicKey),
+        applicationServerKey: urlBase64ToUint8Array(data.publicKey),
       })
       const json = sub.toJSON() as { endpoint: string; keys: { p256dh: string; auth: string } }
       await api.post('/notifications/subscribe', {

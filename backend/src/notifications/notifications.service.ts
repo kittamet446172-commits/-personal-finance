@@ -97,27 +97,8 @@ export class NotificationsService {
       format: 'jwk',
     })
 
-    const der = crypto.sign('SHA256', Buffer.from(sigInput), key)
-
-    // Convert DER signature → raw R||S (IEEE P1363 / ES256 format)
-    let pos = 0
-    pos++ // skip 0x30 (SEQUENCE)
-    if (der[pos] & 0x80) pos += (der[pos] & 0x7f) + 1; else pos++
-    pos++ // skip 0x02 (INTEGER tag)
-    const rLen = der[pos++]
-    const rRaw = der.slice(pos, pos + rLen); pos += rLen
-    pos++ // skip 0x02 (INTEGER tag)
-    const sLen = der[pos++]
-    const sRaw = der.slice(pos, pos + sLen)
-
-    const r = Buffer.alloc(32, 0)
-    const s = Buffer.alloc(32, 0)
-    const rStripped = rRaw[0] === 0x00 ? rRaw.slice(1) : rRaw
-    const sStripped = sRaw[0] === 0x00 ? sRaw.slice(1) : sRaw
-    rStripped.copy(r, 32 - rStripped.length)
-    sStripped.copy(s, 32 - sStripped.length)
-
-    return `${sigInput}.${Buffer.concat([r, s]).toString('base64url')}`
+    const sig = crypto.sign('SHA256', Buffer.from(sigInput), { key, dsaEncoding: 'ieee-p1363' })
+    return `${sigInput}.${sig.toString('base64url')}`
   }
 
   private async sendApplePush(
