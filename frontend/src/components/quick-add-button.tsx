@@ -197,6 +197,15 @@ export function QuickAddButton() {
             </div>
 
             <div className="space-y-1">
+              <Label>วันที่</Label>
+              <Input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-1">
               <Label>หมวดหมู่</Label>
               <Select value={categoryId} onValueChange={setCategoryId}>
                 <SelectTrigger>
@@ -226,15 +235,6 @@ export function QuickAddButton() {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-
-            <div className="space-y-1">
-              <Label>วันที่</Label>
-              <Input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-              />
             </div>
 
             <div className="space-y-1">
