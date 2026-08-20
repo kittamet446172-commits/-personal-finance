@@ -145,6 +145,10 @@ export function BottomNav() {
               <Input type="number" placeholder="0.00" value={amount} onChange={(e) => setAmount(e.target.value)} min={0} autoFocus />
             </div>
             <div className="space-y-1">
+              <Label>วันที่</Label>
+              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            </div>
+            <div className="space-y-1">
               <Label>หมวดหมู่</Label>
               <Select value={categoryId} onValueChange={setCategoryId}>
                 <SelectTrigger><SelectValue placeholder="เลือกหมวดหมู่" /></SelectTrigger>
@@ -165,10 +169,6 @@ export function BottomNav() {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            <div className="space-y-1">
-              <Label>วันที่</Label>
-              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
             </div>
             <div className="space-y-1">
               <Label>หมายเหตุ (ไม่บังคับ)</Label>
