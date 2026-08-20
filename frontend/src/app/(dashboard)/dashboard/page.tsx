@@ -508,7 +508,7 @@ export default function DashboardPage() {
                   })}
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="text-center px-6">
+                  <div className="text-center px-6 w-full max-w-[150px]">
                     {hoveredSlice ? (
                       <>
                         <p className="text-xs text-muted-foreground truncate">{hoveredSlice.name}</p>
