@@ -1,8 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Pencil, Plus, Trash2 } from 'lucide-react'
-import { useBills, useCreateBill, useDeleteBill, useUpdateBill } from '@/hooks/use-bills'
+import { CheckCircle, Pencil, Plus, Trash2 } from 'lucide-react'
+import { useBills, useCreateBill, useDeleteBill, usePayBill, useUpdateBill } from '@/hooks/use-bills'
+import { useAccounts } from '@/hooks/use-accounts'
+import { useCategories } from '@/hooks/use-categories'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -32,10 +34,19 @@ export default function BillsPage() {
   const [frequency, setFrequency] = useState<'MONTHLY' | 'YEARLY'>('MONTHLY')
   const [note, setNote] = useState('')
 
+  const [payBill, setPayBill] = useState<Bill | null>(null)
+  const [payAccountId, setPayAccountId] = useState('')
+  const [payCategoryId, setPayCategoryId] = useState('')
+  const [payAmount, setPayAmount] = useState('')
+  const [payDate, setPayDate] = useState('')
+
   const { data: bills = [], isLoading } = useBills()
+  const { data: accounts = [] } = useAccounts()
+  const { data: expenseCategories = [] } = useCategories('EXPENSE')
   const createMutation = useCreateBill()
   const updateMutation = useUpdateBill()
   const deleteMutation = useDeleteBill()
+  const payMutation = usePayBill()
 
   function openCreate() {
     setEditing(null)
@@ -82,6 +93,27 @@ export default function BillsPage() {
   async function handleDelete(id: string) {
     if (!confirm('ต้องการลบบิลนี้ใช่ไหม?')) return
     await deleteMutation.mutateAsync(id)
+  }
+
+  function openPay(bill: Bill) {
+    setPayBill(bill)
+    setPayAmount(String(bill.amount))
+    setPayDate(new Date().toISOString().slice(0, 10))
+    setPayAccountId('')
+    setPayCategoryId('')
+  }
+
+  async function handlePay(e: React.FormEvent) {
+    e.preventDefault()
+    if (!payBill) return
+    await payMutation.mutateAsync({
+      id: payBill.id,
+      accountId: payAccountId,
+      categoryId: payCategoryId,
+      amount: Number(payAmount),
+      date: payDate,
+    })
+    setPayBill(null)
   }
 
   async function toggleActive(bill: Bill) {
@@ -138,6 +170,13 @@ export default function BillsPage() {
                 <div className="flex items-center gap-3">
                   <p className="text-sm font-semibold">{formatCurrency(Number(bill.amount))}</p>
                   <div className="flex gap-1">
+                    <Button
+                      variant="ghost" size="icon" className="h-8 w-8 text-emerald-600 hover:text-emerald-700"
+                      onClick={() => openPay(bill)}
+                      title="บันทึกจ่ายแล้ว"
+                    >
+                      <CheckCircle className="h-3.5 w-3.5" />
+                    </Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(bill)}>
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
@@ -201,6 +240,61 @@ export default function BillsPage() {
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>ยกเลิก</Button>
               <Button type="submit" disabled={isPending || !dueDate}>
                 {isPending ? 'กำลังบันทึก...' : 'บันทึก'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={!!payBill} onOpenChange={(o) => { if (!o) setPayBill(null) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>บันทึกจ่าย — {payBill?.name}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handlePay} className="space-y-4">
+            <div className="space-y-2">
+              <Label>จำนวนเงิน (บาท)</Label>
+              <Input
+                type="number" step="0.01" min="0.01"
+                value={payAmount}
+                onChange={(e) => setPayAmount(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>บัญชีที่จ่าย</Label>
+              <Select value={payAccountId} onValueChange={setPayAccountId} required>
+                <SelectTrigger><SelectValue placeholder="เลือกบัญชี" /></SelectTrigger>
+                <SelectContent>
+                  {accounts.map((a) => (
+                    <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>หมวดหมู่</Label>
+              <Select value={payCategoryId} onValueChange={setPayCategoryId} required>
+                <SelectTrigger><SelectValue placeholder="เลือกหมวดหมู่" /></SelectTrigger>
+                <SelectContent>
+                  {expenseCategories.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.icon} {c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>วันที่จ่าย</Label>
+              <Input
+                type="date"
+                value={payDate}
+                onChange={(e) => setPayDate(e.target.value)}
+                required
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setPayBill(null)}>ยกเลิก</Button>
+              <Button type="submit" disabled={payMutation.isPending || !payAccountId || !payCategoryId}>
+                {payMutation.isPending ? 'กำลังบันทึก...' : 'บันทึกจ่ายแล้ว'}
               </Button>
             </DialogFooter>
           </form>

@@ -4,6 +4,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../common/types/request.type';
 import { BillsService } from './bills.service';
 import { CreateBillDto } from './dto/create-bill.dto';
+import { PayBillDto } from './dto/pay-bill.dto';
 import { UpdateBillDto } from './dto/update-bill.dto';
 
 @Controller('bills')
@@ -41,5 +42,14 @@ export class BillsController {
   @Delete(':id')
   delete(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.service.delete(id, user.id);
+  }
+
+  @Post(':id/pay')
+  pay(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+    @Body() dto: PayBillDto,
+  ) {
+    return this.service.pay(id, user.id, dto);
   }
 }

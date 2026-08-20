@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
-import type { Bill, UpcomingBill } from '@/types'
+import type { Bill, Transaction, UpcomingBill } from '@/types'
 
 const billKeys = {
   all: ['bills'] as const,
@@ -44,5 +44,24 @@ export function useDeleteBill() {
   return useMutation({
     mutationFn: (id: string) => api.delete<Bill>(`/bills/${id}`),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: billKeys.all }),
+  })
+}
+
+interface PayBillDto {
+  accountId: string
+  categoryId: string
+  amount?: number
+  date?: string
+}
+
+export function usePayBill() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...dto }: PayBillDto & { id: string }) =>
+      api.post<Transaction>(`/bills/${id}/pay`, dto),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['accounts'] })
+      queryClient.invalidateQueries({ queryKey: ['transactions'] })
+    },
   })
 }

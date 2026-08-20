@@ -1,6 +1,8 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { TransactionType } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBillDto } from './dto/create-bill.dto';
+import { PayBillDto } from './dto/pay-bill.dto';
 import { UpdateBillDto } from './dto/update-bill.dto';
 
 @Injectable()
@@ -58,5 +60,33 @@ export class BillsService {
   async delete(id: string, userId: string) {
     await this.findOne(id, userId);
     return this.prisma.bill.delete({ where: { id } });
+  }
+
+  async pay(id: string, userId: string, dto: PayBillDto) {
+    const bill = await this.findOne(id, userId);
+    const amount = dto.amount ?? Number(bill.amount);
+    const date = dto.date ? new Date(dto.date) : new Date();
+
+    return this.prisma.$transaction(async (p) => {
+      const tx = await p.transaction.create({
+        data: {
+          userId,
+          accountId: dto.accountId,
+          categoryId: dto.categoryId,
+          type: TransactionType.EXPENSE,
+          amount,
+          date,
+          description: bill.name,
+        },
+        include: { category: true, account: true },
+      });
+
+      await p.financeAccount.update({
+        where: { id: dto.accountId },
+        data: { balance: { decrement: amount } },
+      });
+
+      return tx;
+    });
   }
 }
