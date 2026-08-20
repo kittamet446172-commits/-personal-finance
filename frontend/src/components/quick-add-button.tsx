@@ -185,6 +185,15 @@ export function QuickAddButton() {
             </div>
 
             <div className="space-y-1">
+              <Label>วันที่</Label>
+              <Input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-1">
               <Label>จำนวนเงิน</Label>
               <Input
                 type="number"
@@ -193,15 +202,6 @@ export function QuickAddButton() {
                 onChange={(e) => setAmount(e.target.value)}
                 min={0}
                 autoFocus
-              />
-            </div>
-
-            <div className="space-y-1">
-              <Label>วันที่</Label>
-              <Input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
               />
             </div>
 

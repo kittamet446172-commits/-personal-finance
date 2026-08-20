@@ -141,12 +141,12 @@ export function BottomNav() {
               ))}
             </div>
             <div className="space-y-1">
-              <Label>จำนวนเงิน</Label>
-              <Input type="number" placeholder="0.00" value={amount} onChange={(e) => setAmount(e.target.value)} min={0} autoFocus />
-            </div>
-            <div className="space-y-1">
               <Label>วันที่</Label>
               <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label>จำนวนเงิน</Label>
+              <Input type="number" placeholder="0.00" value={amount} onChange={(e) => setAmount(e.target.value)} min={0} autoFocus />
             </div>
             <div className="space-y-1">
               <Label>หมวดหมู่</Label>
