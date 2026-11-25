@@ -9,8 +9,6 @@ import { TransactionsModule } from './transactions/transactions.module';
 import { BudgetsModule } from './budgets/budgets.module';
 import { ReportsModule } from './reports/reports.module';
 import { TransfersModule } from './transfers/transfers.module';
-import { InvestmentsModule } from './investments/investments.module';
-import { DividendsModule } from './dividends/dividends.module';
 import { HealthModule } from './health/health.module';
 import { UserSettingsModule } from './user-settings/user-settings.module';
 import { NetWorthModule } from './net-worth/net-worth.module';
@@ -29,8 +27,6 @@ import { NotificationsModule } from './notifications/notifications.module';
     BudgetsModule,
     ReportsModule,
     TransfersModule,
-    InvestmentsModule,
-    DividendsModule,
     HealthModule,
     UserSettingsModule,
     NetWorthModule,

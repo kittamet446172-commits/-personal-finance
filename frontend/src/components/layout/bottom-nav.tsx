@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Wallet, Plus, TrendingUp, Bell } from 'lucide-react'
+import { Home, Wallet, Plus, Bell } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -75,14 +75,6 @@ export function BottomNav() {
         >
           <Home className="h-5 w-5" />
           <span>หน้าหลัก</span>
-        </Link>
-
-        <Link
-          href="/investments"
-          className={cn('flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-xs font-medium', isActive('/investments') ? activeClass : inactiveClass)}
-        >
-          <TrendingUp className="h-5 w-5" />
-          <span>หุ้น</span>
         </Link>
 
         <div className="flex flex-1 items-center justify-center">

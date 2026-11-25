@@ -1,16 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
-import { InvestmentsService } from '../investments/investments.service';
 
 @Injectable()
 export class NetWorthService {
   private readonly logger = new Logger(NetWorthService.name);
 
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly investments: InvestmentsService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async takeSnapshot(userId: string): Promise<void> {
     const accountsResult = await this.prisma.financeAccount.aggregate({
@@ -18,9 +14,7 @@ export class NetWorthService {
       _sum: { balance: true },
     });
     const totalAccounts = Number(accountsResult._sum.balance ?? 0);
-
-    const portfolio = await this.investments.getPortfolio(userId);
-    const totalInvestments = portfolio.summary.totalCurrentValue;
+    const totalInvestments = 0;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
