@@ -18,7 +18,6 @@ import {
 import { useAccounts } from '@/hooks/use-accounts'
 import { useMonthlyStats, useRecentTransactions } from '@/hooks/use-transactions'
 import { useCategoryBreakdown, useDailyBreakdown } from '@/hooks/use-reports'
-import { usePortfolio } from '@/hooks/use-investments'
 import { useUserSettings } from '@/hooks/use-user-settings'
 import { useNetWorthHistory, useTakeSnapshot } from '@/hooks/use-net-worth'
 import { useUpcomingBills } from '@/hooks/use-bills'
@@ -102,11 +101,8 @@ export default function DashboardPage() {
   const { data: recent = [] } = useRecentTransactions()
   const { data: dailyData = [] } = useDailyBreakdown(month, year, dailyType)
   const { data: expenseBreakdown = [] } = useCategoryBreakdown(month, year, 'EXPENSE')
-  const { data: portfolio } = usePortfolio()
-
   const accountsTotal = accounts.reduce((sum, a) => sum + Number(a.balance), 0)
-  const portfolioTotal = portfolio?.summary.totalCurrentValue ?? 0
-  const netWorth = accountsTotal + portfolioTotal
+  const netWorth = accountsTotal
 
 
   const dailyChartData = dailyData.map((d) => ({ day: d.day, จำนวน: d.total }))
@@ -165,8 +161,6 @@ export default function DashboardPage() {
     { href: '/income', label: 'รายรับ', icon: '/icons/income.svg', colored: true },
     { href: '/transfers', label: 'โอนเงิน', icon: '/icons/transaction.svg', colored: false },
     { href: '/budget', label: 'งบประมาณ', icon: '/icons/budget.svg', colored: false },
-    { href: '/investments', label: 'ลงทุน', icon: '/icons/investment.svg', colored: false },
-    { href: '/dividends', label: 'เงินปันผล', icon: '/icons/portfolio.svg', colored: false },
     { href: '/bills', label: 'บิล', icon: '/icons/budget.svg', colored: false },
     { href: '/categories', label: 'หมวดหมู่', icon: '/icons/receipt.svg', colored: false },
     { href: '/reports', label: 'รายงาน', icon: '/icons/report.svg', colored: false },
@@ -182,7 +176,7 @@ export default function DashboardPage() {
           <p className="text-sm text-muted-foreground mb-2">Net Worth</p>
           <p className="text-4xl font-bold tracking-tight">{formatCurrency(netWorth)}</p>
           <p className="text-xs text-muted-foreground mt-2">
-            {accounts.length} บัญชี {portfolioTotal > 0 && `· ลงทุน ${formatCurrency(portfolioTotal)}`}
+            {accounts.length} บัญชี
           </p>
         </CardContent>
       </Card>
